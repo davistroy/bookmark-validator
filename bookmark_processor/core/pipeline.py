@@ -19,7 +19,7 @@ from .content_analyzer import ContentAnalyzer, ContentData
 from .ai_processor import EnhancedAIProcessor, AIProcessingResult
 from .tag_generator import CorpusAwareTagGenerator, TagOptimizationResult
 from .checkpoint_manager import CheckpointManager, ProcessingStage, ProcessingState
-from ..utils.progress_tracker import AdvancedProgressTracker, ProgressLevel
+from ..utils.progress_tracker import AdvancedProgressTracker, ProgressLevel, ProcessingStage as PTStage
 from ..utils.intelligent_rate_limiter import IntelligentRateLimiter
 
 
@@ -176,9 +176,10 @@ class BookmarkProcessingPipeline:
         )
         
         if progress_callback:
-            self.progress_tracker.add_progress_callback(
-                lambda stats: progress_callback(f"Progress: {stats['progress_percentage']:.1f}%")
-            )
+            # Store progress callback for manual calls since add_progress_callback doesn't exist
+            self._progress_callback = progress_callback
+        else:
+            self._progress_callback = None
         
         # Initialize checkpoint
         config_dict = self.config.__dict__.copy()
@@ -206,7 +207,7 @@ class BookmarkProcessingPipeline:
         
         finally:
             if self.progress_tracker:
-                self.progress_tracker.finish()
+                self.progress_tracker.complete()
     
     def _resume_processing(self, progress_callback: Optional[Callable[[str], None]]) -> PipelineResults:
         """Resume processing from checkpoint"""
@@ -228,12 +229,13 @@ class BookmarkProcessingPipeline:
             level=self.config.progress_level
         )
         
-        self.progress_tracker.update(items_processed=len(state.processed_urls))
+        self.progress_tracker.update_progress(items_delta=len(state.processed_urls))
         
         if progress_callback:
-            self.progress_tracker.add_progress_callback(
-                lambda stats: progress_callback(f"Progress: {stats['progress_percentage']:.1f}%")
-            )
+            # Store progress callback for manual calls since add_progress_callback doesn't exist
+            self._progress_callback = progress_callback
+        else:
+            self._progress_callback = None
         
         # Continue from current stage
         try:
@@ -261,7 +263,7 @@ class BookmarkProcessingPipeline:
         
         finally:
             if self.progress_tracker:
-                self.progress_tracker.finish()
+                self.progress_tracker.complete()
     
     def _stage_load_bookmarks(self) -> None:
         """Stage 1: Load bookmarks from input file"""
@@ -303,7 +305,7 @@ class BookmarkProcessingPipeline:
         self.checkpoint_manager.update_stage(ProcessingStage.URL_VALIDATION)
         
         if self.progress_tracker:
-            self.progress_tracker.start_stage("URL Validation", len(self.bookmarks))
+            self.progress_tracker.start_stage(PTStage.VALIDATING_URLS, len(self.bookmarks))
         
         # Get URLs to validate (skip if resuming and already validated)
         if resume:
@@ -355,7 +357,7 @@ class BookmarkProcessingPipeline:
             urls_to_analyze = valid_urls
         
         if self.progress_tracker:
-            self.progress_tracker.start_stage("Content Analysis", len(urls_to_analyze))
+            self.progress_tracker.start_stage(PTStage.EXTRACTING_CONTENT, len(urls_to_analyze))
         
         if urls_to_analyze:
             logging.info(f"Analyzing content for {len(urls_to_analyze)} URLs")
@@ -417,7 +419,7 @@ class BookmarkProcessingPipeline:
             bookmarks_to_process = valid_bookmarks
         
         if self.progress_tracker:
-            self.progress_tracker.start_stage("AI Processing", len(bookmarks_to_process))
+            self.progress_tracker.start_stage(PTStage.GENERATING_DESCRIPTIONS, len(bookmarks_to_process))
         
         if bookmarks_to_process:
             logging.info(f"AI processing {len(bookmarks_to_process)} bookmarks")
@@ -457,7 +459,7 @@ class BookmarkProcessingPipeline:
         self.checkpoint_manager.update_stage(ProcessingStage.TAG_OPTIMIZATION)
         
         if self.progress_tracker:
-            self.progress_tracker.start_stage("Tag Generation", 1)
+            self.progress_tracker.start_stage(PTStage.GENERATING_TAGS, 1)
         
         # Get valid bookmarks
         valid_bookmarks = [b for b in self.bookmarks if b.url in self.validation_results and 
@@ -493,7 +495,7 @@ class BookmarkProcessingPipeline:
         self.checkpoint_manager.update_stage(ProcessingStage.OUTPUT_GENERATION)
         
         if self.progress_tracker:
-            self.progress_tracker.start_stage("Output Generation", 1)
+            self.progress_tracker.start_stage(PTStage.SAVING_RESULTS, 1)
         
         # Prepare output data
         output_bookmarks = []
@@ -613,12 +615,26 @@ class BookmarkProcessingPipeline:
     def _validation_progress_callback(self, message: str) -> None:
         """Callback for URL validation progress"""
         if self.progress_tracker:
-            self.progress_tracker.update(message=message)
+            # Just update progress by 1 item, message is ignored for now
+            self.progress_tracker.update_progress(items_delta=1)
+            self._call_progress_callback()
     
     def _ai_progress_callback(self, message: str) -> None:
         """Callback for AI processing progress"""
         if self.progress_tracker:
-            self.progress_tracker.update(message=message)
+            # Just update progress by 1 item, message is ignored for now
+            self.progress_tracker.update_progress(items_delta=1)
+            self._call_progress_callback()
+    
+    def _call_progress_callback(self) -> None:
+        """Call the stored progress callback if available"""
+        if self._progress_callback and self.progress_tracker:
+            try:
+                snapshot = self.progress_tracker.get_snapshot()
+                progress_percentage = snapshot.overall_progress
+                self._progress_callback(f"Progress: {progress_percentage:.1f}%")
+            except Exception as e:
+                logging.debug(f"Progress callback error: {e}")
     
     def _create_results(self) -> PipelineResults:
         """Create final pipeline results"""
@@ -671,7 +687,7 @@ class BookmarkProcessingPipeline:
             if self.checkpoint_manager:
                 self.checkpoint_manager.close()
             if self.progress_tracker:
-                self.progress_tracker.close()
+                self.progress_tracker.complete()
             
             logging.info("Pipeline resources cleaned up")
         except Exception as e:
