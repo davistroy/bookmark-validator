@@ -1,0 +1,4 @@
+id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite
+1,"Test Title","Note","excerpt","https://example.com","Test Folder","tag1","2024-01-01T00:00:00Z","","","false"
+2,"Another Title","Note","excerpt","https://example2.com"
+3,"Third Title","Note","excerpt","https://example3.com","Test Folder","tag1","2024-01-03T00:00:00Z","","","true"

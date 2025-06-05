@@ -1,0 +1,4 @@
+id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite
+1,"Test Title","Note","excerpt","not-a-url","Test Folder","tag1","2024-01-01T00:00:00Z","","","false"
+2,"Another Title","Note","excerpt","ftp://example.com","Test Folder","tag1","2024-01-02T00:00:00Z","","","true"
+3,"Third Title","Note","excerpt","javascript:alert('test')","Test Folder","tag1","2024-01-03T00:00:00Z","","","true"

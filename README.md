@@ -1,6 +1,6 @@
 # Bookmark Validation and Enhancement Tool
 
-A powerful Windows command-line tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. Perfect for users with large bookmark collections who want to clean, enhance, and better organize their digital bookmarks.
+A powerful Linux/WSL command-line tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. Perfect for users with large bookmark collections who want to clean, enhance, and better organize their digital bookmarks.
 
 ## Features
 
@@ -9,54 +9,64 @@ A powerful Windows command-line tool that processes raindrop.io bookmark exports
 - **Smart Tag Optimization**: Creates a coherent tagging system across your entire bookmark collection
 - **Checkpoint/Resume**: Saves progress automatically and resumes from interruptions
 - **Large Dataset Support**: Efficiently processes 3,500+ bookmarks within 8 hours
-- **Windows Executable**: Standalone .exe file requiring no Python installation
+- **Linux Executable**: Standalone binary file or Python virtual environment support
 
 ## Quick Start
 
-```cmd
-bookmark-processor.exe --input bookmarks.csv --output enhanced.csv
+```bash
+# Using virtual environment
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv
+
+# Using built executable (if available)
+./dist/bookmark-processor --input bookmarks.csv --output enhanced.csv
 ```
 
 ## Installation
 
-### Option 1: Download Pre-built Executable (Recommended)
-1. Download the latest release from the [Releases](https://github.com/davistroy/bookmark-validator/releases) page
-2. Extract `bookmark-processor.exe` to your desired location
-3. Open Command Prompt and navigate to the directory
-4. Run the tool with your bookmark file
-
-### Option 2: Build from Source
+### Option 1: Using Python Virtual Environment (Recommended)
 ```bash
 # Clone the repository
 git clone https://github.com/davistroy/bookmark-validator.git
 cd bookmark-validator
 
 # Create virtual environment
-python -m venv venv
-venv\Scripts\activate
+python3 -m venv venv
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
+# Run the tool
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv
+```
+
+### Option 2: Build Linux Executable
+```bash
+# After setting up virtual environment (Option 1)
+source venv/bin/activate
+
 # Build executable
-python build_exe.py
+./build_linux.sh
+
+# Run executable
+./dist/bookmark-processor --input bookmarks.csv --output enhanced.csv
 ```
 
 ## Usage
 
 ### Basic Usage
-```cmd
-bookmark-processor.exe --input raindrop_export.csv --output enhanced_bookmarks.csv
+```bash
+python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv
 ```
 
 ### Resume from Checkpoint
-```cmd
-bookmark-processor.exe --input raindrop_export.csv --output enhanced_bookmarks.csv --resume
+```bash
+python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv --resume
 ```
 
 ### Advanced Options
-```cmd
-bookmark-processor.exe --input bookmarks.csv --output enhanced.csv --batch-size 50 --verbose
+```bash
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --batch-size 50 --verbose
 ```
 
 ### All Command-Line Options
@@ -121,7 +131,8 @@ url,folder,title,note,tags,created
 
 ## Requirements
 
-- Windows 11
+- Linux (Ubuntu 20.04+) or WSL2
+- Python 3.12+ 
 - 8GB RAM (recommended)
 - Internet connection for URL validation
 - Sufficient disk space for checkpoint files
@@ -166,9 +177,35 @@ Save as `config.ini` and use with `--config config.ini`
 
 ### Debug Mode
 For detailed debugging information:
-```cmd
-bookmark-processor.exe --input bookmarks.csv --output enhanced.csv --verbose
+```bash
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --verbose
 ```
+
+## Implementation Status
+
+✅ **Fully Implemented Components:**
+- URL Validation Module with intelligent rate limiting
+- AI Processing Module with fallback strategies
+- Content Analysis Module with BeautifulSoup
+- Checkpoint Manager for progress persistence
+- Tag Generation with corpus-aware optimization
+- Complete Processing Pipeline orchestration
+- Progress Tracking with real-time ETA
+- Comprehensive Test Suite (unit & integration)
+- Linux Build System with PyInstaller
+- CSV Handler for raindrop.io format conversion
+
+🧪 **Testing Status:**
+- Unit tests: ✅ Complete coverage for core modules
+- Integration tests: ✅ End-to-end workflow validation
+- Pipeline tests: ✅ Complete processing verification
+- Fixture data: ✅ Realistic test scenarios
+
+🏗️ **Build System:**
+- Linux executable: ✅ PyInstaller configuration ready
+- Virtual environment: ✅ Fully functional
+- Dependencies: ✅ All core dependencies installed
+- Test runner: ✅ Automated test execution
 
 ## Development
 
@@ -184,7 +221,18 @@ bookmark-validator/
 
 ### Running Tests
 ```bash
+# Install test dependencies
+pip install pytest pytest-mock
+
+# Run all tests
 python -m pytest tests/ -v
+
+# Run specific test categories
+python run_tests.py --test-type unit
+python run_tests.py --test-type integration
+
+# Run tests with coverage
+python run_tests.py --coverage
 ```
 
 ### Contributing

@@ -7,8 +7,8 @@ environment and the Windows executable.
 """
 
 import sys
-from bookmark_processor.cli import main
 
+from bookmark_processor.cli import main
 
 if __name__ == "__main__":
     sys.exit(main())
