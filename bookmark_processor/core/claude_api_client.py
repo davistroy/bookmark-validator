@@ -64,6 +64,8 @@ class ClaudeAPIClient(BaseAPIClient):
         """
         Create an optimized prompt for bookmark description generation.
         
+        Claude-optimized prompt focuses on clear instructions and examples.
+        
         Args:
             bookmark: Bookmark object to process
             existing_content: Existing content to enhance
@@ -80,25 +82,25 @@ class ClaudeAPIClient(BaseAPIClient):
         # Use provided content or fallback to bookmark content
         content_to_enhance = existing_content or existing_note or existing_excerpt
         
-        # Create the prompt
-        prompt = f"""You are an expert at creating concise, informative bookmark descriptions. 
+        # Extract domain for context
+        try:
+            from urllib.parse import urlparse
+            domain = urlparse(url).netloc or 'unknown domain'
+        except:
+            domain = 'unknown domain'
+        
+        # Create optimized prompt for Claude
+        prompt = f"""Create a concise bookmark description (100-150 chars) that captures the key value.
 
-Your task is to generate a clear, engaging description for this bookmark that would help someone quickly understand what the content is about and why it might be valuable.
+Title: {title}
+Domain: {domain}
+Content: {content_to_enhance or 'None'}
 
-Bookmark Information:
-- Title: {title}
-- URL: {url}
-- Existing content: {content_to_enhance or 'None provided'}
+Focus on: What problem does this solve? What can users learn/do?
+Avoid: Generic phrases, "This is a website about..."
+Style: Direct, actionable, specific
 
-Requirements:
-1. Create a description between 100-150 characters
-2. Focus on the main value proposition or purpose
-3. Be specific and actionable when possible
-4. Avoid generic phrases like "This website is about" or "This page contains"
-5. If existing content is provided, enhance and improve it while preserving the core meaning
-6. Make it compelling but accurate
-
-Generate only the description, no additional text or formatting."""
+Description:"""
         
         return prompt
     
@@ -117,10 +119,12 @@ Generate only the description, no additional text or formatting."""
         Returns:
             Formatted batch prompt
         """
-        prompt = """You are an expert at creating concise, informative bookmark descriptions. 
+        prompt = """Create bookmark descriptions (100-150 chars each) that capture key value and purpose.
 
-Generate enhanced descriptions for the following bookmarks. Each description should be 100-150 characters, focused on the main value proposition, and avoid generic phrases.
+Focus on: What problem solved? What can users learn/do?
+Format: Just numbered descriptions, no extra text.
 
+Bookmarks:
 """
         
         for i, bookmark in enumerate(bookmarks):
@@ -129,26 +133,25 @@ Generate enhanced descriptions for the following bookmarks. Each description sho
             existing_note = getattr(bookmark, 'note', '') or ''
             existing_excerpt = getattr(bookmark, 'excerpt', '') or ''
             
+            # Extract domain for context
+            try:
+                from urllib.parse import urlparse
+                domain = urlparse(url).netloc or 'unknown'
+            except:
+                domain = 'unknown'
+            
             # Use provided content or fallback
             content = (existing_content[i] if existing_content and i < len(existing_content) 
                       else existing_note or existing_excerpt or 'None')
             
-            prompt += f"""
-Bookmark {i + 1}:
-- Title: {title}
-- URL: {url}
-- Existing content: {content}
-
+            # Truncate content to save tokens
+            content_short = content[:100] + ('...' if len(content) > 100 else '')
+            
+            prompt += f"""{i + 1}. Title: {title} | Domain: {domain} | Content: {content_short}
 """
         
         prompt += """
-Respond with exactly one description per bookmark, numbered and separated by newlines:
-
-1. [Description for bookmark 1]
-2. [Description for bookmark 2]
-...
-
-Generate only the numbered descriptions, no additional text."""
+Descriptions:"""
         
         return prompt
     

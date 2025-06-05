@@ -78,29 +78,26 @@ class OpenAIAPIClient(BaseAPIClient):
         # Use provided content or fallback to bookmark content
         content_to_enhance = existing_content or existing_note or existing_excerpt
         
-        # System message
+        # Extract domain for context
+        try:
+            from urllib.parse import urlparse
+            domain = urlparse(url).netloc or 'unknown domain'
+        except:
+            domain = 'unknown domain'
+        
+        # Optimized system message for GPT-3.5-turbo
         system_message = {
             "role": "system",
-            "content": """You are an expert at creating concise, informative bookmark descriptions. 
-Generate clear, engaging descriptions that help users quickly understand what content is about and why it's valuable.
-
-Requirements:
-- Keep descriptions between 100-150 characters
-- Focus on the main value proposition or purpose
-- Be specific and actionable when possible
-- Avoid generic phrases like "This website is about" or "This page contains"
-- If existing content is provided, enhance it while preserving core meaning
-- Make it compelling but accurate"""
+            "content": "Create concise bookmark descriptions (100-150 chars). Focus on value and purpose. Avoid generic phrases."
         }
         
-        # User message with bookmark details
-        user_content = f"""Create an enhanced description for this bookmark:
+        # Compact user message to save tokens
+        user_content = f"""Title: {title}
+Domain: {domain}
+Content: {content_to_enhance or 'None'}
 
-Title: {title}
-URL: {url}
-Existing content: {content_to_enhance or 'None provided'}
-
-Generate only the description, no additional text or formatting."""
+What problem does this solve? What can users learn/do?
+Description:"""
         
         user_message = {
             "role": "user",
@@ -124,16 +121,14 @@ Generate only the description, no additional text or formatting."""
         Returns:
             List of message dictionaries for OpenAI chat completion
         """
-        # System message
+        # Optimized system message for batch processing
         system_message = {
             "role": "system",
-            "content": """You are an expert at creating concise, informative bookmark descriptions. 
-Generate enhanced descriptions for multiple bookmarks. Each description should be 100-150 characters, 
-focused on the main value proposition, and avoid generic phrases."""
+            "content": "Create bookmark descriptions (100-150 chars each). Focus on value/purpose. Format: numbered list only."
         }
         
-        # Build user message with all bookmarks
-        user_content = "Create enhanced descriptions for the following bookmarks:\n\n"
+        # Build compact user message
+        user_content = "Bookmarks:\n"
         
         for i, bookmark in enumerate(bookmarks):
             title = getattr(bookmark, 'title', '') or 'Untitled'
@@ -141,24 +136,23 @@ focused on the main value proposition, and avoid generic phrases."""
             existing_note = getattr(bookmark, 'note', '') or ''
             existing_excerpt = getattr(bookmark, 'excerpt', '') or ''
             
+            # Extract domain for context
+            try:
+                from urllib.parse import urlparse
+                domain = urlparse(url).netloc or 'unknown'
+            except:
+                domain = 'unknown'
+            
             # Use provided content or fallback
             content = (existing_content[i] if existing_content and i < len(existing_content) 
                       else existing_note or existing_excerpt or 'None')
             
-            user_content += f"""Bookmark {i + 1}:
-Title: {title}
-URL: {url}
-Existing content: {content}
-
-"""
+            # Truncate content to save tokens
+            content_short = content[:80] + ('...' if len(content) > 80 else '')
+            
+            user_content += f"{i + 1}. {title} | {domain} | {content_short}\n"
         
-        user_content += """Respond with exactly one description per bookmark, numbered and separated by newlines:
-
-1. [Description for bookmark 1]
-2. [Description for bookmark 2]
-...
-
-Generate only the numbered descriptions, no additional text."""
+        user_content += "\nDescriptions:"
         
         user_message = {
             "role": "user",

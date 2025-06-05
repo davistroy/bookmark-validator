@@ -123,6 +123,23 @@ url,folder,title,note,tags,created
 - Stage-specific indicators (validation, AI processing, tagging)
 - Accurate time estimation for remaining work
 - Comprehensive error logging and reporting
+- Memory usage monitoring and health status
+- Performance metrics and efficiency tracking
+
+### Cost Tracking (Cloud AI)
+- Real-time cost monitoring for Claude and OpenAI APIs
+- User confirmation prompts at configurable intervals ($10 default)
+- Detailed cost breakdowns by provider and operation
+- Cost estimation before processing begins
+- Historical usage analysis and reporting
+- Emergency stop functionality for cost control
+
+### Error Handling and Fallbacks
+- Intelligent error categorization (network, API, validation)
+- Automatic retry logic with exponential backoff
+- Graceful fallback cascade: Cloud AI → Local AI → Basic descriptions
+- Health monitoring with system status alerts
+- Comprehensive error statistics and recovery metrics
 
 ## Performance
 
@@ -172,11 +189,13 @@ url,folder,title,note,tags,created
 
 ### AI Engine Comparison
 
-| Engine | Model | Cost/1K Tokens | Quality | Speed | Rate Limit |
-|--------|-------|----------------|---------|-------|------------|
-| Local | BART | Free | Good | Fast | None |
-| Claude | Haiku | ~$0.25/$1.25 | Excellent | Fast | 50 RPM |
-| OpenAI | GPT-3.5 | ~$0.50/$1.50 | Excellent | Fast | 60 RPM |
+| Engine | Model | Cost/1K Tokens | Quality | Speed | Rate Limit | Best For |
+|--------|-------|----------------|---------|-------|------------|----------|
+| Local | BART | Free | Good | Fast | None | Privacy, Offline |
+| Claude | Haiku | ~$0.25/$1.25 | Excellent | Fast | 50 RPM | Quality, Context |
+| OpenAI | GPT-3.5 | ~$0.50/$1.50 | Excellent | Fast | 60 RPM | Speed, Efficiency |
+
+> 📖 **Detailed Guide**: See [Cloud AI Integration Guide](docs/CLOUD_AI_GUIDE.md) for comprehensive setup, cost tracking, and optimization tips.
 
 ## Configuration
 
