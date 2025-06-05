@@ -21,6 +21,7 @@ from .tag_generator import CorpusAwareTagGenerator, TagOptimizationResult
 from .checkpoint_manager import CheckpointManager, ProcessingStage, ProcessingState
 from ..utils.progress_tracker import AdvancedProgressTracker, ProgressLevel, ProcessingStage as PTStage
 from ..utils.intelligent_rate_limiter import IntelligentRateLimiter
+from ..utils.memory_optimizer import MemoryMonitor, BatchProcessor, memory_context, optimize_for_large_dataset
 
 
 @dataclass
@@ -48,6 +49,11 @@ class PipelineConfig:
     # Tag generation
     target_tag_count: int = 150
     max_tags_per_bookmark: int = 5
+    
+    # Memory management
+    memory_batch_size: int = 100
+    memory_warning_threshold: float = 3000  # MB
+    memory_critical_threshold: float = 3500  # MB
     
     # Progress reporting
     verbose: bool = False
@@ -103,6 +109,16 @@ class BookmarkProcessingPipeline:
         self.tag_generator = CorpusAwareTagGenerator(
             target_tag_count=config.target_tag_count,
             max_tags_per_bookmark=config.max_tags_per_bookmark
+        )
+        
+        # Memory management
+        self.memory_monitor = MemoryMonitor(
+            warning_threshold_mb=config.memory_warning_threshold,
+            critical_threshold_mb=config.memory_critical_threshold
+        )
+        self.batch_processor = BatchProcessor(
+            batch_size=config.memory_batch_size,
+            memory_monitor=self.memory_monitor
         )
         self.checkpoint_manager = CheckpointManager(
             checkpoint_dir=config.checkpoint_dir,

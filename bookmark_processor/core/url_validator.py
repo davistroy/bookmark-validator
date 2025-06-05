@@ -17,10 +17,14 @@ from urllib.parse import urlparse, urljoin, quote
 from pathlib import Path
 import ssl
 import socket
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from ..utils.intelligent_rate_limiter import IntelligentRateLimiter
 from ..utils.browser_simulator import BrowserSimulator
 from ..utils.retry_handler import RetryHandler, ErrorType
+from ..utils.security_validator import SecurityValidator, SecurityValidationResult
+from ..utils.secure_logging import secure_logger
 
 
 @dataclass
@@ -36,6 +40,7 @@ class ValidationResult:
     content_type: Optional[str] = None
     content_length: Optional[int] = None
     timestamp: datetime = field(default_factory=datetime.now)
+    security_validation: Optional[SecurityValidationResult] = None
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
@@ -49,7 +54,8 @@ class ValidationResult:
             'error_type': self.error_type,
             'content_type': self.content_type,
             'content_length': self.content_length,
-            'timestamp': self.timestamp.isoformat()
+            'timestamp': self.timestamp.isoformat(),
+            'security_validation': self.security_validation.to_dict() if self.security_validation else None
         }
 
 
@@ -138,6 +144,7 @@ class URLValidator:
         self.rate_limiter = rate_limiter or IntelligentRateLimiter(max_concurrent=max_concurrent)
         self.browser_simulator = BrowserSimulator(rotate_agents=user_agent_rotation)
         self.retry_handler = RetryHandler()
+        self.security_validator = SecurityValidator()
         
         # Create session
         self.session = self._create_session()
@@ -151,6 +158,93 @@ class URLValidator:
         logging.info(f"Initialized URL validator (timeout={timeout}s, "
                     f"max_concurrent={max_concurrent}, ssl_verify={verify_ssl})")
     
+    def batch_validate_optimized(self,
+                                urls: List[str],
+                                progress_callback: Optional[Callable[[str], None]] = None,
+                                batch_size: int = 100,
+                                max_workers: Optional[int] = None) -> List[ValidationResult]:
+        """
+        Optimized batch validation with memory-efficient processing
+        
+        Args:
+            urls: List of URLs to validate
+            progress_callback: Optional progress callback function
+            batch_size: Number of URLs to process in each batch
+            max_workers: Number of concurrent workers
+            
+        Returns:
+            List of ValidationResult objects
+        """
+        logging.info(f"Starting optimized batch validation of {len(urls)} URLs in batches of {batch_size}")
+        start_time = time.time()
+        
+        # Remove duplicates while preserving order
+        unique_urls = list(dict.fromkeys(urls))
+        total_urls = len(unique_urls)
+        
+        if max_workers is None:
+            max_workers = min(self.max_concurrent, 20)  # Cap at 20 for optimization
+        
+        all_results = []
+        processed_count = 0
+        
+        # Process in batches to manage memory
+        for batch_start in range(0, total_urls, batch_size):
+            batch_end = min(batch_start + batch_size, total_urls)
+            batch_urls = unique_urls[batch_start:batch_end]
+            
+            logging.info(f"Processing batch {batch_start//batch_size + 1}: {len(batch_urls)} URLs")
+            
+            # Validate batch with threading
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all validations
+                future_to_url = {
+                    executor.submit(self.validate_url, url): url 
+                    for url in batch_urls
+                }
+                
+                batch_results = []
+                for future in as_completed(future_to_url):
+                    url = future_to_url[future]
+                    try:
+                        result = future.result()
+                        batch_results.append(result)
+                        processed_count += 1
+                        
+                        # Progress callback
+                        if progress_callback:
+                            progress_callback(f"Validated {processed_count}/{total_urls}: {url}")
+                            
+                    except Exception as e:
+                        logging.error(f"Error validating {url}: {e}")
+                        # Create error result
+                        error_result = ValidationResult(
+                            url=url,
+                            is_valid=False,
+                            error_message=f"Validation error: {str(e)}",
+                            error_type="validation_error"
+                        )
+                        batch_results.append(error_result)
+                        processed_count += 1
+            
+            # Add batch results to total
+            all_results.extend(batch_results)
+            
+            # Force garbage collection between batches
+            import gc
+            gc.collect()
+            
+            # Brief pause between batches to allow rate limiting
+            if batch_end < total_urls:
+                time.sleep(0.1)
+        
+        total_time = time.time() - start_time
+        valid_count = sum(1 for r in all_results if r.is_valid)
+        
+        logging.info(f"Batch validation completed: {valid_count}/{len(all_results)} valid URLs in {total_time:.2f}s")
+        
+        return all_results
+    
     def validate_url(self, url: str) -> ValidationResult:
         """
         Validate a single URL.
@@ -163,6 +257,26 @@ class URLValidator:
         """
         start_time = time.time()
         
+        # Security validation first
+        security_result = self.security_validator.validate_url_security(url)
+        if not security_result.is_safe:
+            # Log security event
+            if security_result.risk_level in ['high', 'critical']:
+                secure_logger.log_url_validation_failure(
+                    url, 
+                    security_result.blocked_reason or "Security validation failed",
+                    security_result.issues
+                )
+            
+            return ValidationResult(
+                url=url,
+                is_valid=False,
+                error_message=security_result.blocked_reason or "Security validation failed",
+                error_type="security_error",
+                response_time=time.time() - start_time,
+                security_validation=security_result
+            )
+        
         # Basic URL validation
         if not self._is_valid_url_format(url):
             return ValidationResult(
@@ -170,7 +284,8 @@ class URLValidator:
                 is_valid=False,
                 error_message="Invalid URL format",
                 error_type="format_error",
-                response_time=time.time() - start_time
+                response_time=time.time() - start_time,
+                security_validation=security_result
             )
         
         # Check skip patterns
@@ -180,7 +295,8 @@ class URLValidator:
                 is_valid=False,
                 error_message="URL type not supported for validation",
                 error_type="unsupported_scheme",
-                response_time=time.time() - start_time
+                response_time=time.time() - start_time,
+                security_validation=security_result
             )
         
         # Apply rate limiting
@@ -211,7 +327,8 @@ class URLValidator:
                 final_url=response.url if response.url != url else None,
                 response_time=response_time,
                 content_type=response.headers.get('content-type'),
-                content_length=self._parse_content_length(response.headers.get('content-length'))
+                content_length=self._parse_content_length(response.headers.get('content-length')),
+                security_validation=security_result
             )
             
             if not is_valid:
@@ -248,7 +365,8 @@ class URLValidator:
                         content_type=response.headers.get('content-type'),
                         content_length=self._parse_content_length(response.headers.get('content-length')),
                         error_message="SSL certificate warning" if is_valid else f"HTTP {response.status_code}",
-                        error_type="ssl_warning" if is_valid else self._classify_http_error(response.status_code)
+                        error_type="ssl_warning" if is_valid else self._classify_http_error(response.status_code),
+                        security_validation=security_result
                     )
                     
                     self.rate_limiter.record_success(url)
@@ -263,7 +381,8 @@ class URLValidator:
                 is_valid=False,
                 error_message=f"SSL Error: {str(e)}",
                 error_type="ssl_error",
-                response_time=time.time() - start_time
+                response_time=time.time() - start_time,
+                security_validation=security_result
             )
             
         except requests.exceptions.Timeout as e:
@@ -273,7 +392,8 @@ class URLValidator:
                 is_valid=False,
                 error_message=f"Timeout after {self.timeout}s",
                 error_type="timeout",
-                response_time=time.time() - start_time
+                response_time=time.time() - start_time,
+                security_validation=security_result
             )
             
         except requests.exceptions.ConnectionError as e:
@@ -291,7 +411,8 @@ class URLValidator:
                 is_valid=False,
                 error_message=error_msg,
                 error_type=error_type,
-                response_time=time.time() - start_time
+                response_time=time.time() - start_time,
+                security_validation=security_result
             )
             
         except Exception as e:
@@ -301,7 +422,8 @@ class URLValidator:
                 is_valid=False,
                 error_message=f"Unexpected error: {str(e)}",
                 error_type="unknown_error",
-                response_time=time.time() - start_time
+                response_time=time.time() - start_time,
+                security_validation=security_result
             )
     
     def batch_validate(self, 
@@ -432,7 +554,13 @@ class URLValidator:
             status_forcelist=[500, 502, 503, 504]
         )
         
-        adapter = HTTPAdapter(max_retries=retry_strategy)
+        # Enhanced adapter with larger connection pool
+        adapter = HTTPAdapter(
+            max_retries=retry_strategy,
+            pool_connections=20,    # Number of connection pools
+            pool_maxsize=50,        # Max connections per pool
+            pool_block=False        # Don't block when pool is full
+        )
         session.mount("http://", adapter)
         session.mount("https://", adapter)
         
