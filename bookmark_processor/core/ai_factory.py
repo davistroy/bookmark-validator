@@ -9,9 +9,10 @@ import logging
 from typing import Any, Dict, Optional, Union
 
 from bookmark_processor.config.configuration import Configuration
-from bookmark_processor.core.ai_processor import AIProcessor  # Local AI
+from bookmark_processor.core.ai_processor import EnhancedAIProcessor as AIProcessor  # Local AI
 from bookmark_processor.core.claude_api_client import ClaudeAPIClient
 from bookmark_processor.core.openai_api_client import OpenAIAPIClient
+from bookmark_processor.utils.error_handler import get_error_handler
 
 
 class AISelectionError(Exception):
@@ -168,6 +169,9 @@ class AIManager:
         self.fallback_client = None
         self.current_provider = None
         
+        # Initialize error handler
+        self.error_handler = get_error_handler(enable_fallback)
+        
         self.logger = logging.getLogger(__name__)
     
     async def __aenter__(self) -> "AIManager":
@@ -248,7 +252,7 @@ class AIManager:
     
     async def generate_description(self, bookmark, existing_content: Optional[str] = None) -> tuple[str, Dict[str, Any]]:
         """
-        Generate description using the available AI client.
+        Generate description using the available AI client with comprehensive error handling.
         
         Args:
             bookmark: Bookmark object to process
@@ -257,40 +261,69 @@ class AIManager:
         Returns:
             Tuple of (enhanced_description, metadata)
         """
-        last_error = None
+        context = {
+            "bookmark_url": getattr(bookmark, 'url', 'Unknown'),
+            "bookmark_title": getattr(bookmark, 'title', 'Unknown'),
+            "primary_provider": self.primary_provider,
+            "fallback_provider": self.fallback_provider,
+        }
         
-        # Try primary client
+        # Try primary client with retry logic
         if self.primary_client:
             try:
-                result = await self.primary_client.generate_description(bookmark, existing_content)
-                if result and result[0]:  # Check if we got a valid description
+                async def primary_operation():
+                    result = await self.primary_client.generate_description(bookmark, existing_content)
+                    if not result or not result[0]:  # Validate result
+                        raise ValueError("Empty or invalid description returned")
                     return result
+                
+                result = await self.error_handler.handle_with_retry(
+                    primary_operation,
+                    context=context
+                )
+                return result
+                
             except Exception as e:
-                self.logger.warning(f"Primary AI client ({self.current_provider}) failed: {e}")
-                last_error = e
+                self.logger.warning(f"Primary AI client ({self.current_provider}) failed after retries: {e}")
+                
+                # If fallback is enabled, continue to fallback logic
+                if not self.enable_fallback:
+                    # No fallback, use error handler's fallback strategy
+                    return await self.error_handler.handle_bookmark_processing_error(
+                        e, bookmark, existing_content, context
+                    )
         
-        # Try fallback client
+        # Try fallback client with retry logic
         if self.fallback_client and self.enable_fallback:
             try:
                 self.logger.info(f"Falling back to {self.fallback_provider}")
-                result = await self.fallback_client.generate_description(bookmark, existing_content)
-                if result and result[0]:  # Check if we got a valid description
+                context["current_provider"] = self.fallback_provider
+                
+                async def fallback_operation():
+                    result = await self.fallback_client.generate_description(bookmark, existing_content)
+                    if not result or not result[0]:  # Validate result
+                        raise ValueError("Empty or invalid description returned")
                     return result
+                
+                result = await self.error_handler.handle_with_retry(
+                    fallback_operation,
+                    context=context
+                )
+                return result
+                
             except Exception as e:
-                self.logger.warning(f"Fallback AI client ({self.fallback_provider}) failed: {e}")
-                last_error = e
+                self.logger.warning(f"Fallback AI client ({self.fallback_provider}) failed after retries: {e}")
+                
+                # Use error handler's fallback strategy as last resort
+                return await self.error_handler.handle_bookmark_processing_error(
+                    e, bookmark, existing_content, context
+                )
         
-        # If all AI fails, create a basic description
-        title = getattr(bookmark, 'title', '') or 'Untitled'
-        basic_description = f"Bookmark for {title}"
-        
-        metadata = {
-            "provider": "fallback",
-            "error": str(last_error) if last_error else "No AI clients available",
-            "success": False,
-        }
-        
-        return basic_description, metadata
+        # No clients available, use error handler's fallback
+        no_client_error = Exception("No AI clients available")
+        return await self.error_handler.handle_bookmark_processing_error(
+            no_client_error, bookmark, existing_content, context
+        )
     
     async def generate_descriptions_batch(self, bookmarks, existing_content=None):
         """
@@ -336,16 +369,50 @@ class AIManager:
     
     def get_usage_statistics(self) -> Dict[str, Any]:
         """
-        Get usage statistics from the active client.
+        Get comprehensive usage statistics including error handling.
         
         Returns:
             Dictionary with usage statistics
         """
-        if self.primary_client and hasattr(self.primary_client, 'get_usage_statistics'):
-            return self.primary_client.get_usage_statistics()
-        
-        return {
+        stats = {
             "provider": self.current_provider or "none",
             "total_requests": 0,
             "total_cost_usd": 0.0,
         }
+        
+        # Get AI client statistics
+        if self.primary_client and hasattr(self.primary_client, 'get_usage_statistics'):
+            client_stats = self.primary_client.get_usage_statistics()
+            stats.update(client_stats)
+        
+        # Add error handling statistics
+        error_stats = self.error_handler.get_error_statistics()
+        stats["error_handling"] = error_stats
+        
+        # Add health status
+        health_status = self.error_handler.get_health_status()
+        stats["health_status"] = health_status
+        
+        return stats
+    
+    def get_error_statistics(self) -> Dict[str, Any]:
+        """
+        Get detailed error statistics.
+        
+        Returns:
+            Dictionary with error statistics
+        """
+        return self.error_handler.get_error_statistics()
+    
+    def get_health_status(self) -> Dict[str, Any]:
+        """
+        Get health status based on recent errors.
+        
+        Returns:
+            Dictionary with health status
+        """
+        return self.error_handler.get_health_status()
+    
+    def reset_error_statistics(self) -> None:
+        """Reset error tracking statistics."""
+        self.error_handler.reset_statistics()
