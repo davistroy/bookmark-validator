@@ -1,0 +1,123 @@
+Bookmark Validation and Enhancement Tool - Product Requirements Document
+
+PRODUCT OVERVIEW:
+A Windows command-line executable tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. The tool is designed for users with large bookmark collections (3,500+ items) who want to clean, enhance, and better organize their digital bookmarks without manual effort.
+
+TARGET USERS:
+- Power users with 1,000+ bookmarks using raindrop.io
+- Digital researchers, academics, and information workers
+- Users comfortable with command-line tools
+- Windows 11 users
+
+CORE REQUIREMENTS:
+
+1. RAINDROP.IO FORMAT PROCESSING (Critical)
+   - Import 11-column CSV files exported from raindrop.io (id, title, note, excerpt, url, folder, tags, created, cover, highlights, favorite)
+   - Export 6-column CSV files for raindrop.io import (url, folder, title, note, tags, created)
+   - Handle UTF-8 encoding and international characters
+   - Preserve folder structure with forward slash notation
+   - Format tags correctly (single unquoted, multiple quoted with commas)
+
+2. URL VALIDATION WITH RETRY LOGIC (Critical)
+   - Validate each bookmark URL by checking HTTP 200 status
+   - Implement intelligent rate limiting per domain (0.5-3.0 seconds between requests)
+   - Special handling for major sites (Google, GitHub, YouTube, LinkedIn, etc.)
+   - Retry failed URLs later in the processing batch
+   - Use realistic browser headers and user agent rotation
+   - Maximum 3 retry attempts with exponential backoff
+   - Continue processing despite individual URL failures
+
+3. AI-ENHANCED DESCRIPTION GENERATION (Critical)
+   - Generate AI descriptions using existing note/excerpt content as input context
+   - Target description length: 100-150 characters
+   - Fallback hierarchy: AI with existing content → existing excerpt → meta description → title-based description
+   - Use transformer models (facebook/bart-large-cnn or equivalent)
+   - Preserve user intent while enhancing with AI analysis
+
+4. CORPUS-AWARE TAG OPTIMIZATION (Critical)
+   - Analyze complete bookmark corpus after validation and description generation
+   - Generate optimal tag set targeting 100-200 unique tags
+   - Replace existing tags while using them as input context
+   - Maximum 5 tags per bookmark
+   - Ensure coherent tagging across similar content types
+   - Perform final tag assignment after all processing is complete
+
+5. CHECKPOINT AND RESUME FUNCTIONALITY (High Priority)
+   - Save processing state every 50 processed items
+   - Automatic checkpoint detection on startup
+   - Resume processing from last successful checkpoint
+   - Secure checkpoint file management with automatic cleanup
+   - Include validation status, descriptions, and processing state in checkpoints
+
+6. WINDOWS EXECUTABLE PACKAGING (Critical)
+   - Single .exe file with embedded dependencies
+   - No Python installation required on target system
+   - Windows 11 compatibility
+   - Proper resource path handling for executable environment
+   - Model caching and management for AI components
+
+7. PROGRESS TRACKING AND REPORTING (High Priority)
+   - Real-time progress bars with percentage completion
+   - Text updates describing current processing activity
+   - Accurate time estimation for remaining work
+   - Stage-specific progress indicators (validation, content analysis, AI processing, tagging)
+   - Comprehensive error logging (console + file)
+   - Detailed error log for invalid bookmarks
+
+PERFORMANCE REQUIREMENTS:
+- Process 3,500+ bookmarks within 8 hours
+- Peak memory usage < 4GB
+- Maximum 10 concurrent network connections
+- Application startup < 30 seconds
+- Resume from checkpoint < 30 seconds
+
+USER INTERFACE:
+Command-line interface with argument parsing:
+bookmark-processor.exe --input raindrop_export.csv --output enhanced_bookmarks.csv [options]
+
+Options:
+  --config CONFIG_FILE    Custom configuration file
+  --resume               Resume from existing checkpoint
+  --verbose              Enable detailed logging
+  --batch-size SIZE      Processing batch size (default: 100)
+  --max-retries NUM      Maximum retry attempts (default: 3)
+  --clear-checkpoints    Clear existing checkpoints and start fresh
+  --help                 Show help message
+
+DATA QUALITY REQUIREMENTS:
+- 95%+ processing completion rate for valid bookmarks
+- All URLs must be unique in final output
+- Descriptions must be concise and accurately represent content
+- Tags must be relevant, optimized for the entire corpus, and properly formatted
+- Error logs must provide sufficient detail for manual review
+
+SECURITY AND PRIVACY:
+- All processing is local - no external data transmission except to target URLs
+- Secure handling of checkpoint files
+- No sensitive information in logs
+- Input validation for all user-provided data
+- Protection against SSRF and malicious URLs
+
+SUCCESS CRITERIA:
+- Successfully validate and process 95%+ of accessible bookmarks
+- Generate relevant, enhanced descriptions for all valid bookmarks
+- Create optimized tag set that effectively categorizes the entire bookmark corpus
+- Eliminate all duplicate URLs from the dataset
+- Complete processing of 3,500+ bookmarks within 8-hour timeframe
+- Maintain stable performance without memory leaks or crashes
+- Provide accurate progress estimation and timing information
+- 100% compatibility with raindrop.io import format
+
+TECHNICAL SPECIFICATIONS:
+- Programming Language: Python 3.9+
+- Application Type: Command Line Interface (CLI)
+- Processing Method: Batch processing with checkpoint/resume capability
+- Packaging: PyInstaller for Windows executable creation
+- Key Dependencies: pandas, requests, beautifulsoup4, transformers, tqdm, pytest
+
+FUTURE CONSIDERATIONS:
+- Support for other bookmark export formats (Chrome, Firefox, etc.)
+- Advanced tag categorization and hierarchical organization
+- Content similarity detection and recommendation features
+- Parallel processing optimization for faster completion
+- GUI version for less technical users
