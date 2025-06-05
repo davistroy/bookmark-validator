@@ -8,10 +8,11 @@ This file serves as the comprehensive reference for AI assistants (primarily Cla
 ## 🎯 Project Overview
 
 **Project Name:** Bookmark Validation and Enhancement Tool  
-**Type:** Python CLI Application → Windows Executable (.exe)  
+**Type:** Python CLI Application (Linux/WSL only)  
 **Purpose:** Process raindrop.io bookmark exports, validate URLs, generate AI descriptions, and apply intelligent tagging  
 **Target Volume:** 3,598+ bookmarks per batch (up to 8-hour processing time acceptable)  
-**Deployment:** Standalone Windows 11 executable with embedded dependencies
+**Deployment:** Linux native or WSL2 on Windows - Python virtual environment or standalone executable  
+**Platform:** Linux/WSL ONLY - Windows native is NOT supported
 
 ### Core Functionality
 - Import 11-column raindrop.io CSV exports (id, title, note, excerpt, url, folder, tags, created, cover, highlights, favorite)
@@ -27,11 +28,11 @@ This file serves as the comprehensive reference for AI assistants (primarily Cla
 
 ## 📋 Essential Commands
 
-### Development Commands
+### Development Commands (Linux/WSL Only)
 ```bash
 # Environment setup
-python -m venv venv
-venv\Scripts\activate
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
 # Install development dependencies
@@ -41,30 +42,41 @@ pip install pyinstaller pytest black isort flake8 mypy
 # Run the application (development)
 python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv
 
+# Run with help
+python -m bookmark_processor --help
+
 # Run with resume capability
 python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv --resume
+
+# Run with cloud AI (Claude or OpenAI)
+python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv --ai-engine claude
+python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv --ai-engine openai
 
 # Run with custom batch size and verbose logging
 python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv --batch-size 50 --verbose
 ```
 
-### Windows Executable Commands
-```cmd
-# Build Windows executable
-python build_exe.py
+### Linux Executable Commands
+```bash
+# Build Linux executable
+./build_linux.sh
 
 # Alternative build with spec file
-pyinstaller bookmark_processor.spec
+python -m PyInstaller bookmark_processor.spec
 
 # Test executable
-dist\bookmark-processor.exe --help
-dist\bookmark-processor.exe --input test_data.csv --output output.csv
+./dist/bookmark-processor --help
+./dist/bookmark-processor --input test_data.csv --output output.csv
 
 # Full processing with resume
-dist\bookmark-processor.exe --input raindrop_export.csv --output enhanced.csv --resume --verbose
+./dist/bookmark-processor --input raindrop_export.csv --output enhanced.csv --resume --verbose
+
+# Processing with cloud AI
+./dist/bookmark-processor --input raindrop_export.csv --output enhanced.csv --ai-engine claude
+./dist/bookmark-processor --input raindrop_export.csv --output enhanced.csv --ai-engine openai
 
 # Clear checkpoints and start fresh
-dist\bookmark-processor.exe --input raindrop_export.csv --output enhanced.csv --clear-checkpoints
+./dist/bookmark-processor --input raindrop_export.csv --output enhanced.csv --clear-checkpoints
 ```
 
 ### Testing Commands
@@ -280,6 +292,27 @@ ai_model = facebook/bart-large-cnn
 max_description_length = 150
 use_existing_content = true
 
+[ai]
+# Default engine: local, claude, or openai
+default_engine = local
+
+# Cloud AI configuration (NEVER commit this file with API keys!)
+# Copy config/default_config.ini to config/user_config.ini and add your keys there
+# claude_api_key = your-claude-api-key-here
+# openai_api_key = your-openai-api-key-here
+
+# Rate limiting (requests per minute)
+claude_rpm = 50
+openai_rpm = 60
+
+# Batch sizes for cloud AI
+claude_batch_size = 10
+openai_batch_size = 20
+
+# Cost tracking
+show_running_costs = true
+cost_confirmation_interval = 10.0  # USD
+
 [checkpoint]
 enabled = true
 save_interval = 50
@@ -299,21 +332,24 @@ console_output = true
 performance_logging = true
 
 [executable]
-model_cache_dir = %APPDATA%/BookmarkProcessor/models
-temp_dir = %TEMP%/BookmarkProcessor
+model_cache_dir = ~/.cache/bookmark-processor/models
+temp_dir = /tmp/bookmark-processor
 cleanup_on_exit = true
 ```
 
-### Environment Variables for Executable
-```cmd
-REM Optional: Custom configuration
-set BOOKMARK_PROCESSOR_CONFIG=C:\path\to\config.ini
+### Environment Variables (Linux/WSL)
+```bash
+# Optional: Custom configuration
+export BOOKMARK_PROCESSOR_CONFIG=/path/to/config.ini
 
-REM Optional: Custom model cache (for AI models)
-set TRANSFORMERS_CACHE=C:\path\to\model\cache
+# Optional: Custom model cache (for AI models)
+export TRANSFORMERS_CACHE=/path/to/model/cache
 
-REM Optional: Custom checkpoint directory
-set BOOKMARK_CHECKPOINT_DIR=C:\path\to\checkpoints
+# Optional: Custom checkpoint directory
+export BOOKMARK_CHECKPOINT_DIR=/path/to/checkpoints
+
+# IMPORTANT: Never set API keys as environment variables
+# Always use the configuration file for API keys
 ```
 
 ---
@@ -466,6 +502,13 @@ def test_url_validation_with_retry(mock_get, raindrop_export_sample):
 - **MANDATORY** fallback hierarchy: AI with existing content → existing excerpt → meta description → title-based
 - **MUST** generate enhanced descriptions that incorporate existing context
 - **FORBIDDEN** to ignore existing user notes when generating descriptions
+- **EXCEPTION** Cloud AI APIs (Claude/OpenAI) are now supported as alternatives to local AI:
+  - **ALLOWED** Use of Claude API (Anthropic) or OpenAI API for enhanced description generation
+  - **REQUIRED** API keys must be stored in configuration file (never in code or command line)
+  - **MANDATORY** Configuration file with API keys must be in .gitignore
+  - **REQUIRED** Default to local AI unless cloud AI explicitly selected
+  - **MANDATORY** Implement proper rate limiting for each API service
+  - **REQUIRED** Cost tracking and user confirmation at $10 intervals
 
 #### 3. Tag Processing
 - **MANDATORY** replace existing tags entirely with AI-generated tags

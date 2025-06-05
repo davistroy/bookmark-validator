@@ -15,6 +15,7 @@ from bookmark_processor.core.bookmark_processor import BookmarkProcessor
 from bookmark_processor.utils.logging_setup import setup_logging
 from bookmark_processor.utils.validation import (
     ValidationError,
+    validate_ai_engine,
     validate_batch_size,
     validate_config_file,
     validate_conflicting_arguments,
@@ -45,6 +46,14 @@ Examples:
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv --resume
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
     --batch-size 50 --verbose
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --ai-engine claude --verbose
+
+Cloud AI Setup:
+  Copy user_config.ini.template to user_config.ini and add your API keys:
+  [ai]
+  claude_api_key = your-claude-api-key-here
+  openai_api_key = your-openai-api-key-here
 
 For more information, visit: https://github.com/davistroy/bookmark-validator
             """,
@@ -99,6 +108,12 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             action="store_true",
             help="Clear existing checkpoints and start fresh",
         )
+        parser.add_argument(
+            "--ai-engine",
+            choices=["local", "claude", "openai"],
+            default="local",
+            help="Select AI engine for processing (default: local)",
+        )
 
         return parser
 
@@ -140,6 +155,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "batch_size": batch_size,
             "max_retries": max_retries,
             "clear_checkpoints": args.clear_checkpoints,
+            "ai_engine": args.ai_engine,
         }
 
     def process_arguments(self, validated_args: dict) -> Configuration:
@@ -151,12 +167,20 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
 
         Returns:
             Configured Configuration object
+            
+        Raises:
+            ValidationError: If AI engine validation fails
         """
         # Initialize configuration
         config = Configuration(validated_args["config_path"])
 
         # Update configuration with command-line arguments
         config.update_from_args(validated_args)
+
+        # Validate AI engine with configuration (after loading config)
+        validated_args["ai_engine"] = validate_ai_engine(
+            validated_args["ai_engine"], config
+        )
 
         # Set up logging
         setup_logging(config)
@@ -178,6 +202,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             logger.info("Bookmark Processor CLI starting")
             logger.info(f"Input file: {validated_args['input_path']}")
             logger.info(f"Output file: {validated_args['output_path']}")
+            logger.info(f"AI engine: {validated_args['ai_engine']}")
             logger.info(f"Batch size: {validated_args['batch_size']}")
             logger.info(f"Max retries: {validated_args['max_retries']}")
 
@@ -187,6 +212,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                 print(f"  Output: {validated_args['output_path']}")
                 if validated_args["config_path"]:
                     print(f"  Config: {validated_args['config_path']}")
+                print(f"  AI engine: {validated_args['ai_engine']}")
                 print(f"  Batch size: {validated_args['batch_size']}")
                 print(f"  Max retries: {validated_args['max_retries']}")
                 print(f"  Resume: {validated_args['resume']}")

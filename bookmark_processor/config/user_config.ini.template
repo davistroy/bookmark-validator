@@ -1,0 +1,39 @@
+# User Configuration Template for Bookmark Processor
+# 
+# IMPORTANT: 
+# 1. Copy this file to 'user_config.ini' in the same directory
+# 2. Add your API keys below
+# 3. NEVER commit user_config.ini to git (it's in .gitignore)
+#
+# This file overrides settings in default_config.ini
+
+[ai]
+# Cloud AI API Keys (uncomment and add your keys)
+# claude_api_key = your-claude-api-key-here
+# openai_api_key = your-openai-api-key-here
+
+# Override default engine if desired (local, claude, or openai)
+# default_engine = local
+
+# Cost limits (optional)
+# max_cost_per_run = 50.0  # USD
+# pause_at_cost = true
+
+# Custom rate limits if needed
+# claude_rpm = 50
+# openai_rpm = 60
+
+[network]
+# Override network settings if needed
+# timeout = 45
+# max_retries = 5
+
+[processing]
+# Override processing settings
+# batch_size = 50
+# max_description_length = 200
+
+[logging]
+# Override logging settings
+# log_level = DEBUG
+# log_file = my_custom_log.log

@@ -5,11 +5,13 @@ A powerful Linux/WSL command-line tool that processes raindrop.io bookmark expor
 ## Features
 
 - **URL Validation**: Validates bookmark accessibility with intelligent retry logic and rate limiting
-- **AI-Enhanced Descriptions**: Generates improved descriptions using existing content and AI analysis
+- **AI-Enhanced Descriptions**: Generates improved descriptions using local AI or cloud APIs (Claude/OpenAI)
 - **Smart Tag Optimization**: Creates a coherent tagging system across your entire bookmark collection
 - **Checkpoint/Resume**: Saves progress automatically and resumes from interruptions
 - **Large Dataset Support**: Efficiently processes 3,500+ bookmarks within 8 hours
-- **Linux Executable**: Standalone binary file or Python virtual environment support
+- **Linux/WSL Only**: Designed specifically for Linux and Windows Subsystem for Linux (WSL2)
+- **Multiple AI Engines**: Choose between local processing, Claude API, or OpenAI API
+- **Cost Tracking**: Real-time cost monitoring for cloud AI usage with user confirmation
 
 ## Quick Start
 
@@ -73,12 +75,13 @@ python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --batch
 - `--input FILE` - Input CSV file (raindrop.io export format) **[Required]**
 - `--output FILE` - Output CSV file (raindrop.io import format) **[Required]**
 - `--config FILE` - Custom configuration file
+- `--ai-engine ENGINE` - AI engine to use: local (default), claude, or openai
 - `--resume` - Resume from existing checkpoint
 - `--verbose` - Enable detailed logging
 - `--batch-size SIZE` - Processing batch size (default: 100)
 - `--max-retries NUM` - Maximum retry attempts (default: 3)
 - `--clear-checkpoints` - Clear existing checkpoints and start fresh
-- `--help` - Show help message
+- `--help` - Show help message and usage instructions
 
 ## Input/Output Formats
 
@@ -136,6 +139,44 @@ url,folder,title,note,tags,created
 - 8GB RAM (recommended)
 - Internet connection for URL validation
 - Sufficient disk space for checkpoint files
+
+## AI Configuration
+
+### Setting Up Cloud AI APIs
+
+1. **Create Configuration File**:
+   ```bash
+   # Copy default config
+   cp bookmark_processor/config/default_config.ini bookmark_processor/config/user_config.ini
+   
+   # IMPORTANT: Add to .gitignore
+   echo "bookmark_processor/config/user_config.ini" >> .gitignore
+   ```
+
+2. **Add API Keys** to `user_config.ini`:
+   ```ini
+   [ai]
+   # Uncomment and add your API keys
+   claude_api_key = your-claude-api-key-here
+   openai_api_key = your-openai-api-key-here
+   ```
+
+3. **Use Cloud AI**:
+   ```bash
+   # Using Claude (Claude 3 Haiku for cost-effectiveness)
+   python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-engine claude
+   
+   # Using OpenAI (GPT-3.5-turbo for cost-effectiveness)
+   python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-engine openai
+   ```
+
+### AI Engine Comparison
+
+| Engine | Model | Cost/1K Tokens | Quality | Speed | Rate Limit |
+|--------|-------|----------------|---------|-------|------------|
+| Local | BART | Free | Good | Fast | None |
+| Claude | Haiku | ~$0.25/$1.25 | Excellent | Fast | 50 RPM |
+| OpenAI | GPT-3.5 | ~$0.50/$1.50 | Excellent | Fast | 60 RPM |
 
 ## Configuration
 

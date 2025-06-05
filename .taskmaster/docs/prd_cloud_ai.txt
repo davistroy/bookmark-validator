@@ -1,0 +1,124 @@
+# Product Requirements Document: Cloud AI Integration for Bookmark Processor
+
+## Overview
+Add support for cloud-based AI services (Claude API and OpenAI API) as alternatives to local AI processing in the bookmark validation and enhancement tool. This will provide users with more powerful AI capabilities while maintaining cost awareness and user control.
+
+## Objectives
+- Integrate Claude API (Anthropic) for AI-powered bookmark description generation
+- Integrate OpenAI API for AI-powered bookmark description generation
+- Maintain local AI as the default option
+- Implement proper rate limiting for each cloud service
+- Track and display API costs with user confirmation at intervals
+- Ensure API keys are securely managed through configuration files
+
+## Requirements
+
+### 1. Configuration Management
+- Create a user configuration file system separate from default config
+- Add API key fields to configuration (claude_api_key, openai_api_key)
+- Ensure user_config.ini is added to .gitignore automatically
+- Load user configuration with fallback to default configuration
+- Validate API keys when cloud AI is selected
+
+### 2. Command Line Interface Updates
+- Add --ai-engine parameter accepting: local (default), claude, openai
+- Update --help output with comprehensive usage instructions
+- Add validation for ai-engine parameter values
+- Display selected AI engine in verbose mode
+
+### 3. Claude API Integration
+- Use Claude 3 Haiku model for cost-effectiveness
+- Implement rate limiting at 50 requests per minute
+- Batch process bookmarks in groups of 10
+- Create optimized prompts for bookmark description generation
+- Handle API errors gracefully with fallback options
+- Track token usage and calculate costs
+
+### 4. OpenAI API Integration
+- Use GPT-3.5-turbo model for cost-effectiveness  
+- Implement rate limiting at 60 requests per minute
+- Batch process bookmarks in groups of 20
+- Create optimized prompts for bookmark description generation
+- Handle API errors gracefully with fallback options
+- Track token usage and calculate costs
+
+### 5. Cost Tracking and User Control
+- Display running cost total during processing
+- Pause at every $10 increment for user confirmation
+- Show cost estimates before starting large batches
+- Log detailed cost breakdown in verbose mode
+- Allow users to set cost limits in configuration
+
+### 6. Rate Limiting Implementation
+- Create separate rate limiters for each API service
+- Implement exponential backoff for rate limit errors
+- Display rate limit status in progress tracking
+- Optimize batch sizes to maximize throughput within limits
+
+### 7. Prompt Engineering
+- Design service-specific prompts for optimal results
+- Include bookmark context (title, URL, existing notes)
+- Limit response length to 150 characters
+- Request structured responses for consistent parsing
+- Test and optimize prompts for each service
+
+### 8. Error Handling and Fallbacks
+- Detect API authentication failures early
+- Implement fallback cascade: Cloud AI → Local AI → Content-based
+- Allow user to choose fallback behavior via prompt
+- Log all API errors with details for debugging
+- Continue processing other bookmarks on individual failures
+
+### 9. Progress and Status Updates
+- Show current AI engine in progress display
+- Display API rate limit status
+- Show running cost total
+- Include API response times in statistics
+- Track success/failure rates per API
+
+### 10. Testing Requirements
+- Unit tests for API client implementations
+- Mock API responses for testing
+- Integration tests with real APIs (using test keys)
+- Cost calculation accuracy tests
+- Rate limiting behavior tests
+- Error handling and fallback tests
+
+## Technical Specifications
+
+### API Clients
+- Use httpx for async HTTP requests
+- Implement connection pooling for efficiency
+- Set appropriate timeouts (30s default)
+- Use exponential backoff for retries
+- Validate responses and handle errors
+
+### Security Requirements
+- Never log API keys
+- Sanitize error messages that might contain keys
+- Use HTTPS for all API communications
+- Validate SSL certificates
+- Implement request signing where required
+
+### Performance Targets
+- Process 100 bookmarks/minute with cloud AI
+- Maintain <2s latency per bookmark
+- Batch processing to reduce API calls
+- Cache API responses where appropriate
+- Minimize token usage through prompt optimization
+
+## Success Criteria
+- Both Claude and OpenAI APIs fully integrated
+- Cost tracking accurate to within 1%
+- Rate limiting prevents API errors
+- User can switch between AI engines seamlessly
+- API keys securely managed
+- All tests passing
+- Documentation updated
+
+## Future Considerations
+- Support for other AI providers (Cohere, etc.)
+- Custom model selection per provider
+- API key rotation for high-volume usage
+- Cost optimization recommendations
+- Caching of common descriptions

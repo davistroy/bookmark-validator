@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 from typing import Union
 
+from bookmark_processor.config.configuration import Configuration
+
 
 class ValidationError(Exception):
     """Custom exception for validation errors."""
@@ -178,3 +180,44 @@ def validate_conflicting_arguments(resume: bool, clear_checkpoints: bool) -> Non
             "Cannot use --resume and --clear-checkpoints together. "
             "Choose one or the other."
         )
+
+
+def validate_ai_engine(ai_engine: str, config: Configuration) -> str:
+    """
+    Validate AI engine selection and associated configuration.
+
+    Args:
+        ai_engine: The selected AI engine (local, claude, or openai)
+        config: Configuration object to check for API keys
+
+    Returns:
+        Validated AI engine string
+
+    Raises:
+        ValidationError: If AI engine is invalid or missing API keys
+    """
+    valid_engines = ["local", "claude", "openai"]
+    
+    if ai_engine not in valid_engines:
+        raise ValidationError(
+            f"Invalid AI engine '{ai_engine}'. "
+            f"Must be one of: {', '.join(valid_engines)}"
+        )
+    
+    # Local AI doesn't need API key validation
+    if ai_engine == "local":
+        return ai_engine
+    
+    # Check if API key is configured for cloud AI
+    if not config.has_api_key(ai_engine):
+        raise ValidationError(
+            f"Missing API key for {ai_engine}. "
+            f"Please add '{ai_engine}_api_key' to your user_config.ini file."
+        )
+    
+    # Validate API key format
+    is_valid, error_msg = config.validate_ai_configuration()
+    if not is_valid:
+        raise ValidationError(f"AI configuration validation failed: {error_msg}")
+    
+    return ai_engine
