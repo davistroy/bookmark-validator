@@ -20,7 +20,7 @@ bookmark-processor.exe --input bookmarks.csv --output enhanced.csv
 ## Installation
 
 ### Option 1: Download Pre-built Executable (Recommended)
-1. Download the latest release from the [Releases](https://github.com/yourusername/bookmark-validator/releases) page
+1. Download the latest release from the [Releases](https://github.com/davistroy/bookmark-validator/releases) page
 2. Extract `bookmark-processor.exe` to your desired location
 3. Open Command Prompt and navigate to the directory
 4. Run the tool with your bookmark file
@@ -28,7 +28,7 @@ bookmark-processor.exe --input bookmarks.csv --output enhanced.csv
 ### Option 2: Build from Source
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/bookmark-validator.git
+git clone https://github.com/davistroy/bookmark-validator.git
 cd bookmark-validator
 
 # Create virtual environment
@@ -207,7 +207,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For issues, questions, or contributions:
-- Create an issue on [GitHub](https://github.com/yourusername/bookmark-validator/issues)
+- Create an issue on [GitHub](https://github.com/davistroy/bookmark-validator/issues)
 - Check the [documentation](docs/) for detailed guides
 - Review the task list in `.taskmaster/tasks/` for development progress
 
