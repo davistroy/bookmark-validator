@@ -13,8 +13,8 @@ from pathlib import Path
 from unittest.mock import Mock, patch, AsyncMock
 from io import StringIO
 
-from bookmark_processor.core.pipeline import BookmarkProcessor
-from bookmark_processor.core.csv_handler import CSVHandler
+from bookmark_processor.core.bookmark_processor import BookmarkProcessor
+from bookmark_processor.core.csv_handler import RaindropCSVHandler
 from bookmark_processor.config.configuration import Configuration
 
 
@@ -55,7 +55,7 @@ class TestPipelineIntegration:
     
     def test_csv_format_validation(self, sample_csv_data):
         """Test CSV format validation for raindrop.io format."""
-        csv_handler = CSVHandler()
+        csv_handler = RaindropCSVHandler()
         
         # Test valid format
         with StringIO(sample_csv_data) as f:
@@ -72,7 +72,7 @@ class TestPipelineIntegration:
     
     def test_bookmark_loading(self, temp_csv_file):
         """Test loading bookmarks from CSV."""
-        csv_handler = CSVHandler()
+        csv_handler = RaindropCSVHandler()
         bookmarks = csv_handler.load_bookmarks(temp_csv_file)
         
         assert len(bookmarks) == 4
@@ -102,7 +102,7 @@ class TestPipelineIntegration:
         processor = BookmarkProcessor(mock_config)
         
         # Load bookmarks
-        csv_handler = CSVHandler()
+        csv_handler = RaindropCSVHandler()
         bookmarks = csv_handler.load_bookmarks(temp_csv_file)
         
         # Validate URLs
@@ -159,7 +159,7 @@ class TestPipelineIntegration:
         )
         
         # Load bookmarks
-        csv_handler = CSVHandler()
+        csv_handler = RaindropCSVHandler()
         bookmarks = csv_handler.load_bookmarks(temp_csv_file)
         
         # Test description generation
@@ -178,7 +178,7 @@ class TestPipelineIntegration:
         from bookmark_processor.core.tag_generator import TagGenerator
         
         # Load bookmarks
-        csv_handler = CSVHandler()
+        csv_handler = RaindropCSVHandler()
         bookmarks = csv_handler.load_bookmarks(temp_csv_file)
         
         # Mock tag generation
@@ -199,7 +199,7 @@ class TestPipelineIntegration:
     
     def test_output_csv_format(self, temp_csv_file):
         """Test output CSV format matches raindrop.io import requirements."""
-        csv_handler = CSVHandler()
+        csv_handler = RaindropCSVHandler()
         
         # Create sample processed bookmarks
         processed_bookmarks = [
@@ -318,7 +318,7 @@ class TestPipelineIntegration:
             output_file = f.name
         
         # Process bookmarks (mock the full pipeline)
-        csv_handler = CSVHandler()
+        csv_handler = RaindropCSVHandler()
         bookmarks = csv_handler.load_bookmarks(temp_csv_file)
         
         # Simulate processing

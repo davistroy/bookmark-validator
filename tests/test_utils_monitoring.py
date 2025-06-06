@@ -18,9 +18,9 @@ from bookmark_processor.utils.progress_tracker import (
 )
 from bookmark_processor.utils.performance_monitor import (
     PerformanceMonitor,
-    MemoryMonitor,
     PerformanceMetrics
 )
+from bookmark_processor.utils.memory_optimizer import MemoryMonitor
 from bookmark_processor.utils.cost_tracker import (
     CostTracker,
     APIUsage,

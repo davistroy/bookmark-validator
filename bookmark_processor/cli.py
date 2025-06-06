@@ -16,6 +16,7 @@ from bookmark_processor.utils.logging_setup import setup_logging
 from bookmark_processor.utils.validation import (
     ValidationError,
     validate_ai_engine,
+    validate_auto_detection_mode,
     validate_batch_size,
     validate_config_file,
     validate_conflicting_arguments,
@@ -43,10 +44,11 @@ class CLIInterface:
             epilog="""
 Examples:
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv
+  bookmark-processor.exe --input chrome_bookmarks.html --output enhanced.csv
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv --resume
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
     --batch-size 50 --verbose
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+  bookmark-processor.exe --input chrome_bookmarks.html --output enhanced.csv \\
     --ai-engine claude --verbose
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
     --duplicate-strategy newest --verbose
@@ -72,12 +74,11 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "--version", "-V", action="version", version="%(prog)s 1.0.0"
         )
 
-        # Required arguments
+        # Input arguments
         parser.add_argument(
             "--input",
             "-i",
-            required=True,
-            help="Input CSV file (raindrop.io export format)",
+            help="Input file (raindrop.io CSV export or Chrome HTML bookmarks). If not specified, auto-detects all CSV and HTML files in current directory.",
         )
         parser.add_argument(
             "--output",
@@ -155,6 +156,11 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
         """
         # Validate file paths
         input_path = validate_input_file(args.input)
+        
+        # If no input file specified, validate auto-detection mode
+        if input_path is None:
+            validate_auto_detection_mode()
+            
         output_path = validate_output_file(args.output)
         config_path = validate_config_file(args.config)
 
@@ -229,7 +235,37 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
 
             if validated_args["verbose"]:
                 print("✓ Arguments validated and configuration loaded successfully!")
-                print(f"  Input: {validated_args['input_path']}")
+                
+                # Handle input display based on mode
+                if validated_args['input_path'] is None:
+                    print(f"  Input: Auto-detection mode (current directory)")
+                    # Show auto-detection details
+                    try:
+                        from bookmark_processor.core.multi_file_processor import MultiFileProcessor
+                        processor = MultiFileProcessor()
+                        report = processor.validate_directory_for_auto_detection()
+                        print(f"  Detected files: {len(report['valid_files'])}")
+                        print(f"  Total estimated bookmarks: {report['total_estimated_bookmarks']}")
+                        for file_info in report['valid_files'][:3]:  # Show first 3 files
+                            print(f"    - {file_info['name']} ({file_info['format']}, ~{file_info['estimated_bookmarks']} bookmarks)")
+                        if len(report['valid_files']) > 3:
+                            print(f"    ... and {len(report['valid_files']) - 3} more files")
+                    except Exception:
+                        pass
+                else:
+                    print(f"  Input: {validated_args['input_path']}")
+                    # Show single file format information
+                    try:
+                        from bookmark_processor.core.import_module import MultiFormatImporter
+                        importer = MultiFormatImporter()
+                        file_info = importer.get_file_info(validated_args['input_path'])
+                        print(f"  Input format: {file_info['format']}")
+                        print(f"  File size: {file_info['size_bytes'] / 1024 / 1024:.2f} MB")
+                        if file_info['estimated_bookmarks'] > 0:
+                            print(f"  Estimated bookmarks: {file_info['estimated_bookmarks']}")
+                    except Exception:
+                        pass
+                
                 print(f"  Output: {validated_args['output_path']}")
                 if validated_args["config_path"]:
                     print(f"  Config: {validated_args['config_path']}")

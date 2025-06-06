@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 import asyncio
 
 from bookmark_processor.config.configuration import Configuration
@@ -563,3 +563,51 @@ class CostTracker:
         self.user_confirmed_cost = 0.0
         self.session_start_time = time.time()
         self.logger.info("Cost tracker session reset")
+
+
+@dataclass
+class APIUsage:
+    """Track API usage statistics."""
+    engine: str
+    requests_made: int = 0
+    tokens_consumed: int = 0
+    estimated_cost: float = 0.0
+    timestamp: float = field(default_factory=time.time)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "engine": self.engine,
+            "requests_made": self.requests_made,
+            "tokens_consumed": self.tokens_consumed,
+            "estimated_cost": self.estimated_cost,
+            "timestamp": self.timestamp
+        }
+
+
+@dataclass
+class CostEstimate:
+    """Estimate costs for processing operations."""
+    total_items: int
+    estimated_tokens_per_item: int = 150
+    cost_per_token: float = 0.0001  # Default rough estimate
+    
+    @property
+    def estimated_total_tokens(self) -> int:
+        """Calculate total estimated tokens."""
+        return self.total_items * self.estimated_tokens_per_item
+    
+    @property
+    def estimated_total_cost(self) -> float:
+        """Calculate total estimated cost."""
+        return self.estimated_total_tokens * self.cost_per_token
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "total_items": self.total_items,
+            "estimated_tokens_per_item": self.estimated_tokens_per_item,
+            "cost_per_token": self.cost_per_token,
+            "estimated_total_tokens": self.estimated_total_tokens,
+            "estimated_total_cost": self.estimated_total_cost
+        }

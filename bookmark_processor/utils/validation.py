@@ -18,19 +18,23 @@ class ValidationError(Exception):
     pass
 
 
-def validate_input_file(file_path: Union[str, Path]) -> Path:
+def validate_input_file(file_path: Union[str, Path, None]) -> Union[Path, None]:
     """
-    Validate that input file exists and is readable.
+    Validate that input file exists and is readable, or validate auto-detection mode.
 
     Args:
-        file_path: Path to the input file
+        file_path: Path to the input file, or None for auto-detection
 
     Returns:
-        Validated Path object
+        Validated Path object, or None for auto-detection mode
 
     Raises:
         ValidationError: If file doesn't exist or isn't readable
     """
+    # Handle auto-detection mode
+    if file_path is None:
+        return None
+
     path = Path(file_path)
 
     if not path.exists():
@@ -42,10 +46,45 @@ def validate_input_file(file_path: Union[str, Path]) -> Path:
     if not os.access(path, os.R_OK):
         raise ValidationError(f"Input file is not readable: {file_path}")
 
-    if path.suffix.lower() != ".csv":
-        raise ValidationError(f"Input file must be a CSV file, got: {path.suffix}")
+    # Accept both CSV and HTML files
+    allowed_extensions = [".csv", ".html", ".htm"]
+    if path.suffix.lower() not in allowed_extensions:
+        raise ValidationError(f"Input file must be CSV or HTML, got: {path.suffix}")
+        
+    # Additional validation for file format
+    try:
+        from bookmark_processor.core.import_module import MultiFormatImporter
+        importer = MultiFormatImporter()
+        file_info = importer.get_file_info(path)
+        if not file_info['is_supported']:
+            raise ValidationError(f"Unsupported file format or invalid file content")
+    except ImportError:
+        # If import fails, just check extension
+        pass
 
     return path.absolute()
+
+
+def validate_auto_detection_mode() -> None:
+    """
+    Validate that auto-detection mode can be used in the current directory.
+
+    Raises:
+        ValidationError: If auto-detection is not possible
+    """
+    try:
+        from bookmark_processor.core.multi_file_processor import MultiFileProcessor
+        processor = MultiFileProcessor()
+        report = processor.validate_directory_for_auto_detection()
+        
+        if not report["can_auto_detect"]:
+            if "error" in report:
+                raise ValidationError(f"Auto-detection failed: {report['error']}")
+            else:
+                raise ValidationError("No valid bookmark files found in current directory")
+                
+    except ImportError:
+        raise ValidationError("Auto-detection functionality not available")
 
 
 def validate_output_file(file_path: Union[str, Path]) -> Path:
@@ -261,3 +300,79 @@ def validate_csv_structure(csv_data, expected_columns=None):
         if isinstance(e, ValidationError):
             raise
         raise ValidationError(f"CSV validation failed: {str(e)}")
+
+
+def validate_bookmark_data(bookmark_data: dict) -> bool:
+    """
+    Validate bookmark data structure and content.
+    
+    Args:
+        bookmark_data: Dictionary containing bookmark data
+        
+    Returns:
+        True if valid
+        
+    Raises:
+        ValidationError: If bookmark data is invalid
+    """
+    required_fields = ["url", "title"]
+    
+    for field in required_fields:
+        if field not in bookmark_data or not bookmark_data[field]:
+            raise ValidationError(f"Missing required field: {field}")
+    
+    # Validate URL format
+    validate_url_format(bookmark_data["url"])
+    
+    return True
+
+
+def validate_url_format(url: str) -> bool:
+    """
+    Validate URL format.
+    
+    Args:
+        url: URL string to validate
+        
+    Returns:
+        True if valid
+        
+    Raises:
+        ValidationError: If URL format is invalid
+    """
+    import re
+    
+    # Basic URL pattern
+    url_pattern = re.compile(
+        r'^https?://'  # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    
+    if not url_pattern.match(url):
+        raise ValidationError(f"Invalid URL format: {url}")
+    
+    return True
+
+
+def sanitize_input(input_data: str) -> str:
+    """
+    Sanitize input data to prevent injection attacks.
+    
+    Args:
+        input_data: Input string to sanitize
+        
+    Returns:
+        Sanitized string
+    """
+    if not isinstance(input_data, str):
+        return str(input_data)
+    
+    # Remove potentially dangerous characters
+    import re
+    sanitized = re.sub(r'[<>"\']', '', input_data)
+    sanitized = sanitized.strip()
+    
+    return sanitized

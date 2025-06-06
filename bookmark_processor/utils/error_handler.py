@@ -20,6 +20,21 @@ class BookmarkProcessingError(Exception):
     pass
 
 
+class ValidationError(BookmarkProcessingError):
+    """Exception for data validation errors."""
+    pass
+
+
+class NetworkError(BookmarkProcessingError):
+    """Exception for network-related errors."""
+    pass
+
+
+class AIProcessingError(BookmarkProcessingError):
+    """Exception for AI processing errors."""
+    pass
+
+
 class ErrorSeverity(Enum):
     """Error severity levels for categorization."""
     LOW = "low"           # Non-critical, processing can continue normally

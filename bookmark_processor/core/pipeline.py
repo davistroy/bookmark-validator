@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .data_models import Bookmark
 from .csv_handler import RaindropCSVHandler
+from .import_module import MultiFormatImporter
 from .url_validator import URLValidator, ValidationResult
 from .content_analyzer import ContentAnalyzer, ContentData
 from .ai_processor import EnhancedAIProcessor, AIProcessingResult
@@ -98,6 +99,7 @@ class BookmarkProcessingPipeline:
         
         # Initialize components
         self.csv_handler = RaindropCSVHandler()
+        self.multi_importer = MultiFormatImporter()
         self.rate_limiter = IntelligentRateLimiter(
             max_concurrent=config.max_concurrent_requests
         )
@@ -294,17 +296,13 @@ class BookmarkProcessingPipeline:
         self.checkpoint_manager.update_stage(ProcessingStage.LOADING)
         
         try:
-            # Load CSV data
-            df = self.csv_handler.load_export_csv(self.config.input_file)
+            # Use multi-format importer to auto-detect and load file
+            self.bookmarks = self.multi_importer.import_bookmarks(self.config.input_file)
             
-            # Convert to bookmark objects
-            self.bookmarks = []
-            for _, row in df.iterrows():
-                try:
-                    bookmark = Bookmark.from_raindrop_export(row.to_dict())
-                    self.bookmarks.append(bookmark)
-                except Exception as e:
-                    logging.warning(f"Failed to create bookmark from row: {e}")
+            # Log file format information
+            file_info = self.multi_importer.get_file_info(self.config.input_file)
+            logging.info(f"Detected file format: {file_info['format']}")
+            logging.info(f"File size: {file_info['size_bytes'] / 1024 / 1024:.2f} MB")
             
             initial_count = len(self.bookmarks)
             

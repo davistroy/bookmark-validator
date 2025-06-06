@@ -359,7 +359,7 @@ def mock_requests_session():
 @pytest.fixture
 def mock_ai_processor():
     """Mock AI processor for testing without actual AI models."""
-    with patch('bookmark_processor.core.ai_processor.AIProcessor') as mock_class:
+    with patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor') as mock_class:
         mock_processor = Mock()
         
         # Mock successful AI processing

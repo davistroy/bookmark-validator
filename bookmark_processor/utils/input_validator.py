@@ -733,3 +733,52 @@ def create_folder_validator(field_name: str) -> StringValidator:
         max_length=500,
         pattern=r'^[^<>:"|?*\x00-\x1f]*$'  # Avoid filesystem-invalid characters
     )
+
+
+class InputValidator:
+    """General-purpose input validator that combines multiple validation strategies."""
+    
+    def __init__(self):
+        self.url_validator = create_url_validator("url", required=True)
+        self.title_validator = create_title_validator("title", required=True)
+        self.tags_validator = create_tags_validator("tags")
+        self.folder_validator = create_folder_validator("folder")
+    
+    def validate_input(self, input_data: Dict[str, Any]) -> ValidationResult:
+        """
+        Validate input data using appropriate validators.
+        
+        Args:
+            input_data: Dictionary containing input data to validate
+            
+        Returns:
+            ValidationResult containing all validation issues
+        """
+        issues = []
+        
+        # Validate URL if present
+        if "url" in input_data:
+            url_result = self.url_validator.validate(input_data["url"])
+            issues.extend(url_result.issues)
+        
+        # Validate title if present
+        if "title" in input_data:
+            title_result = self.title_validator.validate(input_data["title"])
+            issues.extend(title_result.issues)
+        
+        # Validate tags if present
+        if "tags" in input_data:
+            tags_result = self.tags_validator.validate(input_data["tags"])
+            issues.extend(tags_result.issues)
+        
+        # Validate folder if present
+        if "folder" in input_data:
+            folder_result = self.folder_validator.validate(input_data["folder"])
+            issues.extend(folder_result.issues)
+        
+        return ValidationResult(issues=issues)
+    
+    def is_valid(self, input_data: Dict[str, Any]) -> bool:
+        """Check if input data is valid."""
+        result = self.validate_input(input_data)
+        return result.is_valid

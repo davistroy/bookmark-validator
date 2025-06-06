@@ -7,7 +7,7 @@ and other CSV fields with appropriate validation logic.
 """
 
 import re
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 from .input_validator import (
@@ -680,3 +680,36 @@ def validate_csv_row(row_data: dict, expected_columns: List[str]) -> ValidationR
     
     result.sanitized_value = sanitized_row
     return result
+
+
+class CSVFieldValidator:
+    """General CSV field validation utility."""
+    
+    def __init__(self):
+        self.expected_columns = EXPORT_CSV_COLUMNS
+        self.composite_validator = BookmarkCompositeValidator()
+    
+    def validate_row(self, row_data: Dict[str, Any]) -> ValidationResult:
+        """Validate a single CSV row."""
+        return validate_row_data(row_data, self.expected_columns)
+    
+    def validate_csv_structure(self, df) -> ValidationResult:
+        """Validate CSV structure and columns."""
+        from bookmark_processor.utils.input_validator import ValidationResult, ValidationIssue, ValidationSeverity
+        
+        result = ValidationResult()
+        
+        # Check for required columns
+        missing_columns = set(self.expected_columns) - set(df.columns)
+        if missing_columns:
+            result.add_error(f"Missing required columns: {', '.join(missing_columns)}")
+        
+        # Check for empty dataframe
+        if df.empty:
+            result.add_error("CSV file is empty")
+        
+        return result
+    
+    def get_field_validator(self, field_name: str):
+        """Get validator for specific field."""
+        return get_field_validator(field_name)

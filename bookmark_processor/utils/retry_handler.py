@@ -370,3 +370,56 @@ class RetryHandler:
             logging.debug(f"Exception during retry of {item.url}: {error}")
         else:
             logging.debug(f"Giving up on {item.url} after exception: {error}")
+
+
+@dataclass
+class RetryConfig:
+    """Configuration for retry behavior."""
+    max_retries: int = 3
+    base_delay: float = 1.0
+    max_delay: float = 60.0
+    backoff_multiplier: float = 2.0
+    jitter: bool = True
+
+
+class ExponentialBackoff:
+    """Exponential backoff strategy."""
+    
+    def __init__(self, base_delay: float = 1.0, max_delay: float = 60.0, multiplier: float = 2.0, jitter: bool = True):
+        self.base_delay = base_delay
+        self.max_delay = max_delay
+        self.multiplier = multiplier
+        self.jitter = jitter
+    
+    def get_delay(self, attempt: int) -> float:
+        """Calculate delay for given attempt."""
+        delay = min(self.base_delay * (self.multiplier ** attempt), self.max_delay)
+        
+        if self.jitter:
+            delay = delay * (0.5 + random.random() * 0.5)
+        
+        return delay
+
+
+class LinearBackoff:
+    """Linear backoff strategy."""
+    
+    def __init__(self, base_delay: float = 1.0, increment: float = 1.0, max_delay: float = 60.0):
+        self.base_delay = base_delay
+        self.increment = increment
+        self.max_delay = max_delay
+    
+    def get_delay(self, attempt: int) -> float:
+        """Calculate delay for given attempt."""
+        return min(self.base_delay + (self.increment * attempt), self.max_delay)
+
+
+class FixedBackoff:
+    """Fixed backoff strategy."""
+    
+    def __init__(self, delay: float = 1.0):
+        self.delay = delay
+    
+    def get_delay(self, attempt: int) -> float:
+        """Calculate delay for given attempt."""
+        return self.delay

@@ -369,7 +369,7 @@ class TestBookmarkProcessingPipeline:
         assert pipeline.checkpoint_interval == 25
         assert pipeline.verbose is True
     
-    @patch('bookmark_processor.core.csv_handler.CSVHandler')
+    @patch('bookmark_processor.core.csv_handler.RaindropCSVHandler')
     def test_run_pipeline_success(self, mock_csv_handler):
         """Test successful pipeline execution."""
         # Mock CSV handler
@@ -402,7 +402,7 @@ class TestBookmarkProcessingPipeline:
         mock_handler.read_raindrop_export.assert_called_once()
         mock_handler.write_raindrop_import.assert_called_once()
     
-    @patch('bookmark_processor.core.csv_handler.CSVHandler')
+    @patch('bookmark_processor.core.csv_handler.RaindropCSVHandler')
     def test_run_pipeline_with_checkpoints(self, mock_csv_handler):
         """Test pipeline execution with checkpoints enabled."""
         # Mock CSV handler
@@ -437,7 +437,7 @@ class TestBookmarkProcessingPipeline:
         # Should have attempted to save checkpoints
         mock_checkpoint_manager.save_checkpoint.assert_called()
     
-    @patch('bookmark_processor.core.csv_handler.CSVHandler')
+    @patch('bookmark_processor.core.csv_handler.RaindropCSVHandler')
     def test_run_pipeline_resume_from_checkpoint(self, mock_csv_handler):
         """Test pipeline resuming from checkpoint."""
         # Mock CSV handler

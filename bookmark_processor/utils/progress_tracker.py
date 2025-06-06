@@ -710,5 +710,54 @@ def track_progress(iterable, description: str = "Processing",
         tracker.complete()
 
 
-# Backward compatibility alias
+# Backward compatibility aliases
 ProgressBar = ProgressTracker
+
+
+class ProgressLogger:
+    """Simple progress logger for logging progress updates."""
+    
+    def __init__(self, name: str = "ProgressLogger"):
+        self.name = name
+        self.logger = logging.getLogger(name)
+    
+    def log_progress(self, message: str, level: str = "info"):
+        """Log a progress message."""
+        if level == "info":
+            self.logger.info(message)
+        elif level == "warning":
+            self.logger.warning(message)
+        elif level == "error":
+            self.logger.error(message)
+
+
+class TimeEstimator:
+    """Simple time estimation utility."""
+    
+    def __init__(self):
+        self.start_time = None
+        self.items_processed = 0
+        self.total_items = 0
+    
+    def start(self, total_items: int):
+        """Start time estimation."""
+        self.start_time = time.time()
+        self.total_items = total_items
+        self.items_processed = 0
+    
+    def update(self, items_processed: int):
+        """Update progress."""
+        self.items_processed = items_processed
+    
+    def get_eta(self) -> Optional[float]:
+        """Get estimated time remaining."""
+        if not self.start_time or self.items_processed == 0:
+            return None
+        
+        elapsed = time.time() - self.start_time
+        rate = self.items_processed / elapsed
+        remaining_items = self.total_items - self.items_processed
+        
+        if rate > 0:
+            return remaining_items / rate
+        return None
