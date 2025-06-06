@@ -628,7 +628,10 @@ class ScenarioRunner:
         """Run a single test scenario."""
         
         if processor_factory is None:
-            processor_factory = lambda: BookmarkProcessor()
+            # Create a default configuration for testing
+            from bookmark_processor.config.configuration import Configuration
+            test_config = Configuration(config_path=None)
+            processor_factory = lambda: BookmarkProcessor(test_config)
         
         self.logger.info(f"Starting scenario: {scenario.name}")
         

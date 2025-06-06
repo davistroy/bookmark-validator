@@ -18,7 +18,8 @@ from .test_scenarios import (
 from .test_validators import (
     ResultValidator,
     CheckpointValidator,
-    ErrorValidator
+    ErrorValidator,
+    CompositeValidator
 )
 from .test_fixtures import (
     IntegrationTestFixtures,
@@ -36,6 +37,7 @@ __all__ = [
     'ResultValidator',
     'CheckpointValidator',
     'ErrorValidator',
+    'CompositeValidator',
     'IntegrationTestFixtures',
     'DataGenerator',
     'MockServiceManager'

@@ -369,7 +369,7 @@ class MockServiceManager:
         mock_ai.is_available = True
         mock_ai.model_name = "mock-ai-model"
         
-        mock_patcher = patch('bookmark_processor.core.ai_processor.AIProcessor', return_value=mock_ai)
+        mock_patcher = patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor', return_value=mock_ai)
         mock_instance = mock_patcher.start()
         
         self.active_mocks['ai'] = mock_patcher
