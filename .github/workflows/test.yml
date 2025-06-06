@@ -1,0 +1,292 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  # Disable color output for cleaner CI logs
+  NO_COLOR: 1
+  # Set test mode to avoid external dependencies
+  BOOKMARK_PROCESSOR_TEST_MODE: true
+  BOOKMARK_PROCESSOR_OFFLINE_MODE: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", 3.11]
+        test-type: [unit, integration]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install -e .
+
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 bookmark_processor --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 bookmark_processor --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Check code formatting with black
+      run: |
+        black --check bookmark_processor tests
+
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only bookmark_processor tests
+
+    - name: Type checking with mypy
+      run: |
+        mypy bookmark_processor --ignore-missing-imports
+
+    - name: Security check with bandit
+      run: |
+        bandit -r bookmark_processor -ll
+
+    - name: Run unit tests with coverage
+      if: matrix.test-type == 'unit'
+      run: |
+        python -m pytest tests/ -m "unit or not integration" \
+          --cov=bookmark_processor \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --cov-fail-under=80 \
+          --junitxml=junit/test-results-${{ matrix.python-version }}.xml \
+          -v
+
+    - name: Run integration tests
+      if: matrix.test-type == 'integration'
+      run: |
+        python -m pytest tests/ -m "integration" \
+          --cov=bookmark_processor \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --junitxml=junit/integration-results-${{ matrix.python-version }}.xml \
+          -v
+
+    - name: Upload coverage reports to Codecov
+      if: matrix.test-type == 'unit' && matrix.python-version == '3.10'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.python-version }}-${{ matrix.test-type }}
+        path: |
+          junit/
+          htmlcov/
+          coverage.xml
+
+    - name: Upload coverage to GitHub
+      if: matrix.test-type == 'unit' && matrix.python-version == '3.10'
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: |
+          htmlcov/
+          coverage.xml
+
+  performance-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install -e .
+
+    - name: Run performance tests
+      run: |
+        python -m pytest tests/ -m "performance" --timeout=300 -v
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run security scan with bandit
+      run: |
+        bandit -r bookmark_processor -f json -o bandit-report.json
+
+    - name: Run safety check
+      run: |
+        pip install safety
+        safety check --json --output safety-report.json || true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  build-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install pyinstaller
+
+    - name: Test package build
+      run: |
+        python setup.py sdist bdist_wheel
+
+    - name: Test Linux executable build
+      run: |
+        chmod +x build_linux.sh
+        ./build_linux.sh
+
+    - name: Test executable functionality
+      run: |
+        ./dist/bookmark-processor --help
+        ./dist/bookmark-processor --version || true
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: |
+          dist/
+          build/
+
+  docs-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Test documentation build
+      run: |
+        # Test that all markdown files are valid
+        find docs/ -name "*.md" -exec markdown-link-check {} \; || true
+        
+        # Test that README is valid
+        python -c "import markdown; markdown.markdown(open('README.md').read())"
+
+    - name: Check documentation coverage
+      run: |
+        # Check that all public modules have docstrings
+        python -c "
+        import bookmark_processor
+        import inspect
+        import sys
+        
+        def check_docstrings(module, path=''):
+            missing = []
+            for name, obj in inspect.getmembers(module):
+                if not name.startswith('_'):
+                    full_path = f'{path}.{name}' if path else name
+                    if inspect.isclass(obj) or inspect.isfunction(obj):
+                        if not obj.__doc__:
+                            missing.append(full_path)
+                    elif inspect.ismodule(obj) and obj.__name__.startswith('bookmark_processor'):
+                        missing.extend(check_docstrings(obj, full_path))
+            return missing
+        
+        missing = check_docstrings(bookmark_processor)
+        if missing:
+            print(f'Missing docstrings: {missing}')
+            sys.exit(1)
+        "
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [test, performance-test, security-scan, build-test, docs-test]
+    if: always()
+    
+    steps:
+    - name: Notify on success
+      if: ${{ needs.test.result == 'success' && needs.build-test.result == 'success' }}
+      run: |
+        echo "✅ All tests passed successfully!"
+
+    - name: Notify on failure
+      if: ${{ needs.test.result == 'failure' || needs.build-test.result == 'failure' }}
+      run: |
+        echo "❌ Some tests failed. Please check the logs."
+        exit 1

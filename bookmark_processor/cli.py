@@ -48,12 +48,20 @@ Examples:
     --batch-size 50 --verbose
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
     --ai-engine claude --verbose
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --duplicate-strategy newest --verbose
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --no-duplicates
 
 Cloud AI Setup:
   Copy user_config.ini.template to user_config.ini and add your API keys:
   [ai]
   claude_api_key = your-claude-api-key-here
   openai_api_key = your-openai-api-key-here
+
+Duplicate Detection:
+  By default, duplicate URLs are detected and removed using the 'highest_quality'
+  strategy. Use --no-duplicates to disable or --duplicate-strategy to change.
 
 For more information, visit: https://github.com/davistroy/bookmark-validator
             """,
@@ -114,6 +122,17 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             default="local",
             help="Select AI engine for processing (default: local)",
         )
+        parser.add_argument(
+            "--no-duplicates",
+            action="store_true",
+            help="Disable duplicate URL detection and removal",
+        )
+        parser.add_argument(
+            "--duplicate-strategy",
+            choices=["newest", "oldest", "most_complete", "highest_quality"],
+            default="highest_quality",
+            help="Strategy for resolving duplicates (default: highest_quality)",
+        )
 
         return parser
 
@@ -156,6 +175,8 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "max_retries": max_retries,
             "clear_checkpoints": args.clear_checkpoints,
             "ai_engine": args.ai_engine,
+            "detect_duplicates": not args.no_duplicates,
+            "duplicate_strategy": args.duplicate_strategy,
         }
 
     def process_arguments(self, validated_args: dict) -> Configuration:
@@ -217,6 +238,9 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                 print(f"  Max retries: {validated_args['max_retries']}")
                 print(f"  Resume: {validated_args['resume']}")
                 print(f"  Clear checkpoints: {validated_args['clear_checkpoints']}")
+                print(f"  Duplicate detection: {validated_args['detect_duplicates']}")
+                if validated_args['detect_duplicates']:
+                    print(f"  Duplicate strategy: {validated_args['duplicate_strategy']}")
 
             # Initialize and run the bookmark processor
             processor = BookmarkProcessor(config)

@@ -1,0 +1,57 @@
+name: Dependency Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run weekly on Mondays at 2 AM UTC
+    - cron: '0 2 * * 1'
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety pip-audit
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run Safety check
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check --short-report
+
+    - name: Run pip-audit
+      run: |
+        pip-audit --format=json --output=audit-report.json || true
+        pip-audit --desc
+
+    - name: Upload dependency reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-reports
+        path: |
+          safety-report.json
+          audit-report.json
+
+    - name: Check for vulnerabilities
+      run: |
+        echo "Checking for critical vulnerabilities..."
+        if safety check --short-report | grep -i "vulnerabilities found"; then
+          echo "❌ Critical vulnerabilities found!"
+          exit 1
+        else
+          echo "✅ No critical vulnerabilities found"
+        fi

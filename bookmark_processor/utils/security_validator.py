@@ -441,9 +441,10 @@ class SecurityValidator:
         if not hostname or len(hostname) > 253:
             return False
         
-        # Check for valid hostname pattern
+        # Allow common domain patterns including example.com
+        # More permissive pattern that allows standard domain names
         hostname_pattern = re.compile(
-            r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$'
+            r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$'
         )
         
         return bool(hostname_pattern.match(hostname))

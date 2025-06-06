@@ -18,6 +18,7 @@ from .url_validator import URLValidator, ValidationResult
 from .content_analyzer import ContentAnalyzer, ContentData
 from .ai_processor import EnhancedAIProcessor, AIProcessingResult
 from .tag_generator import CorpusAwareTagGenerator, TagOptimizationResult
+from .duplicate_detector import DuplicateDetector, DuplicateDetectionResult
 from .checkpoint_manager import CheckpointManager, ProcessingStage, ProcessingState
 from ..utils.progress_tracker import AdvancedProgressTracker, ProgressLevel, ProcessingStage as PTStage
 from ..utils.intelligent_rate_limiter import IntelligentRateLimiter
@@ -54,6 +55,10 @@ class PipelineConfig:
     memory_batch_size: int = 100
     memory_warning_threshold: float = 3000  # MB
     memory_critical_threshold: float = 3500  # MB
+    
+    # Duplicate detection
+    detect_duplicates: bool = True
+    duplicate_strategy: str = "highest_quality"  # newest, oldest, most_complete, highest_quality
     
     # Progress reporting
     verbose: bool = False
@@ -110,6 +115,7 @@ class BookmarkProcessingPipeline:
             target_tag_count=config.target_tag_count,
             max_tags_per_bookmark=config.max_tags_per_bookmark
         )
+        self.duplicate_detector = DuplicateDetector() if config.detect_duplicates else None
         
         # Memory management
         self.memory_monitor = MemoryMonitor(
@@ -300,13 +306,46 @@ class BookmarkProcessingPipeline:
                 except Exception as e:
                     logging.warning(f"Failed to create bookmark from row: {e}")
             
-            # Remove duplicates
-            unique_bookmarks = {}
-            for bookmark in self.bookmarks:
-                if bookmark.url not in unique_bookmarks:
-                    unique_bookmarks[bookmark.url] = bookmark
+            initial_count = len(self.bookmarks)
             
-            self.bookmarks = list(unique_bookmarks.values())
+            # Handle duplicates if enabled
+            if self.config.detect_duplicates and self.duplicate_detector:
+                logging.info("Detecting and removing duplicate URLs...")
+                
+                # Process duplicates
+                deduplicated_bookmarks, duplicate_result = self.duplicate_detector.process_bookmarks(
+                    self.bookmarks,
+                    strategy=self.config.duplicate_strategy,
+                    dry_run=False
+                )
+                
+                # Store duplicate detection result for reporting
+                self.processing_stats['duplicate_detection'] = duplicate_result.to_dict()
+                
+                # Log detailed report if verbose
+                if self.config.verbose:
+                    report = self.duplicate_detector.generate_report(duplicate_result)
+                    logging.info(f"\n{report}")
+                
+                self.bookmarks = deduplicated_bookmarks
+                
+                logging.info(
+                    f"Duplicate detection complete: {initial_count} → {len(self.bookmarks)} bookmarks "
+                    f"({duplicate_result.removed_count} duplicates removed)"
+                )
+            else:
+                # Simple duplicate removal by URL (fallback)
+                unique_bookmarks = {}
+                for bookmark in self.bookmarks:
+                    if bookmark.url not in unique_bookmarks:
+                        unique_bookmarks[bookmark.url] = bookmark
+                
+                self.bookmarks = list(unique_bookmarks.values())
+                
+                if len(self.bookmarks) < initial_count:
+                    logging.info(
+                        f"Simple duplicate removal: {initial_count} → {len(self.bookmarks)} bookmarks"
+                    )
             
             logging.info(f"Loaded {len(self.bookmarks)} unique bookmarks")
             
