@@ -686,12 +686,50 @@ class CSVFieldValidator:
     """General CSV field validation utility."""
     
     def __init__(self):
-        self.expected_columns = EXPORT_CSV_COLUMNS
+        from bookmark_processor.core.csv_handler import RaindropCSVHandler
+        self.expected_columns = RaindropCSVHandler.EXPORT_COLUMNS
         self.composite_validator = BookmarkCompositeValidator()
     
     def validate_row(self, row_data: Dict[str, Any]) -> ValidationResult:
         """Validate a single CSV row."""
-        return validate_row_data(row_data, self.expected_columns)
+        return self._validate_row_data(row_data, self.expected_columns)
+    
+    def _validate_row_data(self, row_data: Dict[str, Any], expected_columns: List[str]) -> ValidationResult:
+        """Internal method to validate row data against expected columns."""
+        from bookmark_processor.utils.input_validator import ValidationResult, ValidationIssue, ValidationSeverity
+        
+        result = ValidationResult()
+        
+        # Check if all expected columns are present
+        missing_columns = [col for col in expected_columns if col not in row_data]
+        if missing_columns:
+            result.add_issue(ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                message=f"Missing required columns: {', '.join(missing_columns)}",
+                field="columns"
+            ))
+        
+        # Check for extra columns
+        extra_columns = [col for col in row_data.keys() if col not in expected_columns]
+        if extra_columns:
+            result.add_issue(ValidationIssue(
+                severity=ValidationSeverity.WARNING,
+                message=f"Unexpected columns found: {', '.join(extra_columns)}",
+                field="columns"
+            ))
+        
+        # Validate individual fields
+        if 'url' in row_data:
+            url_result = self.composite_validator.validate_url(row_data['url'])
+            if not url_result.is_valid:
+                result.merge(url_result)
+        
+        if 'title' in row_data:
+            title_result = self.composite_validator.validate_title(row_data['title'])
+            if not title_result.is_valid:
+                result.merge(title_result)
+        
+        return result
     
     def validate_csv_structure(self, df) -> ValidationResult:
         """Validate CSV structure and columns."""

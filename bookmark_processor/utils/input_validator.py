@@ -735,6 +735,29 @@ def create_folder_validator(field_name: str) -> StringValidator:
     )
 
 
+def create_title_validator(field_name: str, required: bool = True) -> StringValidator:
+    """Create a validator for bookmark titles."""
+    return StringValidator(
+        field_name=field_name,
+        required=required,
+        allow_none=not required,
+        max_length=1000,
+        min_length=1 if required else 0,
+        pattern=r'^.+$'  # Allow any non-empty content
+    )
+
+
+def create_tags_validator(field_name: str) -> StringValidator:
+    """Create a validator for bookmark tags."""
+    return StringValidator(
+        field_name=field_name,
+        required=False,
+        allow_none=True,
+        max_length=2000,
+        pattern=r'^[^<>]*$'  # Avoid HTML-like content
+    )
+
+
 class InputValidator:
     """General-purpose input validator that combines multiple validation strategies."""
     

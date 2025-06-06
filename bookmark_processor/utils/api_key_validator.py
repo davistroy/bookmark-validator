@@ -22,7 +22,7 @@ class APIKeyValidator:
             'prefix': 'sk-ant-api'
         },
         'openai': {
-            'pattern': r'^sk-[a-zA-Z0-9]{48,}$',
+            'pattern': r'^sk-[a-zA-Z0-9\-_]{48,}$',
             'min_length': 50,
             'prefix': 'sk-'
         }
