@@ -1,12 +1,15 @@
 # Bookmark Validation and Enhancement Tool
 
-A powerful Linux/WSL command-line tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. Perfect for users with large bookmark collections who want to clean, enhance, and better organize their digital bookmarks.
+A powerful Linux/WSL command-line tool that processes both raindrop.io bookmark exports and Chrome HTML bookmark files to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. Perfect for users with large bookmark collections who want to clean, enhance, and better organize their digital bookmarks.
 
 ## Features
 
+- **Multiple Input Formats**: Supports raindrop.io CSV exports and Chrome HTML bookmark files
+- **Auto-Detection Mode**: Automatically finds and processes all bookmark files when no input specified
 - **URL Validation**: Validates bookmark accessibility with intelligent retry logic and rate limiting
 - **AI-Enhanced Descriptions**: Generates improved descriptions using local AI or cloud APIs (Claude/OpenAI)
 - **Smart Tag Optimization**: Creates a coherent tagging system across your entire bookmark collection
+- **Duplicate Detection**: Advanced deduplication with multiple resolution strategies
 - **Checkpoint/Resume**: Saves progress automatically and resumes from interruptions
 - **Large Dataset Support**: Efficiently processes 3,500+ bookmarks within 8 hours
 - **Linux/WSL Only**: Designed specifically for Linux and Windows Subsystem for Linux (WSL2)
@@ -16,11 +19,16 @@ A powerful Linux/WSL command-line tool that processes raindrop.io bookmark expor
 ## Quick Start
 
 ```bash
-# Basic processing
-python -m bookmark_processor --input bookmarks.csv --output enhanced.csv
+# Auto-detect and process all bookmark files in current directory
+python -m bookmark_processor --output enhanced.csv
 
-# With verbose output and resume capability
-python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --verbose --resume
+# Process specific file (supports CSV and HTML)
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv
+python -m bookmark_processor --input chrome_bookmarks.html --output enhanced.csv
+
+# With advanced options
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \
+  --verbose --resume --duplicate-strategy highest_quality
 ```
 
 📖 **New to the tool?** Check out our [Quick Start Guide](docs/QUICKSTART.md) for a step-by-step walkthrough!
@@ -46,9 +54,28 @@ python -m bookmark_processor --version
 
 ## Usage
 
-### Basic Usage
+### Auto-Detection Mode (New!)
 ```bash
+# Automatically process all CSV and HTML bookmark files in current directory
+python -m bookmark_processor --output enhanced_bookmarks.csv
+```
+
+### Single File Processing
+```bash
+# Process raindrop.io CSV export
 python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv
+
+# Process Chrome HTML bookmarks
+python -m bookmark_processor --input chrome_bookmarks.html --output enhanced_bookmarks.csv
+```
+
+### Duplicate Detection
+```bash
+# Advanced duplicate detection with quality-based resolution
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --duplicate-strategy highest_quality
+
+# Disable duplicate detection
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --no-duplicates
 ```
 
 ### Resume from Checkpoint
@@ -58,7 +85,8 @@ python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookm
 
 ### Advanced Options
 ```bash
-python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --batch-size 50 --verbose
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \
+  --batch-size 50 --verbose --ai-engine claude --duplicate-strategy newest
 ```
 
 📖 **Complete Documentation:**
