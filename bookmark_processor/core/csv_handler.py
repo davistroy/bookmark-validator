@@ -47,6 +47,12 @@ class CSVEncodingError(CSVError):
     pass
 
 
+class CSVFormatError(CSVError):
+    """Raised when CSV file format is incorrect or incompatible."""
+
+    pass
+
+
 class RaindropCSVHandler:
     """Handles raindrop.io specific CSV formats."""
 

@@ -27,6 +27,11 @@ from ..utils.security_validator import SecurityValidator, SecurityValidationResu
 from ..utils.secure_logging import secure_logger
 
 
+class ValidationError(Exception):
+    """Exception raised when URL validation fails due to configuration or system errors."""
+    pass
+
+
 @dataclass
 class ValidationResult:
     """Result of URL validation"""

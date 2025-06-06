@@ -221,3 +221,43 @@ def validate_ai_engine(ai_engine: str, config: Configuration) -> str:
         raise ValidationError(f"AI configuration validation failed: {error_msg}")
     
     return ai_engine
+
+
+def validate_csv_structure(csv_data, expected_columns=None):
+    """
+    Validate CSV structure and format.
+    
+    Args:
+        csv_data: CSV data to validate (DataFrame or file path)
+        expected_columns: Optional list of expected column names
+        
+    Returns:
+        True if valid
+        
+    Raises:
+        ValidationError: If CSV structure is invalid
+    """
+    try:
+        import pandas as pd
+        
+        if isinstance(csv_data, str) or isinstance(csv_data, Path):
+            # Load CSV file
+            df = pd.read_csv(csv_data)
+        else:
+            # Assume it's already a DataFrame
+            df = csv_data
+            
+        if df.empty:
+            raise ValidationError("CSV file is empty")
+            
+        if expected_columns:
+            missing_columns = set(expected_columns) - set(df.columns)
+            if missing_columns:
+                raise ValidationError(f"Missing columns: {', '.join(missing_columns)}")
+                
+        return True
+        
+    except Exception as e:
+        if isinstance(e, ValidationError):
+            raise
+        raise ValidationError(f"CSV validation failed: {str(e)}")

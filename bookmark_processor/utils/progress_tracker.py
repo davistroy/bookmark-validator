@@ -708,3 +708,7 @@ def track_progress(iterable, description: str = "Processing",
                 tracker.update_progress(items_delta=1)
     finally:
         tracker.complete()
+
+
+# Backward compatibility alias
+ProgressBar = ProgressTracker

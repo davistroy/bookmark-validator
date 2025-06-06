@@ -10,7 +10,7 @@ import pytest
 import tempfile
 import json
 from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock, side_effect
+from unittest.mock import Mock, patch, AsyncMock
 from requests.exceptions import ConnectionError, Timeout, HTTPError
 from datetime import datetime
 

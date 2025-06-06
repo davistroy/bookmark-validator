@@ -11,7 +11,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from bookmark_processor.core.content_analyzer import ContentAnalyzer
-from bookmark_processor.core.tag_generator import TagGenerator, CorpusAwareTagGenerator
+from bookmark_processor.core.tag_generator import CorpusAwareTagGenerator
 from bookmark_processor.core.data_models import Bookmark, BookmarkMetadata
 
 from tests.fixtures.test_data import (
@@ -302,20 +302,20 @@ class TestContentAnalyzer:
         assert "success_rate" in stats
 
 
-class TestTagGenerator:
-    """Test TagGenerator class."""
+class TestCorpusAwareTagGenerator:
+    """Test CorpusAwareTagGenerator class."""
     
     def test_init_default(self):
-        """Test TagGenerator initialization with defaults."""
-        generator = TagGenerator()
+        """Test CorpusAwareTagGenerator initialization with defaults."""
+        generator = CorpusAwareTagGenerator()
         
         assert generator.max_tags == 5
         assert len(generator.common_words) > 0
     
     def test_init_custom(self):
-        """Test TagGenerator initialization with custom values."""
+        """Test CorpusAwareTagGenerator initialization with custom values."""
         custom_stopwords = {"custom", "stopword"}
-        generator = TagGenerator(
+        generator = CorpusAwareTagGenerator(
             max_tags=10,
             stopwords=custom_stopwords
         )
@@ -325,7 +325,7 @@ class TestTagGenerator:
     
     def test_generate_tags_from_content(self):
         """Test tag generation from content."""
-        generator = TagGenerator()
+        generator = CorpusAwareTagGenerator()
         
         content = "Python programming tutorial for web development and data science"
         tags = generator.generate_tags_from_content(content)
@@ -337,7 +337,7 @@ class TestTagGenerator:
     
     def test_generate_tags_from_bookmark(self):
         """Test tag generation from bookmark object."""
-        generator = TagGenerator()
+        generator = CorpusAwareTagGenerator()
         
         bookmark = Bookmark(
             title="Machine Learning Tutorial",
@@ -357,7 +357,7 @@ class TestTagGenerator:
     
     def test_extract_keywords_from_text(self):
         """Test keyword extraction from text."""
-        generator = TagGenerator()
+        generator = CorpusAwareTagGenerator()
         
         text = "Data science and machine learning with Python programming"
         keywords = generator._extract_keywords_from_text(text)
@@ -373,7 +373,7 @@ class TestTagGenerator:
     
     def test_extract_keywords_from_url(self):
         """Test keyword extraction from URL."""
-        generator = TagGenerator()
+        generator = CorpusAwareTagGenerator()
         
         # Test GitHub URL
         url = "https://github.com/microsoft/vscode"
@@ -391,7 +391,7 @@ class TestTagGenerator:
     
     def test_clean_and_filter_tags(self):
         """Test tag cleaning and filtering."""
-        generator = TagGenerator()
+        generator = CorpusAwareTagGenerator()
         
         raw_tags = [
             "Python",
@@ -423,7 +423,7 @@ class TestTagGenerator:
     
     def test_rank_tags_by_relevance(self):
         """Test tag ranking by relevance."""
-        generator = TagGenerator()
+        generator = CorpusAwareTagGenerator()
         
         bookmark = Bookmark(
             title="Python Tutorial",
@@ -439,7 +439,7 @@ class TestTagGenerator:
         assert "tutorial" in ranked_tags[:3]
 
 
-class TestCorpusAwareTagGenerator:
+class TestCorpusAwareTagGeneratorAdvanced:
     """Test CorpusAwareTagGenerator class."""
     
     def test_init_default(self):
@@ -582,7 +582,7 @@ class TestContentAnalyzerIntegration:
     
     def test_tag_generation_integration(self):
         """Test integrated tag generation workflow."""
-        generator = TagGenerator(max_tags=5)
+        generator = CorpusAwareTagGenerator(max_tags=5)
         
         bookmarks = create_sample_bookmark_objects()
         

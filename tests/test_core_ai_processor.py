@@ -8,7 +8,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from typing import List, Dict, Any
 
-from bookmark_processor.core.ai_processor import AIProcessor
+from bookmark_processor.core.ai_processor import EnhancedAIProcessor
 from bookmark_processor.core.ai_factory import AIFactory
 from bookmark_processor.core.claude_api_client import ClaudeAPIClient
 from bookmark_processor.core.openai_api_client import OpenAIAPIClient
@@ -22,33 +22,33 @@ from tests.fixtures.test_data import (
 from tests.fixtures.mock_utilities import MockAIProcessor
 
 
-class TestAIProcessor:
-    """Test AIProcessor class."""
+class TestEnhancedAIProcessor:
+    """Test EnhancedAIProcessor class."""
     
     def test_init_local_engine(self):
-        """Test AIProcessor initialization with local engine."""
-        processor = AIProcessor(engine="local")
+        """Test EnhancedAIProcessor initialization with local engine."""
+        processor = EnhancedAIProcessor(engine="local")
         
         assert processor.engine == "local"
         assert processor.model_name is not None
         assert processor.is_available is True
     
     def test_init_cloud_engine_no_key(self):
-        """Test AIProcessor initialization with cloud engine but no API key."""
+        """Test EnhancedAIProcessor initialization with cloud engine but no API key."""
         # Test without API key should fall back to local
-        processor = AIProcessor(engine="claude", api_key=None)
+        processor = EnhancedAIProcessor(engine="claude", api_key=None)
         
         assert processor.engine == "local"  # Should fallback
         assert processor.is_available is True
     
     @patch('bookmark_processor.core.ai_processor.ClaudeAPIClient')
     def test_init_claude_engine_with_key(self, mock_claude_client):
-        """Test AIProcessor initialization with Claude engine and API key."""
+        """Test EnhancedAIProcessor initialization with Claude engine and API key."""
         mock_client = Mock()
         mock_client.is_available = True
         mock_claude_client.return_value = mock_client
         
-        processor = AIProcessor(engine="claude", api_key="test-key")
+        processor = EnhancedAIProcessor(engine="claude", api_key="test-key")
         
         assert processor.engine == "claude"
         assert processor.cloud_client == mock_client
@@ -56,21 +56,21 @@ class TestAIProcessor:
     
     @patch('bookmark_processor.core.ai_processor.OpenAIAPIClient')
     def test_init_openai_engine_with_key(self, mock_openai_client):
-        """Test AIProcessor initialization with OpenAI engine and API key."""
+        """Test EnhancedAIProcessor initialization with OpenAI engine and API key."""
         mock_client = Mock()
         mock_client.is_available = True
         mock_openai_client.return_value = mock_client
         
-        processor = AIProcessor(engine="openai", api_key="test-key")
+        processor = EnhancedAIProcessor(engine="openai", api_key="test-key")
         
         assert processor.engine == "openai"
         assert processor.cloud_client == mock_client
         mock_openai_client.assert_called_once_with(api_key="test-key")
     
     def test_init_invalid_engine(self):
-        """Test AIProcessor initialization with invalid engine."""
+        """Test EnhancedAIProcessor initialization with invalid engine."""
         # Should fallback to local
-        processor = AIProcessor(engine="invalid_engine")
+        processor = EnhancedAIProcessor(engine="invalid_engine")
         
         assert processor.engine == "local"
         assert processor.is_available is True
@@ -83,7 +83,7 @@ class TestAIProcessor:
         mock_summarizer.return_value = [{"summary_text": "AI-generated description"}]
         mock_pipeline.return_value = mock_summarizer
         
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         bookmarks = create_sample_bookmark_objects()
         bookmark = bookmarks[0]
         
@@ -99,7 +99,7 @@ class TestAIProcessor:
         # Mock the transformers pipeline to raise exception
         mock_pipeline.side_effect = Exception("Model loading failed")
         
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         bookmarks = create_sample_bookmark_objects()
         bookmark = bookmarks[0]
         
@@ -117,7 +117,7 @@ class TestAIProcessor:
         mock_client.is_available = True
         mock_client.generate_description.return_value = "Cloud AI description"
         
-        processor = AIProcessor(engine="claude")
+        processor = EnhancedAIProcessor(engine="claude")
         processor.cloud_client = mock_client
         
         bookmarks = create_sample_bookmark_objects()
@@ -136,7 +136,7 @@ class TestAIProcessor:
         mock_client.is_available = True
         mock_client.generate_description.side_effect = Exception("API error")
         
-        processor = AIProcessor(engine="claude")
+        processor = EnhancedAIProcessor(engine="claude")
         processor.cloud_client = mock_client
         
         bookmarks = create_sample_bookmark_objects()
@@ -151,7 +151,7 @@ class TestAIProcessor:
     
     def test_process_bookmark_no_content(self):
         """Test processing bookmark with no existing content."""
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         
         # Create bookmark with no content
         bookmark = Bookmark(
@@ -174,7 +174,7 @@ class TestAIProcessor:
         mock_summarizer.return_value = [{"summary_text": "Batch AI description"}]
         mock_pipeline.return_value = mock_summarizer
         
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         bookmarks = create_sample_bookmark_objects()
         
         results = processor.process_batch(bookmarks)
@@ -186,7 +186,7 @@ class TestAIProcessor:
     
     def test_generate_fallback_description(self):
         """Test fallback description generation."""
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         
         # Test with note
         bookmark = Bookmark(note="Existing note", title="Test Title")
@@ -205,7 +205,7 @@ class TestAIProcessor:
     
     def test_prepare_input_text(self):
         """Test input text preparation for AI processing."""
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         
         bookmark = Bookmark(
             title="Test Title",
@@ -223,7 +223,7 @@ class TestAIProcessor:
     
     def test_get_statistics(self):
         """Test getting processing statistics."""
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         
         stats = processor.get_statistics()
         
@@ -242,7 +242,7 @@ class TestAIFactory:
         """Test creating local AI processor."""
         processor = AIFactory.create_processor(engine="local")
         
-        assert isinstance(processor, AIProcessor)
+        assert isinstance(processor, EnhancedAIProcessor)
         assert processor.engine == "local"
         assert processor.is_available is True
     
@@ -258,7 +258,7 @@ class TestAIFactory:
             api_key="test-key"
         )
         
-        assert isinstance(processor, AIProcessor)
+        assert isinstance(processor, EnhancedAIProcessor)
         assert processor.engine == "claude"
         mock_claude_client.assert_called_once_with(api_key="test-key")
     
@@ -274,7 +274,7 @@ class TestAIFactory:
             api_key="test-key"
         )
         
-        assert isinstance(processor, AIProcessor)
+        assert isinstance(processor, EnhancedAIProcessor)
         assert processor.engine == "openai"
         mock_openai_client.assert_called_once_with(api_key="test-key")
     
@@ -283,7 +283,7 @@ class TestAIFactory:
         processor = AIFactory.create_processor(engine="invalid")
         
         # Should fallback to local
-        assert isinstance(processor, AIProcessor)
+        assert isinstance(processor, EnhancedAIProcessor)
         assert processor.engine == "local"
     
     def test_get_available_engines(self):
@@ -517,7 +517,7 @@ class TestOpenAIAPIClient:
         assert "total_cost" in stats
 
 
-class TestAIProcessorIntegration:
+class TestEnhancedAIProcessorIntegration:
     """Integration tests for AI processor with different engines."""
     
     @patch('transformers.pipeline')
@@ -531,7 +531,7 @@ class TestAIProcessorIntegration:
         mock_client.is_available = True
         mock_client.generate_description.return_value = "Cloud fallback description"
         
-        processor = AIProcessor(engine="local")
+        processor = EnhancedAIProcessor(engine="local")
         processor.cloud_client = mock_client  # Inject fallback client
         
         bookmark = Bookmark(
@@ -548,7 +548,7 @@ class TestAIProcessorIntegration:
     
     def test_batch_processing_mixed_results(self):
         """Test batch processing with mixed success/failure results."""
-        mock_processor = MockAIProcessor(success_rate=0.7)  # 70% success rate
+        mock_processor = MockEnhancedAIProcessor(success_rate=0.7)  # 70% success rate
         
         bookmarks = create_sample_bookmark_objects()
         results = mock_processor.process_batch(bookmarks)
@@ -564,7 +564,7 @@ class TestAIProcessorIntegration:
     
     def test_processing_with_rate_limiting(self):
         """Test AI processing with rate limiting simulation."""
-        mock_processor = MockAIProcessor(processing_delay=0.01)  # Small delay
+        mock_processor = MockEnhancedAIProcessor(processing_delay=0.01)  # Small delay
         
         import time
         start_time = time.time()

@@ -15,6 +15,11 @@ from dataclasses import dataclass
 from bookmark_processor.core.data_models import Bookmark
 
 
+class BookmarkProcessingError(Exception):
+    """Base exception for bookmark processing errors."""
+    pass
+
+
 class ErrorSeverity(Enum):
     """Error severity levels for categorization."""
     LOW = "low"           # Non-critical, processing can continue normally

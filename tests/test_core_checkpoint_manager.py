@@ -14,34 +14,41 @@ from typing import Dict, List, Any
 
 from bookmark_processor.core.checkpoint_manager import (
     CheckpointManager,
-    CheckpointData,
-    CheckpointError
+    ProcessingState,
+    ProcessingStage
 )
 from bookmark_processor.core.data_models import Bookmark, ProcessingResults
 
 from tests.fixtures.test_data import create_sample_bookmark_objects
 
 
-class TestCheckpointData:
-    """Test CheckpointData class."""
+class TestProcessingState:
+    """Test ProcessingState class."""
     
     def test_init_default(self):
-        """Test CheckpointData initialization with defaults."""
-        data = CheckpointData()
+        """Test ProcessingState initialization with required parameters."""
+        data = ProcessingState(
+            input_file="test.csv",
+            output_file="output.csv", 
+            total_bookmarks=100,
+            config_hash="abc123",
+            current_stage=ProcessingStage.INITIALIZATION,
+            stage_progress=0
+        )
         
-        assert data.processed_bookmarks == []
-        assert data.last_processed_index == 0
+        assert data.input_file == "test.csv"
+        assert data.output_file == "output.csv"
+        assert data.total_bookmarks == 100
+        assert data.processed_urls == set()
         assert data.processing_stats == {}
-        assert data.created_at is not None
-        assert data.format_version == "1.0"
     
     def test_init_custom(self):
-        """Test CheckpointData initialization with custom values."""
+        """Test ProcessingState initialization with custom values."""
         bookmarks = create_sample_bookmark_objects()
         stats = {"processed": 5, "errors": 1}
         created_time = datetime.now(timezone.utc)
         
-        data = CheckpointData(
+        data = ProcessingState(
             processed_bookmarks=bookmarks,
             last_processed_index=3,
             processing_stats=stats,
@@ -54,9 +61,9 @@ class TestCheckpointData:
         assert data.created_at == created_time
     
     def test_to_dict(self):
-        """Test converting CheckpointData to dictionary."""
+        """Test converting ProcessingState to dictionary."""
         bookmarks = create_sample_bookmark_objects()[:2]
-        data = CheckpointData(
+        data = ProcessingState(
             processed_bookmarks=bookmarks,
             last_processed_index=2,
             processing_stats={"processed": 2}
@@ -75,16 +82,16 @@ class TestCheckpointData:
         assert len(dict_data["processed_bookmarks"]) == 2
     
     def test_from_dict(self):
-        """Test creating CheckpointData from dictionary."""
+        """Test creating ProcessingState from dictionary."""
         bookmarks = create_sample_bookmark_objects()[:2]
-        original_data = CheckpointData(
+        original_data = ProcessingState(
             processed_bookmarks=bookmarks,
             last_processed_index=2,
             processing_stats={"processed": 2}
         )
         
         dict_data = original_data.to_dict()
-        restored_data = CheckpointData.from_dict(dict_data)
+        restored_data = ProcessingState.from_dict(dict_data)
         
         assert restored_data.last_processed_index == original_data.last_processed_index
         assert restored_data.processing_stats == original_data.processing_stats
@@ -93,21 +100,21 @@ class TestCheckpointData:
     def test_is_valid(self):
         """Test checkpoint data validation."""
         # Valid data
-        valid_data = CheckpointData(
+        valid_data = ProcessingState(
             processed_bookmarks=create_sample_bookmark_objects(),
             last_processed_index=2
         )
         assert valid_data.is_valid() is True
         
         # Invalid data - negative index
-        invalid_data = CheckpointData(
+        invalid_data = ProcessingState(
             processed_bookmarks=create_sample_bookmark_objects(),
             last_processed_index=-1
         )
         assert invalid_data.is_valid() is False
         
         # Invalid data - index beyond bookmarks
-        invalid_data2 = CheckpointData(
+        invalid_data2 = ProcessingState(
             processed_bookmarks=create_sample_bookmark_objects()[:2],
             last_processed_index=5
         )
@@ -116,7 +123,7 @@ class TestCheckpointData:
     def test_get_summary(self):
         """Test getting checkpoint summary."""
         bookmarks = create_sample_bookmark_objects()
-        data = CheckpointData(
+        data = ProcessingState(
             processed_bookmarks=bookmarks,
             last_processed_index=3,
             processing_stats={"processed": 3, "errors": 1}
@@ -181,7 +188,7 @@ class TestCheckpointManager:
         manager = CheckpointManager(checkpoint_dir=str(temp_dir))
         
         bookmarks = create_sample_bookmark_objects()
-        checkpoint_data = CheckpointData(
+        checkpoint_data = ProcessingState(
             processed_bookmarks=bookmarks,
             last_processed_index=2,
             processing_stats={"processed": 2}
@@ -204,7 +211,7 @@ class TestCheckpointManager:
         )
         
         bookmarks = create_sample_bookmark_objects()
-        checkpoint_data = CheckpointData(
+        checkpoint_data = ProcessingState(
             processed_bookmarks=bookmarks,
             last_processed_index=2
         )
@@ -224,7 +231,7 @@ class TestCheckpointManager:
         
         # First save a checkpoint
         original_bookmarks = create_sample_bookmark_objects()
-        original_data = CheckpointData(
+        original_data = ProcessingState(
             processed_bookmarks=original_bookmarks,
             last_processed_index=3,
             processing_stats={"processed": 3}
@@ -274,7 +281,7 @@ class TestCheckpointManager:
         assert manager.has_checkpoint("test_session") is False
         
         # Save a checkpoint
-        checkpoint_data = CheckpointData(
+        checkpoint_data = ProcessingState(
             processed_bookmarks=create_sample_bookmark_objects(),
             last_processed_index=1
         )
@@ -299,7 +306,7 @@ class TestCheckpointManager:
         
         # Save multiple checkpoints
         for i in range(3):
-            checkpoint_data = CheckpointData(
+            checkpoint_data = ProcessingState(
                 processed_bookmarks=create_sample_bookmark_objects(),
                 last_processed_index=i
             )
@@ -319,7 +326,7 @@ class TestCheckpointManager:
         manager = CheckpointManager(checkpoint_dir=str(temp_dir))
         
         # Save a checkpoint
-        checkpoint_data = CheckpointData(
+        checkpoint_data = ProcessingState(
             processed_bookmarks=create_sample_bookmark_objects(),
             last_processed_index=1
         )
@@ -353,7 +360,7 @@ class TestCheckpointManager:
         # Save more checkpoints than the limit
         checkpoint_ids = []
         for i in range(4):
-            checkpoint_data = CheckpointData(
+            checkpoint_data = ProcessingState(
                 processed_bookmarks=create_sample_bookmark_objects(),
                 last_processed_index=i
             )
@@ -374,7 +381,7 @@ class TestCheckpointManager:
         
         # Save multiple checkpoints
         for i in range(3):
-            checkpoint_data = CheckpointData(
+            checkpoint_data = ProcessingState(
                 processed_bookmarks=create_sample_bookmark_objects(),
                 last_processed_index=i
             )
@@ -402,7 +409,7 @@ class TestCheckpointManager:
         import time
         checkpoint_ids = []
         for i in range(3):
-            checkpoint_data = CheckpointData(
+            checkpoint_data = ProcessingState(
                 processed_bookmarks=create_sample_bookmark_objects(),
                 last_processed_index=i
             )
@@ -420,14 +427,14 @@ class TestCheckpointManager:
         manager = CheckpointManager(checkpoint_dir=str(temp_dir))
         
         # Valid data
-        valid_data = CheckpointData(
+        valid_data = ProcessingState(
             processed_bookmarks=create_sample_bookmark_objects(),
             last_processed_index=2
         )
         assert manager._validate_checkpoint_data(valid_data) is True
         
         # Invalid data
-        invalid_data = CheckpointData(
+        invalid_data = ProcessingState(
             processed_bookmarks=create_sample_bookmark_objects(),
             last_processed_index=-1
         )
@@ -439,7 +446,7 @@ class TestCheckpointManager:
         
         # Save some checkpoints
         for i in range(3):
-            checkpoint_data = CheckpointData(
+            checkpoint_data = ProcessingState(
                 processed_bookmarks=create_sample_bookmark_objects(),
                 last_processed_index=i
             )
@@ -468,7 +475,7 @@ class TestCheckpointManager:
             )
             large_bookmarks.append(bookmark)
         
-        checkpoint_data = CheckpointData(
+        checkpoint_data = ProcessingState(
             processed_bookmarks=large_bookmarks,
             last_processed_index=50,
             processing_stats={"processed": 50, "remaining": 50}
@@ -519,7 +526,7 @@ class TestCheckpointIntegration:
             bookmark.processing_status.ai_processed = True
         
         # Save checkpoint
-        checkpoint_data = CheckpointData(
+        checkpoint_data = ProcessingState(
             processed_bookmarks=processed_bookmarks,
             last_processed_index=3,
             processing_stats={"processed": 3, "remaining": 2}
@@ -567,7 +574,7 @@ class TestCheckpointIntegration:
             
             # Save checkpoint every 2 items
             if (i + 1) % 2 == 0:
-                checkpoint_data = CheckpointData(
+                checkpoint_data = ProcessingState(
                     processed_bookmarks=processed_bookmarks.copy(),
                     last_processed_index=i + 1,
                     processing_stats={"processed": i + 1}
@@ -614,7 +621,7 @@ class TestCheckpointIntegration:
             )
             large_bookmarks.append(bookmark)
         
-        checkpoint_data = CheckpointData(
+        checkpoint_data = ProcessingState(
             processed_bookmarks=large_bookmarks,
             last_processed_index=50
         )

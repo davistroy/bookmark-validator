@@ -12,7 +12,7 @@ import pandas as pd
 
 from bookmark_processor.core.bookmark_processor import BookmarkProcessor
 from bookmark_processor.core.batch_processor import BatchProcessor
-from bookmark_processor.core.pipeline import ProcessingPipeline
+from bookmark_processor.core.pipeline import BookmarkProcessingPipeline
 from bookmark_processor.core.data_models import Bookmark, ProcessingResults
 
 from tests.fixtures.test_data import (
@@ -341,12 +341,12 @@ class TestBatchProcessor:
         assert stats["total_errors"] == 2
 
 
-class TestProcessingPipeline:
-    """Test ProcessingPipeline class."""
+class TestBookmarkProcessingPipeline:
+    """Test BookmarkProcessingPipeline class."""
     
     def test_init_default(self):
-        """Test ProcessingPipeline initialization."""
-        pipeline = ProcessingPipeline()
+        """Test BookmarkProcessingPipeline initialization."""
+        pipeline = BookmarkProcessingPipeline()
         
         assert pipeline.batch_size == 50
         assert pipeline.enable_checkpoints is True
@@ -354,7 +354,7 @@ class TestProcessingPipeline:
         assert pipeline.resume_from_checkpoint is False
     
     def test_init_custom(self):
-        """Test ProcessingPipeline initialization with custom config."""
+        """Test BookmarkProcessingPipeline initialization with custom config."""
         config = {
             "batch_size": 100,
             "enable_checkpoints": False,
@@ -362,7 +362,7 @@ class TestProcessingPipeline:
             "verbose": True
         }
         
-        pipeline = ProcessingPipeline(config)
+        pipeline = BookmarkProcessingPipeline(config)
         
         assert pipeline.batch_size == 100
         assert pipeline.enable_checkpoints is False
@@ -382,7 +382,7 @@ class TestProcessingPipeline:
         # Mock components
         mock_context = create_mock_pipeline_context()
         
-        pipeline = ProcessingPipeline({
+        pipeline = BookmarkProcessingPipeline({
             "batch_size": 2,
             "enable_checkpoints": False
         })
@@ -416,7 +416,7 @@ class TestProcessingPipeline:
         mock_checkpoint_manager = Mock()
         mock_checkpoint_manager.has_checkpoint.return_value = False
         
-        pipeline = ProcessingPipeline({
+        pipeline = BookmarkProcessingPipeline({
             "batch_size": 2,
             "enable_checkpoints": True,
             "checkpoint_interval": 1
@@ -455,7 +455,7 @@ class TestProcessingPipeline:
             "last_processed_index": 2
         }
         
-        pipeline = ProcessingPipeline({
+        pipeline = BookmarkProcessingPipeline({
             "enable_checkpoints": True,
             "resume_from_checkpoint": True
         })
@@ -477,7 +477,7 @@ class TestProcessingPipeline:
     
     def test_validate_configuration(self):
         """Test configuration validation."""
-        pipeline = ProcessingPipeline()
+        pipeline = BookmarkProcessingPipeline()
         
         # Valid configuration
         valid_config = {
@@ -499,7 +499,7 @@ class TestProcessingPipeline:
     
     def test_prepare_for_processing(self):
         """Test preparation steps before processing."""
-        pipeline = ProcessingPipeline()
+        pipeline = BookmarkProcessingPipeline()
         
         config = {
             "ai_engine": "local",
@@ -516,7 +516,7 @@ class TestProcessingPipeline:
     
     def test_create_processing_summary(self):
         """Test creating processing summary."""
-        pipeline = ProcessingPipeline()
+        pipeline = BookmarkProcessingPipeline()
         
         bookmarks = create_sample_bookmark_objects()
         
@@ -535,7 +535,7 @@ class TestProcessingPipeline:
     
     def test_cleanup_after_processing(self):
         """Test cleanup after processing completion."""
-        pipeline = ProcessingPipeline({
+        pipeline = BookmarkProcessingPipeline({
             "enable_checkpoints": True
         })
         
@@ -574,7 +574,7 @@ class TestProcessingIntegration:
             "verbose": False
         }
         
-        pipeline = ProcessingPipeline(config)
+        pipeline = BookmarkProcessingPipeline(config)
         
         # Mock external dependencies
         mock_context = create_mock_pipeline_context()
