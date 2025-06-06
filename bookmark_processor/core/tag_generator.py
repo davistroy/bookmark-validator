@@ -565,8 +565,13 @@ class CorpusAwareTagGenerator:
                 score += 0.2
         
         # Existing tag relevance
-        if bookmark.tags and tag in bookmark.tags.lower():
-            score += 0.1
+        if bookmark.tags and isinstance(bookmark.tags, list):
+            existing_tags_str = ' '.join(bookmark.tags).lower()
+            if tag.lower() in existing_tags_str:
+                score += 0.1
+        elif bookmark.tags and isinstance(bookmark.tags, str):
+            if tag.lower() in bookmark.tags.lower():
+                score += 0.1
         
         return min(1.0, score)
     
