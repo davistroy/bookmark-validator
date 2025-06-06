@@ -54,6 +54,15 @@ Examples:
     --duplicate-strategy newest --verbose
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
     --no-duplicates
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --chrome-html --html-title "My Bookmarks"
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --chrome-html --html-output custom_bookmarks.html
+
+Output Formats:
+  By default, only CSV output (raindrop.io import format) is generated.
+  Use --chrome-html to also generate Chrome-compatible HTML bookmark files.
+  HTML files include timestamped filenames unless --html-output is specified.
 
 Cloud AI Setup:
   Copy user_config.ini.template to user_config.ini and add your API keys:
@@ -134,6 +143,22 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             default="highest_quality",
             help="Strategy for resolving duplicates (default: highest_quality)",
         )
+        
+        # Output format options
+        parser.add_argument(
+            "--chrome-html",
+            action="store_true",
+            help="Generate Chrome HTML bookmark file in addition to CSV",
+        )
+        parser.add_argument(
+            "--html-output",
+            help="Custom path for Chrome HTML output (auto-generated with timestamp if not specified)",
+        )
+        parser.add_argument(
+            "--html-title",
+            default="Enhanced Bookmarks",
+            help="Title for Chrome HTML bookmark file (default: Enhanced Bookmarks)",
+        )
 
         return parser
 
@@ -183,6 +208,9 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "ai_engine": args.ai_engine,
             "detect_duplicates": not args.no_duplicates,
             "duplicate_strategy": args.duplicate_strategy,
+            "generate_chrome_html": args.chrome_html,
+            "chrome_html_output": args.html_output,
+            "html_title": args.html_title,
         }
 
     def process_arguments(self, validated_args: dict) -> Configuration:

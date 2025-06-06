@@ -1,0 +1,145 @@
+# Chrome Integration and Multi-Input Enhancement PRD
+
+## Project Overview
+Enhance the existing Bookmark Validation and Enhancement Tool to support Chrome HTML bookmarks and multiple input file processing with AI-generated folder organization.
+
+## Current State
+- ✅ Processes raindrop.io CSV exports (11-column to 6-column conversion)
+- ✅ URL validation with intelligent retry logic
+- ✅ AI-powered description enhancement using existing content
+- ✅ Corpus-aware tag optimization (targeting 100-200 unique tags)
+- ✅ Checkpoint/resume functionality for large datasets
+- ✅ Comprehensive error handling and progress tracking
+
+## New Requirements
+
+### 1. Chrome HTML Input Support
+**Objective**: Process Chrome bookmark exports (.html) in addition to existing raindrop.io CSV files
+
+**Requirements**:
+- Parse Chrome HTML bookmark exports following CHROME_SPEC.md specification
+- Extract bookmarks with title, URL, folder path, and timestamps
+- Handle nested folder structures from Chrome exports
+- Support both individual Chrome HTML files and Chrome HTML mixed with CSV files
+- Maintain same validation and enhancement pipeline for Chrome-sourced bookmarks
+
+**Acceptance Criteria**:
+- Tool accepts .html files as input alongside .csv files
+- Chrome HTML parsing handles all standard Chrome export formats
+- Extracted bookmarks integrate seamlessly into existing processing pipeline
+- Chrome folder structure provides hints for AI folder generation
+
+### 2. Multi-Input File Auto-Detection
+**Objective**: Automatically process all relevant bookmark files in current directory when no specific input file is specified
+
+**Requirements**:
+- Auto-detect and process all CSV and HTML files matching expected bookmark formats
+- Process multiple input files in a single operation
+- Merge data from multiple sources intelligently
+- Handle URL deduplication across multiple input files
+- Maintain processing efficiency with multiple input sources
+
+**Acceptance Criteria**:
+- Command line without --input parameter processes all valid files in current directory
+- Tool correctly identifies raindrop.io CSV and Chrome HTML formats
+- Processes multiple files without user intervention
+- Provides clear progress reporting for multi-file operations
+
+### 3. Intelligent URL Deduplication and Metadata Merging
+**Objective**: Handle duplicate URLs across multiple input sources with intelligent merging
+
+**Requirements**:
+- Use latest version of bookmark data when same URL appears multiple times
+- Fallback to Chrome HTML data if no clear latest version available
+- Merge metadata from multiple sources (tags, descriptions, notes)
+- Combine folder hints from all sources for AI processing
+- Ensure final output contains each URL only once
+
+**Acceptance Criteria**:
+- Duplicate URLs are intelligently merged based on recency
+- Chrome data serves as fallback for version determination
+- All relevant metadata is preserved and combined
+- Final output has no duplicate URLs
+
+### 4. AI-Generated Folder Structure
+**Objective**: Replace existing folder structures with AI-generated semantic organization
+
+**Requirements**:
+- Completely replace original folder structures with AI-generated organization
+- Use existing folders as hints/seeds for both tags and new folder placement
+- Generate semantic folder structures based on content analysis
+- Limit folders to maximum 20 bookmarks each
+- Create semantic sub-folders when folders exceed 20 bookmarks limit
+- No maximum folder depth restrictions
+- Perform folder generation as post-processing step for accuracy
+
+**Acceptance Criteria**:
+- AI generates logical, semantic folder structures
+- No folder contains more than 20 bookmarks
+- Sub-folders are semantically meaningful (e.g., "Development/Frontend/React")
+- Original folder names influence tag generation and new folder placement
+- Each URL appears in exactly one folder in final output
+
+### 5. Chrome HTML Output Format
+**Objective**: Generate Chrome-compatible HTML bookmark files alongside raindrop.io CSV output
+
+**Requirements**:
+- Produce Chrome HTML format following CHROME_SPEC.md specification
+- Organize all bookmarks under "Other Bookmarks" structure
+- Use processing timestamps for ADD_DATE and LAST_MODIFIED attributes
+- Omit favicon data (ICON attributes) for simplicity
+- Generate proper nested folder structure in HTML format
+- Ensure HTML output contains same logical data as CSV output
+
+**Acceptance Criteria**:
+- Generated HTML imports successfully into Chrome
+- All bookmarks organized under "Other Bookmarks"
+- Proper nested folder structure reflects AI-generated organization
+- HTML and CSV outputs contain equivalent bookmark data
+- HTML follows Chrome specification exactly
+
+### 6. Enhanced Output File Management
+**Objective**: Generate timestamped output files for both formats
+
+**Requirements**:
+- Generate two output files: CSV (raindrop.io format) and HTML (Chrome format)
+- Use timestamp format: bookmarks_YYYYMMDD_HHMMSS.csv and bookmarks_YYYYMMDD_HHMMSS.html
+- Always use "bookmarks" as filename prefix
+- Apply consistent naming regardless of single or multi-file input
+- Maintain existing file output location handling
+
+**Acceptance Criteria**:
+- Two output files generated for every processing run
+- Timestamp format is consistent and sortable
+- Filenames clearly indicate output format
+- Both files contain same bookmark data in respective formats
+
+## Technical Constraints
+
+### Performance Requirements
+- Maintain existing 8-hour processing window for 3,598+ bookmarks
+- AI folder generation should not significantly impact processing time
+- Multi-file processing should scale efficiently
+- Memory usage should remain under 4GB for large datasets
+
+### Integration Requirements
+- Leverage existing checkpoint/resume functionality
+- Maintain compatibility with existing CLI interface
+- Preserve existing error handling and logging
+- Follow existing security and validation patterns
+
+### Quality Requirements
+- Maintain 85%+ test coverage for all new functionality
+- Follow existing code style and documentation standards
+- Ensure Windows executable compatibility
+- Provide comprehensive error messages for format issues
+
+## Success Metrics
+- Successfully process mixed Chrome HTML and raindrop.io CSV inputs
+- Generate semantically meaningful folder structures with AI
+- Produce both CSV and HTML outputs that import correctly into respective systems
+- Maintain processing performance within established timeframes
+- Zero data loss during multi-file processing and format conversion
+
+## Priority
+High - These enhancements significantly expand the tool's utility and automation capabilities while maintaining backward compatibility with existing functionality.

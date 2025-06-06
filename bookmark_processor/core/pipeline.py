@@ -21,6 +21,8 @@ from .ai_processor import EnhancedAIProcessor, AIProcessingResult
 from .tag_generator import CorpusAwareTagGenerator, TagOptimizationResult
 from .duplicate_detector import DuplicateDetector, DuplicateDetectionResult
 from .checkpoint_manager import CheckpointManager, ProcessingStage, ProcessingState
+from .folder_generator import AIFolderGenerator, FolderGenerationResult
+from .chrome_html_generator import ChromeHTMLGenerator, ChromeHTMLGeneratorError
 from ..utils.progress_tracker import AdvancedProgressTracker, ProgressLevel, ProcessingStage as PTStage
 from ..utils.intelligent_rate_limiter import IntelligentRateLimiter
 from ..utils.memory_optimizer import MemoryMonitor, BatchProcessor, memory_context, optimize_for_large_dataset
@@ -32,6 +34,11 @@ class PipelineConfig:
     # Input/Output
     input_file: str
     output_file: str
+    
+    # Output format options
+    generate_chrome_html: bool = False
+    chrome_html_output: Optional[str] = None
+    output_title: str = "Bookmarks"
     
     # Processing options
     batch_size: int = 100
@@ -51,6 +58,11 @@ class PipelineConfig:
     # Tag generation
     target_tag_count: int = 150
     max_tags_per_bookmark: int = 5
+    
+    # Folder generation
+    generate_folders: bool = True
+    max_bookmarks_per_folder: int = 20
+    ai_engine: str = "local"  # For folder generation AI
     
     # Memory management
     memory_batch_size: int = 100
@@ -118,6 +130,11 @@ class BookmarkProcessingPipeline:
             max_tags_per_bookmark=config.max_tags_per_bookmark
         )
         self.duplicate_detector = DuplicateDetector() if config.detect_duplicates else None
+        self.folder_generator = AIFolderGenerator(
+            max_bookmarks_per_folder=config.max_bookmarks_per_folder,
+            ai_engine=config.ai_engine
+        ) if config.generate_folders else None
+        self.chrome_html_generator = ChromeHTMLGenerator() if config.generate_chrome_html else None
         
         # Memory management
         self.memory_monitor = MemoryMonitor(
@@ -142,6 +159,8 @@ class BookmarkProcessingPipeline:
         self.content_data: Dict[str, ContentData] = {}
         self.ai_results: Dict[str, AIProcessingResult] = {}
         self.tag_assignments: Dict[str, List[str]] = {}
+        self.folder_assignments: Dict[str, str] = {}  # url -> folder path
+        self.original_folders: Dict[str, str] = {}  # url -> original folder
         
         # Statistics
         self.error_summary: Dict[str, int] = {}
@@ -221,6 +240,8 @@ class BookmarkProcessingPipeline:
             if self.config.ai_enabled:
                 self._stage_ai_processing()
             self._stage_generate_tags()
+            if self.config.generate_folders:
+                self._stage_generate_folders()
             self._stage_generate_output()
             
             return self._create_results()
@@ -277,6 +298,8 @@ class BookmarkProcessingPipeline:
             
             if state.current_stage != ProcessingStage.COMPLETED:
                 self._stage_generate_tags()
+                if self.config.generate_folders:
+                    self._stage_generate_folders()
                 self._stage_generate_output()
             
             return self._create_results()
@@ -541,14 +564,81 @@ class BookmarkProcessingPipeline:
         # Save checkpoint
         self.checkpoint_manager.save_checkpoint(force=True)
     
+    def _stage_generate_folders(self) -> None:
+        """Stage 6: Generate AI-powered folder structure"""
+        if not self.folder_generator:
+            logging.info("Stage 6: Folder generation disabled")
+            return
+        
+        logging.info("Stage 6: Generating AI folder structure")
+        
+        self.checkpoint_manager.update_stage(ProcessingStage.TAG_OPTIMIZATION)  # Reuse stage for now
+        
+        if self.progress_tracker:
+            self.progress_tracker.start_stage(PTStage.GENERATING_TAGS, 1)  # Reuse stage for progress
+        
+        # Get valid bookmarks
+        valid_bookmarks = [b for b in self.bookmarks if b.url in self.validation_results and 
+                          self.validation_results[b.url].is_valid]
+        
+        if valid_bookmarks:
+            # Generate folder structure
+            folder_result = self.folder_generator.generate_folder_structure(
+                valid_bookmarks,
+                content_data_map=self.content_data,
+                ai_results_map=self.ai_results,
+                original_folders_map=self.original_folders
+            )
+            
+            self.folder_assignments = folder_result.folder_assignments
+            
+            # Store folder generation stats
+            self.processing_stats['folder_generation'] = folder_result.to_dict()
+            
+            # Update tag assignments to include folder hints
+            self._update_tags_with_folder_context(folder_result)
+            
+            logging.info(f"Folder generation complete: {folder_result.total_folders} folders, "
+                        f"max depth {folder_result.max_depth}")
+            
+            # Log folder report if verbose
+            if self.config.verbose:
+                report = self.folder_generator.get_folder_report(folder_result)
+                logging.info(f"\n{report}")
+        
+        if self.progress_tracker:
+            self.progress_tracker.update(stage_items=1)
+        
+        # Save checkpoint
+        self.checkpoint_manager.save_checkpoint(force=True)
+    
+    def _update_tags_with_folder_context(self, folder_result: FolderGenerationResult) -> None:
+        """Update tag assignments to include folder-based tags"""
+        for url, folder_path in folder_result.folder_assignments.items():
+            if folder_path and url in self.tag_assignments:
+                # Extract folder names as potential tags
+                folder_parts = folder_path.split('/')
+                folder_tags = [part.lower().replace(' ', '-') for part in folder_parts]
+                
+                # Add unique folder tags to existing tags
+                existing_tags = self.tag_assignments[url]
+                combined_tags = list(set(existing_tags + folder_tags))
+                
+                # Limit to max tags per bookmark
+                if len(combined_tags) > self.config.max_tags_per_bookmark:
+                    combined_tags = combined_tags[:self.config.max_tags_per_bookmark]
+                
+                self.tag_assignments[url] = combined_tags
+    
     def _stage_generate_output(self) -> None:
         """Stage 6: Generate final output"""
         logging.info("Stage 6: Generating output")
         
         self.checkpoint_manager.update_stage(ProcessingStage.OUTPUT_GENERATION)
         
+        output_count = 1 + (1 if self.config.generate_chrome_html else 0)
         if self.progress_tracker:
-            self.progress_tracker.start_stage(PTStage.SAVING_RESULTS, 1)
+            self.progress_tracker.start_stage(PTStage.SAVING_RESULTS, output_count)
         
         # Prepare output data
         output_bookmarks = []
@@ -572,22 +662,63 @@ class BookmarkProcessingPipeline:
             if tags:
                 enhanced_bookmark.tags = self._format_tags_for_export(tags)
             
+            # Update folder with AI-generated folder if available
+            if self.folder_assignments:
+                ai_folder = self.folder_assignments.get(bookmark.url)
+                if ai_folder:
+                    enhanced_bookmark.folder = ai_folder
+            
             output_bookmarks.append(enhanced_bookmark)
         
-        # Generate output CSV
+        # Generate primary CSV output
         try:
             self.csv_handler.save_import_csv(output_bookmarks, self.config.output_file)
-            logging.info(f"Output saved: {self.config.output_file}")
+            logging.info(f"CSV output saved: {self.config.output_file}")
+            
+            if self.progress_tracker:
+                self.progress_tracker.update(stage_items=1)
         except Exception as e:
-            logging.error(f"Failed to generate output: {e}")
-            raise Exception("Failed to save output file")
+            logging.error(f"Failed to generate CSV output: {e}")
+            raise Exception("Failed to save CSV output file")
         
-        if self.progress_tracker:
-            self.progress_tracker.update(stage_items=1)
+        # Generate Chrome HTML output if enabled
+        if self.config.generate_chrome_html and self.chrome_html_generator:
+            try:
+                html_output_path = self.config.chrome_html_output or self._generate_html_output_path()
+                self.chrome_html_generator.generate_html(
+                    output_bookmarks, 
+                    html_output_path,
+                    title=self.config.output_title
+                )
+                logging.info(f"Chrome HTML output saved: {html_output_path}")
+                
+                if self.progress_tracker:
+                    self.progress_tracker.update(stage_items=2 if output_count == 2 else 1)
+            except ChromeHTMLGeneratorError as e:
+                logging.error(f"Failed to generate Chrome HTML output: {e}")
+                # Don't fail the whole pipeline for HTML generation failure
+                logging.warning("Continuing with CSV output only")
+            except Exception as e:
+                logging.error(f"Unexpected error generating Chrome HTML output: {e}")
+                logging.warning("Continuing with CSV output only")
         
         # Mark as completed
         self.checkpoint_manager.update_stage(ProcessingStage.COMPLETED)
         self.checkpoint_manager.save_checkpoint(force=True)
+    
+    def _generate_html_output_path(self) -> str:
+        """Generate timestamped HTML output path based on CSV output path."""
+        from pathlib import Path
+        from datetime import datetime
+        
+        csv_path = Path(self.config.output_file)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Create HTML filename with timestamp
+        html_filename = f"{csv_path.stem}_{timestamp}.html"
+        html_path = csv_path.parent / html_filename
+        
+        return str(html_path)
     
     def _restore_from_checkpoint(self, state: ProcessingState) -> None:
         """Restore pipeline state from checkpoint"""

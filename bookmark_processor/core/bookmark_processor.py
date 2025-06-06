@@ -112,6 +112,9 @@ class BookmarkProcessor:
                 clear_checkpoints=kwargs.get("clear_checkpoints", False),
                 detect_duplicates=kwargs.get("detect_duplicates", True),
                 duplicate_strategy=kwargs.get("duplicate_strategy", "highest_quality"),
+                generate_chrome_html=kwargs.get("generate_chrome_html", False),
+                chrome_html_output=kwargs.get("chrome_html_output"),
+                output_title=kwargs.get("html_title", "Enhanced Bookmarks"),
                 progress_level=(
                     ProgressLevel.DETAILED
                     if kwargs.get("verbose", False)
@@ -225,6 +228,9 @@ class BookmarkProcessor:
                     duplicate_strategy=validated_args.get(
                         "duplicate_strategy", "highest_quality"
                     ),
+                    generate_chrome_html=validated_args.get("generate_chrome_html", False),
+                    chrome_html_output=validated_args.get("chrome_html_output"),
+                    html_title=validated_args.get("html_title", "Enhanced Bookmarks"),
                 )
 
                 # Print comprehensive results summary for multi-file processing
@@ -325,6 +331,9 @@ class BookmarkProcessor:
                 duplicate_strategy=validated_args.get(
                     "duplicate_strategy", "highest_quality"
                 ),
+                generate_chrome_html=validated_args.get("generate_chrome_html", False),
+                chrome_html_output=validated_args.get("chrome_html_output"),
+                html_title=validated_args.get("html_title", "Enhanced Bookmarks"),
             )
 
             # Print comprehensive results summary
