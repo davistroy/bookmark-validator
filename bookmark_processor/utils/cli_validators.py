@@ -648,3 +648,7 @@ For more information: https://github.com/davistroy/bookmark-validator
     )
     
     return parser
+
+
+# Alias for backward compatibility
+CLIValidator = CLIArgumentValidator

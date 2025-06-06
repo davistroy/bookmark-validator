@@ -305,7 +305,10 @@ class AIFolderGenerator:
         if bookmark.note:
             text_parts.append(bookmark.note.lower())
         if bookmark.tags:
-            tag_text = bookmark.tags.replace('"', '').lower()
+            if isinstance(bookmark.tags, list):
+                tag_text = ' '.join(bookmark.tags).lower()
+            else:
+                tag_text = str(bookmark.tags).replace('"', '').lower()
             text_parts.append(tag_text)
         
         # Add content data

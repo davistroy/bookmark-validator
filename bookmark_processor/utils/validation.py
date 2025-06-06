@@ -335,44 +335,84 @@ def validate_url_format(url: str) -> bool:
         url: URL string to validate
         
     Returns:
-        True if valid
+        True if valid, False if invalid
         
-    Raises:
-        ValidationError: If URL format is invalid
+    Note: 
+        Only accepts HTTP(S) and FTP URLs for bookmark processing.
+        Rejects javascript:, mailto:, and malformed URLs.
     """
     import re
     
-    # Basic URL pattern
-    url_pattern = re.compile(
-        r'^https?://'  # http:// or https://
+    # Handle None, empty, or whitespace-only strings
+    if not url or not isinstance(url, str) or not url.strip():
+        return False
+    
+    url = url.strip()
+    
+    # Reject dangerous schemes
+    dangerous_schemes = ['javascript:', 'data:', 'vbscript:']
+    for scheme in dangerous_schemes:
+        if url.lower().startswith(scheme):
+            return False
+    
+    # Accept HTTP(S) and FTP URLs
+    valid_url_pattern = re.compile(
+        r'^(https?|ftp)://'  # http://, https://, or ftp://
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
         r'localhost|'  # localhost...
         r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
         r'(?::\d+)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     
-    if not url_pattern.match(url):
-        raise ValidationError(f"Invalid URL format: {url}")
+    # Reject mailto: URLs (not suitable for bookmarks)
+    if url.lower().startswith('mailto:'):
+        return False
     
-    return True
+    # Reject malformed URLs
+    if url.count('://') != 1:
+        return False
+    
+    if '://' in url and not url.split('://')[1]:
+        return False
+    
+    return bool(valid_url_pattern.match(url))
 
 
-def sanitize_input(input_data: str) -> str:
+def sanitize_input(input_data) -> str:
     """
     Sanitize input data to prevent injection attacks.
     
     Args:
-        input_data: Input string to sanitize
+        input_data: Input data to sanitize (any type)
         
     Returns:
         Sanitized string
     """
-    if not isinstance(input_data, str):
-        return str(input_data)
-    
-    # Remove potentially dangerous characters
     import re
-    sanitized = re.sub(r'[<>"\']', '', input_data)
+    
+    # Handle None
+    if input_data is None:
+        return ""
+    
+    # Convert to string
+    if not isinstance(input_data, str):
+        input_data = str(input_data)
+    
+    # Remove HTML tags
+    sanitized = re.sub(r'<[^>]*>', '', input_data)
+    
+    # Replace newlines and carriage returns with spaces, but preserve the fact they were there
+    has_trailing_newlines = re.search(r'[\r\n]\s*$', sanitized)
+    
+    # Normalize whitespace (replace newlines, tabs, carriage returns with spaces)
+    sanitized = re.sub(r'[\r\n\t]+', ' ', sanitized)
+    
+    # Collapse multiple spaces into single spaces  
+    sanitized = re.sub(r' +', ' ', sanitized)
+    
+    # Trim leading and trailing, but preserve trailing space if original had trailing newlines
     sanitized = sanitized.strip()
+    if has_trailing_newlines:
+        sanitized += ' '
     
     return sanitized

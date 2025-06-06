@@ -6,6 +6,8 @@ A powerful Linux/WSL command-line tool that processes both raindrop.io bookmark 
 
 - **Multiple Input Formats**: Supports raindrop.io CSV exports and Chrome HTML bookmark files
 - **Auto-Detection Mode**: Automatically finds and processes all bookmark files when no input specified
+- **Dual Output Formats**: Generate both raindrop.io CSV and Chrome HTML bookmark files
+- **AI-Generated Folder Structure**: Intelligent semantic organization with max 20 bookmarks per folder
 - **URL Validation**: Validates bookmark accessibility with intelligent retry logic and rate limiting
 - **AI-Enhanced Descriptions**: Generates improved descriptions using local AI or cloud APIs (Claude/OpenAI)
 - **Smart Tag Optimization**: Creates a coherent tagging system across your entire bookmark collection
@@ -25,6 +27,10 @@ python -m bookmark_processor --output enhanced.csv
 # Process specific file (supports CSV and HTML)
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv
 python -m bookmark_processor --input chrome_bookmarks.html --output enhanced.csv
+
+# Generate both CSV and Chrome HTML output
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \
+  --chrome-html --html-title "My Enhanced Bookmarks"
 
 # With advanced options
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \

@@ -745,3 +745,7 @@ def get_config_validation_report(config_path: Optional[Union[str, Path]]) -> str
     validator = ConfigurationValidator()
     result = validator.validate_config_file(config_path)
     return validator.generate_validation_report(result)
+
+
+# Alias for backward compatibility
+ConfigValidator = ConfigurationValidator
