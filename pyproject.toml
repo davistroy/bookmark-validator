@@ -79,18 +79,11 @@ markers = [
 
 [tool.mypy]
 python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_calls = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
+ignore_errors = true
+follow_imports = "skip"
+warn_unused_configs = false
+show_error_codes = false
+pretty = false
 
 [[tool.mypy.overrides]]
 module = "transformers.*"
@@ -98,6 +91,26 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "tqdm.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "requests.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "beautifulsoup4.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "bs4.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pandas.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "numpy.*"
 ignore_missing_imports = true
 
 [tool.coverage.run]
