@@ -32,9 +32,13 @@ python -m bookmark_processor --input chrome_bookmarks.html --output enhanced.csv
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \
   --chrome-html --html-title "My Enhanced Bookmarks"
 
-# With advanced options
+# With AI folder generation and custom settings
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \
-  --verbose --resume --duplicate-strategy highest_quality
+  --generate-folders --max-bookmarks-per-folder 15 --ai-engine openai
+
+# Disable AI folders and use original structure
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \
+  --no-folders --verbose --resume
 ```
 
 📖 **New to the tool?** Check out our [Quick Start Guide](docs/QUICKSTART.md) for a step-by-step walkthrough!

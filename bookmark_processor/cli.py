@@ -58,11 +58,20 @@ Examples:
     --chrome-html --html-title "My Bookmarks"
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
     --chrome-html --html-output custom_bookmarks.html
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --no-folders --ai-engine openai
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --max-bookmarks-per-folder 15 --verbose
 
 Output Formats:
   By default, only CSV output (raindrop.io import format) is generated.
   Use --chrome-html to also generate Chrome-compatible HTML bookmark files.
   HTML files include timestamped filenames unless --html-output is specified.
+
+AI Folder Generation:
+  By default, AI-powered semantic folder structures are generated (max 20 bookmarks/folder).
+  Use --no-folders to disable and preserve original folder structure.
+  Use --max-bookmarks-per-folder to adjust folder size limits.
 
 Cloud AI Setup:
   Copy user_config.ini.template to user_config.ini and add your API keys:
@@ -144,6 +153,25 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             help="Strategy for resolving duplicates (default: highest_quality)",
         )
         
+        # Folder generation options
+        parser.add_argument(
+            "--generate-folders",
+            action="store_true",
+            default=True,
+            help="Generate AI-powered semantic folder structure (default: enabled)",
+        )
+        parser.add_argument(
+            "--no-folders",
+            action="store_true",
+            help="Disable AI folder generation and use original folder structure",
+        )
+        parser.add_argument(
+            "--max-bookmarks-per-folder",
+            type=int,
+            default=20,
+            help="Maximum bookmarks per folder (default: 20)",
+        )
+        
         # Output format options
         parser.add_argument(
             "--chrome-html",
@@ -208,6 +236,8 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "ai_engine": args.ai_engine,
             "detect_duplicates": not args.no_duplicates,
             "duplicate_strategy": args.duplicate_strategy,
+            "generate_folders": args.generate_folders and not args.no_folders,
+            "max_bookmarks_per_folder": args.max_bookmarks_per_folder,
             "generate_chrome_html": args.chrome_html,
             "chrome_html_output": args.html_output,
             "html_title": args.html_title,

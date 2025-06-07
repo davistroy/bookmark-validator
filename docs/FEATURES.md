@@ -11,6 +11,9 @@ Comprehensive guide to all features of the Bookmark Validation and Enhancement T
 - [Duplicate Detection and Resolution](#duplicate-detection-and-resolution)
 - [Checkpoint and Resume](#checkpoint-and-resume)
 - [Progress Tracking and Reporting](#progress-tracking-and-reporting)
+- [AI-Generated Folder Organization](#ai-generated-folder-organization)
+- [Chrome HTML Import/Export](#chrome-html-import-export)
+- [Multi-File Processing](#multi-file-processing)
 - [Cloud AI Integration](#cloud-ai-integration)
 - [Performance Optimization](#performance-optimization)
 - [Security Features](#security-features)
@@ -329,6 +332,173 @@ Duplicate Detection Results:
 - Unique URLs: 847
 - Duplicates removed: 153 (15.3%)
 - Strategy used: highest_quality
+```
+
+## AI-Generated Folder Organization
+
+### 🗂️ Semantic Folder Structure
+
+Automatically organizes bookmarks into logical folder hierarchies using AI analysis.
+
+**Features:**
+- ✅ Content-based folder generation using AI analysis
+- ✅ Configurable folder size limits (default: 20 bookmarks per folder)
+- ✅ Hierarchical folder structure with semantic grouping
+- ✅ Original folder hints integration for better categorization
+- ✅ Intelligent folder naming based on content themes
+
+**How It Works:**
+The AI analyzes bookmark content including:
+- Page titles and descriptions
+- URL patterns and domains
+- Existing folder structures as hints
+- Content analysis results
+- Tag context
+
+**Example Organization:**
+```
+Before (Original Folders):
+├── Bookmarks/
+├── Programming/Python/
+├── Programming/JavaScript/
+├── Random/
+└── Unsorted/
+
+After (AI-Generated):
+├── Education/
+│   ├── Programming Tutorials/    (20 bookmarks)
+│   └── Online Courses/          (15 bookmarks)
+├── Development/
+│   ├── Documentation/           (18 bookmarks)
+│   ├── Tools & Resources/       (20 bookmarks)
+│   └── Code Examples/           (12 bookmarks)
+└── Technology/
+    ├── News & Updates/          (20 bookmarks)
+    └── Research Papers/         (8 bookmarks)
+```
+
+**Usage:**
+```bash
+# Enable AI folder generation (default)
+python -m bookmark_processor \
+  --input bookmarks.csv \
+  --output enhanced.csv \
+  --generate-folders
+
+# Disable AI folders (use original structure)
+python -m bookmark_processor \
+  --input bookmarks.csv \
+  --output enhanced.csv \
+  --no-folders
+
+# Custom folder size limit
+python -m bookmark_processor \
+  --input bookmarks.csv \
+  --output enhanced.csv \
+  --max-bookmarks-per-folder 15
+```
+
+**Configuration Options:**
+- `--generate-folders`: Enable AI folder generation (default: enabled)
+- `--no-folders`: Disable AI folders and preserve original structure
+- `--max-bookmarks-per-folder N`: Set maximum bookmarks per folder (default: 20)
+
+**Example Results:**
+```
+AI Folder Generation Results:
+- Total folders created: 12
+- Maximum folder depth: 2
+- Average bookmarks per folder: 16.4
+- Folders with optimal size (15-20): 8
+- Processing time: 0.3s
+```
+
+## Chrome HTML Import/Export
+
+### 🌐 Chrome Bookmark Format Support
+
+Full support for Chrome/Chromium HTML bookmark format (Netscape-Bookmark-file-1).
+
+**Features:**
+- ✅ Import Chrome HTML bookmark files
+- ✅ Export to Chrome HTML format with AI-generated folders
+- ✅ Preserve bookmark hierarchy and folder structure
+- ✅ Support for nested folders and bookmark metadata
+- ✅ Automatic format detection for mixed file processing
+
+**Supported Import:**
+```html
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DT><H3 FOLDED>Programming</H3>
+<DL><p>
+<DT><A HREF="https://github.com" ADD_DATE="1640995200">GitHub</A>
+<DT><H3>Python</H3>
+<DL><p>
+<DT><A HREF="https://python.org" ADD_DATE="1640995300">Python.org</A>
+</DL><p>
+</DL><p>
+```
+
+**Usage:**
+```bash
+# Import Chrome HTML bookmarks
+python -m bookmark_processor \
+  --input chrome_bookmarks.html \
+  --output enhanced.csv
+
+# Generate both CSV and Chrome HTML output
+python -m bookmark_processor \
+  --input bookmarks.csv \
+  --output enhanced.csv \
+  --chrome-html \
+  --html-title "My Enhanced Bookmarks"
+
+# Custom HTML output path
+python -m bookmark_processor \
+  --input bookmarks.csv \
+  --output enhanced.csv \
+  --chrome-html \
+  --html-output "my_bookmarks_20241201.html"
+```
+
+## Multi-File Processing
+
+### 📁 Automatic File Detection
+
+Process multiple bookmark files simultaneously with automatic format detection.
+
+**Features:**
+- ✅ Auto-detect CSV and HTML files in current directory
+- ✅ Combine multiple bookmark collections
+- ✅ Cross-file duplicate detection and resolution
+- ✅ Unified AI processing across all files
+- ✅ Aggregated statistics and reporting
+
+**Auto-Detection Mode:**
+```bash
+# Process all bookmark files in current directory
+python -m bookmark_processor --output combined_bookmarks.csv
+
+# With advanced options
+python -m bookmark_processor \
+  --output combined_bookmarks.csv \
+  --ai-engine claude \
+  --generate-folders \
+  --max-bookmarks-per-folder 15
+```
+
+**Example Multi-File Results:**
+```
+Multi-file Processing Results:
+- Source files: 3 (2 CSV, 1 HTML)
+- Total bookmarks found: 2,847
+- After deduplication: 2,203
+- Valid bookmarks: 2,156
+- AI-generated folders: 47
+- Processing time: 8.3 minutes
 ```
 
 ## Checkpoint and Resume
