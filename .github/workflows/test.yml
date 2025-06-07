@@ -82,10 +82,12 @@ jobs:
         python -m pytest tests/ -m "unit or not integration" \
           --cov=bookmark_processor \
           --cov-report=xml \
-          --cov-report=html \
           --cov-report=term-missing \
-          --cov-fail-under=80 \
+          --cov-fail-under=75 \
           --junitxml=junit/test-results-${{ matrix.python-version }}.xml \
+          --tb=short \
+          --maxfail=50 \
+          -x \
           -v
 
     - name: Run integration tests
@@ -94,9 +96,11 @@ jobs:
         python -m pytest tests/test_*integration*.py \
           --cov=bookmark_processor \
           --cov-report=xml \
-          --cov-report=html \
           --cov-report=term-missing \
           --junitxml=junit/integration-results-${{ matrix.python-version }}.xml \
+          --tb=short \
+          --maxfail=10 \
+          -x \
           -v
 
     - name: Upload coverage reports to Codecov

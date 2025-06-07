@@ -59,6 +59,8 @@ class ErrorCategory(Enum):
     PROCESSING = "processing"  # Processing logic errors
     CONFIGURATION = "configuration"  # Configuration/setup errors
     SYSTEM = "system"  # System resource errors
+    DATA = "data"  # Data-related errors
+    UNKNOWN = "unknown"  # Unknown or unclassified errors
 
 
 @dataclass

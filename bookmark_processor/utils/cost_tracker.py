@@ -81,13 +81,14 @@ class CostTracker:
         else:
             self.cost_log_file = Path.cwd() / ".bookmark_costs" / "cost_log.json"
 
+        # Initialize logger first
+        self.logger = logging.getLogger(__name__)
+
         # Create directory if needed
         self.cost_log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Load existing records
         self._load_cost_history()
-
-        self.logger = logging.getLogger(__name__)
 
     def add_cost_record(
         self,

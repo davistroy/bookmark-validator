@@ -52,6 +52,10 @@ class MemoryMonitor:
 
     def get_current_memory(self) -> float:
         """Get current memory usage in MB"""
+        return self.get_current_usage_mb()
+
+    def get_current_usage_mb(self) -> float:
+        """Get current memory usage in MB (alias for compatibility)"""
         try:
             # Try to get RSS memory usage
             usage = resource.getrusage(resource.RUSAGE_SELF)
