@@ -91,7 +91,7 @@ jobs:
     - name: Run integration tests
       if: matrix.test-type == 'integration'
       run: |
-        python -m pytest tests/ -m "integration" \
+        python -m pytest tests/test_*integration*.py \
           --cov=bookmark_processor \
           --cov-report=xml \
           --cov-report=html \

@@ -22,6 +22,7 @@ from tests.fixtures.test_data import (
 )
 
 
+@pytest.mark.integration
 class TestBookmarkProcessorIntegration:
     """Integration tests for the complete bookmark processor workflow."""
 
