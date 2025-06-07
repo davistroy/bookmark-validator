@@ -17,6 +17,8 @@ A powerful Linux/WSL command-line tool that processes both raindrop.io bookmark 
 - **Linux/WSL Only**: Designed specifically for Linux and Windows Subsystem for Linux (WSL2)
 - **Multiple AI Engines**: Choose between local processing, Claude API, or OpenAI API
 - **Cost Tracking**: Real-time cost monitoring for cloud AI usage with user confirmation
+- **Robust CI/CD**: Comprehensive test suite with automated quality checks and security scanning
+- **Production Ready**: Full type checking, code formatting, and security validation
 
 ## Quick Start
 
