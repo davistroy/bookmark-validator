@@ -12,25 +12,27 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .chrome_html_parser import ChromeHTMLParser, ChromeHTMLError
+from .chrome_html_parser import ChromeHTMLError, ChromeHTMLParser
 from .csv_handler import CSVError, RaindropCSVHandler
 from .data_models import Bookmark
 
 
 class UnsupportedFormatError(Exception):
     """Raised when file format is not supported."""
+
     pass
 
 
 class ImportError(Exception):
     """Base exception for import-related errors."""
+
     pass
 
 
 class MultiFormatImporter:
     """
     Unified importer for multiple bookmark file formats.
-    
+
     Supports:
     - Raindrop.io CSV exports (11-column format)
     - Chrome HTML bookmark exports (Netscape format)
@@ -57,13 +59,13 @@ class MultiFormatImporter:
             UnsupportedFormatError: If file format is not supported
         """
         file_path = Path(file_path)
-        
+
         if not file_path.exists():
             raise ImportError(f"File not found: {file_path}")
 
         # Detect file format and use appropriate parser
         file_format = self.detect_format(file_path)
-        
+
         try:
             if file_format == "csv":
                 return self._import_csv(file_path)
@@ -71,7 +73,7 @@ class MultiFormatImporter:
                 return self._import_html(file_path)
             else:
                 raise UnsupportedFormatError(f"Unsupported file format: {file_format}")
-                
+
         except Exception as e:
             self.logger.error(f"Failed to import bookmarks from {file_path}: {str(e)}")
             raise ImportError(f"Failed to import bookmarks: {str(e)}") from e
@@ -89,7 +91,7 @@ class MultiFormatImporter:
         try:
             # Check file extension first
             extension = file_path.suffix.lower()
-            
+
             if extension == ".csv":
                 # Verify it's a valid raindrop.io CSV
                 if self._is_raindrop_csv(file_path):
@@ -98,10 +100,10 @@ class MultiFormatImporter:
                 # Verify it's a valid Chrome bookmark HTML
                 if self.chrome_parser.validate_file(file_path):
                     return "html"
-            
+
             # Try content-based detection if extension check fails
             return self._detect_by_content(file_path)
-            
+
         except Exception as e:
             self.logger.warning(f"Error detecting format for {file_path}: {str(e)}")
             return "unknown"
@@ -118,7 +120,7 @@ class MultiFormatImporter:
         """
         try:
             # Read first few lines to detect format
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 first_lines = []
                 for _ in range(10):  # Read first 10 lines
                     line = f.readline()
@@ -126,20 +128,23 @@ class MultiFormatImporter:
                         break
                     first_lines.append(line.strip())
 
-            content_sample = '\n'.join(first_lines)
+            content_sample = "\n".join(first_lines)
 
             # Check for Chrome bookmark HTML markers
-            if 'DOCTYPE NETSCAPE-Bookmark-file-1' in content_sample:
+            if "DOCTYPE NETSCAPE-Bookmark-file-1" in content_sample:
                 return "html"
-            elif '<DL>' in content_sample.upper() and '<DT>' in content_sample.upper():
+            elif "<DL>" in content_sample.upper() and "<DT>" in content_sample.upper():
                 return "html"
-            
+
             # Check for CSV with raindrop.io header
-            if first_lines and 'id,title,note,excerpt,url,folder,tags,created' in first_lines[0]:
+            if (
+                first_lines
+                and "id,title,note,excerpt,url,folder,tags,created" in first_lines[0]
+            ):
                 return "csv"
-            
+
             # Check if it looks like CSV (comma-separated values)
-            if first_lines and ',' in first_lines[0] and '"' in content_sample:
+            if first_lines and "," in first_lines[0] and '"' in content_sample:
                 # Could be CSV, try to validate
                 if self._is_raindrop_csv(file_path):
                     return "csv"
@@ -180,11 +185,11 @@ class MultiFormatImporter:
             List of Bookmark objects
         """
         self.logger.info(f"Importing bookmarks from CSV file: {file_path}")
-        
+
         try:
             # Load CSV data
             df = self.csv_handler.load_export_csv(str(file_path))
-            
+
             # Convert to bookmark objects
             bookmarks = []
             for _, row in df.iterrows():
@@ -193,10 +198,12 @@ class MultiFormatImporter:
                     bookmarks.append(bookmark)
                 except Exception as e:
                     self.logger.warning(f"Failed to create bookmark from CSV row: {e}")
-            
-            self.logger.info(f"Successfully imported {len(bookmarks)} bookmarks from CSV")
+
+            self.logger.info(
+                f"Successfully imported {len(bookmarks)} bookmarks from CSV"
+            )
             return bookmarks
-            
+
         except Exception as e:
             raise ImportError(f"Failed to import CSV file: {str(e)}") from e
 
@@ -211,12 +218,14 @@ class MultiFormatImporter:
             List of Bookmark objects
         """
         self.logger.info(f"Importing bookmarks from Chrome HTML file: {file_path}")
-        
+
         try:
             bookmarks = self.chrome_parser.parse_file(file_path)
-            self.logger.info(f"Successfully imported {len(bookmarks)} bookmarks from Chrome HTML")
+            self.logger.info(
+                f"Successfully imported {len(bookmarks)} bookmarks from Chrome HTML"
+            )
             return bookmarks
-            
+
         except ChromeHTMLError as e:
             raise ImportError(f"Failed to import Chrome HTML file: {str(e)}") from e
 
@@ -231,34 +240,36 @@ class MultiFormatImporter:
             Dictionary with file information
         """
         file_path = Path(file_path)
-        
+
         base_info = {
-            'path': str(file_path),
-            'exists': file_path.exists(),
-            'size_bytes': 0,
-            'format': 'unknown',
-            'estimated_bookmarks': 0,
-            'is_supported': False
+            "path": str(file_path),
+            "exists": file_path.exists(),
+            "size_bytes": 0,
+            "format": "unknown",
+            "estimated_bookmarks": 0,
+            "is_supported": False,
         }
 
         if not file_path.exists():
             return base_info
 
         try:
-            base_info['size_bytes'] = file_path.stat().st_size
-            base_info['format'] = self.detect_format(file_path)
-            base_info['is_supported'] = base_info['format'] in ['csv', 'html']
-            
+            base_info["size_bytes"] = file_path.stat().st_size
+            base_info["format"] = self.detect_format(file_path)
+            base_info["is_supported"] = base_info["format"] in ["csv", "html"]
+
             # Get format-specific info
-            if base_info['format'] == 'csv':
+            if base_info["format"] == "csv":
                 try:
                     df = self.csv_handler.load_export_csv(str(file_path))
-                    base_info['estimated_bookmarks'] = len(df)
+                    base_info["estimated_bookmarks"] = len(df)
                 except Exception:
                     pass
-            elif base_info['format'] == 'html':
+            elif base_info["format"] == "html":
                 html_info = self.chrome_parser.get_file_info(file_path)
-                base_info['estimated_bookmarks'] = html_info.get('estimated_bookmark_count', 0)
+                base_info["estimated_bookmarks"] = html_info.get(
+                    "estimated_bookmark_count", 0
+                )
 
         except Exception as e:
             self.logger.warning(f"Error getting file info for {file_path}: {str(e)}")
@@ -283,7 +294,7 @@ class MultiFormatImporter:
         """
         return {
             "csv": "Raindrop.io CSV export (11-column format)",
-            "html": "Chrome HTML bookmark export (Netscape format)"
+            "html": "Chrome HTML bookmark export (Netscape format)",
         }
 
 

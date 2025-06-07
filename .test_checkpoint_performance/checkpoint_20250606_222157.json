@@ -1,0 +1,18 @@
+{
+  "input_file": "/tmp/tmpif6dnk6w.csv",
+  "output_file": "/tmp/tmpif6dnk6w_perf_output.csv",
+  "total_bookmarks": 10,
+  "config_hash": "unknown",
+  "current_stage": "url_validation",
+  "stage_progress": 0,
+  "processed_urls": [],
+  "validated_bookmarks": [],
+  "failed_validations": [],
+  "content_data": {},
+  "ai_results": {},
+  "tag_assignments": {},
+  "start_time": "2025-06-06T22:21:57.042763",
+  "last_checkpoint_time": "2025-06-06T22:21:57.042802",
+  "stage_start_time": "2025-06-06T22:21:57.042796",
+  "processing_stats": {}
+}

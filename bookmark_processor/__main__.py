@@ -6,6 +6,7 @@ This allows the package to be executed with: python -m bookmark_processor
 """
 
 import sys
+
 from .cli import main
 
 if __name__ == "__main__":

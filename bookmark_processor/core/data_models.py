@@ -311,63 +311,64 @@ class Bookmark:
             "tags": formatted_tags,
             "created": self.created.isoformat() if self.created else "",
         }
-    
+
     @classmethod
-    def from_raindrop_export(cls, row_data: Dict[str, Any]) -> 'Bookmark':
+    def from_raindrop_export(cls, row_data: Dict[str, Any]) -> "Bookmark":
         """
         Create bookmark from raindrop.io export CSV row.
-        
+
         Args:
             row_data: Dictionary from CSV row
-            
+
         Returns:
             Bookmark object
         """
         # Parse tags from string format
         tags = []
-        tags_str = str(row_data.get('tags', '')).strip()
+        tags_str = str(row_data.get("tags", "")).strip()
         if tags_str:
             # Handle both quoted and unquoted tag formats
             if tags_str.startswith('"') and tags_str.endswith('"'):
                 tags_str = tags_str[1:-1]  # Remove quotes
-            
+
             # Split by comma and clean
-            for tag in tags_str.split(','):
+            for tag in tags_str.split(","):
                 tag = tag.strip()
                 if tag:
                     tags.append(tag)
-        
+
         # Parse created date
         created = None
-        created_str = str(row_data.get('created', '')).strip()
+        created_str = str(row_data.get("created", "")).strip()
         if created_str:
             try:
                 from datetime import datetime
-                created = datetime.fromisoformat(created_str.replace('Z', '+00:00'))
+
+                created = datetime.fromisoformat(created_str.replace("Z", "+00:00"))
             except (ValueError, TypeError):
                 pass
-        
+
         # Parse favorite boolean
         favorite = False
-        favorite_str = str(row_data.get('favorite', '')).strip().lower()
-        if favorite_str in ('true', '1', 'yes'):
+        favorite_str = str(row_data.get("favorite", "")).strip().lower()
+        if favorite_str in ("true", "1", "yes"):
             favorite = True
-        
+
         return cls(
-            id=str(row_data.get('id', '')).strip(),
-            title=str(row_data.get('title', '')).strip(),
-            note=str(row_data.get('note', '')).strip(),
-            excerpt=str(row_data.get('excerpt', '')).strip(),
-            url=str(row_data.get('url', '')).strip(),
-            folder=str(row_data.get('folder', '')).strip(),
+            id=str(row_data.get("id", "")).strip(),
+            title=str(row_data.get("title", "")).strip(),
+            note=str(row_data.get("note", "")).strip(),
+            excerpt=str(row_data.get("excerpt", "")).strip(),
+            url=str(row_data.get("url", "")).strip(),
+            folder=str(row_data.get("folder", "")).strip(),
             tags=tags,
             created=created,
-            cover=str(row_data.get('cover', '')).strip(),
-            highlights=str(row_data.get('highlights', '')).strip(),
-            favorite=favorite
+            cover=str(row_data.get("cover", "")).strip(),
+            highlights=str(row_data.get("highlights", "")).strip(),
+            favorite=favorite,
         )
-    
-    def copy(self) -> 'Bookmark':
+
+    def copy(self) -> "Bookmark":
         """Create a copy of this bookmark"""
         return Bookmark(
             id=self.id,
@@ -384,32 +385,32 @@ class Bookmark:
             enhanced_description=self.enhanced_description,
             optimized_tags=self.optimized_tags.copy(),
             extracted_metadata=self.extracted_metadata,
-            processing_status=self.processing_status
+            processing_status=self.processing_status,
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert bookmark to dictionary for serialization.
-        
+
         Returns:
             Dictionary representation of bookmark
         """
         return {
-            'id': self.id,
-            'title': self.title,
-            'note': self.note,
-            'excerpt': self.excerpt,
-            'url': self.url,
-            'folder': self.folder,
-            'tags': self.tags,
-            'created': self.created.isoformat() if self.created else '',
-            'cover': self.cover,
-            'highlights': self.highlights,
-            'favorite': self.favorite,
-            'enhanced_description': self.enhanced_description,
-            'optimized_tags': self.optimized_tags,
-            'normalized_url': self.normalized_url,
-            'folder_hierarchy': self.folder_hierarchy
+            "id": self.id,
+            "title": self.title,
+            "note": self.note,
+            "excerpt": self.excerpt,
+            "url": self.url,
+            "folder": self.folder,
+            "tags": self.tags,
+            "created": self.created.isoformat() if self.created else "",
+            "cover": self.cover,
+            "highlights": self.highlights,
+            "favorite": self.favorite,
+            "enhanced_description": self.enhanced_description,
+            "optimized_tags": self.optimized_tags,
+            "normalized_url": self.normalized_url,
+            "folder_hierarchy": self.folder_hierarchy,
         }
 
 

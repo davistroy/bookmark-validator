@@ -1,66 +1,67 @@
 """
 Pytest configuration and shared fixtures for bookmark processor tests.
 
-This module provides common fixtures, mocks, and test utilities that are 
+This module provides common fixtures, mocks, and test utilities that are
 shared across multiple test modules.
 """
 
-import pytest
 import os
-import tempfile
 import shutil
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
-from typing import Dict, List, Any, Generator, Optional
+from typing import Any, Dict, Generator, List, Optional
+from unittest.mock import MagicMock, Mock, patch
+
 import pandas as pd
+import pytest
 import requests
 
-from bookmark_processor.core.data_models import (
-    Bookmark, 
-    BookmarkMetadata, 
-    ProcessingStatus,
-    ProcessingResults
-)
 from bookmark_processor.config.configuration import Configuration
+from bookmark_processor.core.data_models import (
+    Bookmark,
+    BookmarkMetadata,
+    ProcessingResults,
+    ProcessingStatus,
+)
 from tests.fixtures.test_data import (
-    SAMPLE_RAINDROP_EXPORT_ROWS,
     EXPECTED_RAINDROP_IMPORT_ROWS,
-    MOCK_CONTENT_DATA,
     MOCK_AI_RESULTS,
+    MOCK_CONTENT_DATA,
+    SAMPLE_RAINDROP_EXPORT_ROWS,
     TEST_CONFIGS,
+    create_expected_import_dataframe,
+    create_invalid_csv_content,
+    create_malformed_bookmark_data,
     create_sample_bookmark_objects,
     create_sample_export_dataframe,
-    create_expected_import_dataframe,
     create_sample_processed_bookmark,
-    create_invalid_csv_content,
-    create_malformed_bookmark_data
 )
-
 
 # ============================================================================
 # Pytest Configuration
 # ============================================================================
 
+
 def pytest_configure(config):
     """Configure pytest with custom settings."""
     # Set environment variables for testing
-    os.environ['BOOKMARK_PROCESSOR_TEST_MODE'] = 'true'
-    os.environ['BOOKMARK_PROCESSOR_LOG_LEVEL'] = 'DEBUG'
-    
+    os.environ["BOOKMARK_PROCESSOR_TEST_MODE"] = "true"
+    os.environ["BOOKMARK_PROCESSOR_LOG_LEVEL"] = "DEBUG"
+
     # Disable network access by default
-    os.environ['BOOKMARK_PROCESSOR_OFFLINE_MODE'] = 'true'
+    os.environ["BOOKMARK_PROCESSOR_OFFLINE_MODE"] = "true"
 
 
 def pytest_unconfigure(config):
     """Clean up after all tests."""
     # Clean up environment variables
     test_env_vars = [
-        'BOOKMARK_PROCESSOR_TEST_MODE',
-        'BOOKMARK_PROCESSOR_LOG_LEVEL',
-        'BOOKMARK_PROCESSOR_OFFLINE_MODE'
+        "BOOKMARK_PROCESSOR_TEST_MODE",
+        "BOOKMARK_PROCESSOR_LOG_LEVEL",
+        "BOOKMARK_PROCESSOR_OFFLINE_MODE",
     ]
-    
+
     for var in test_env_vars:
         if var in os.environ:
             del os.environ[var]
@@ -69,33 +70,36 @@ def pytest_unconfigure(config):
 def pytest_runtest_setup(item):
     """Set up before each test."""
     # Skip slow tests unless specifically requested
-    if "slow" in item.keywords and not item.config.getoption("--runslow", default=False):
+    if "slow" in item.keywords and not item.config.getoption(
+        "--runslow", default=False
+    ):
         pytest.skip("need --runslow option to run")
-    
+
     # Skip network tests in offline mode
-    if "network" in item.keywords and os.environ.get('BOOKMARK_PROCESSOR_OFFLINE_MODE') == 'true':
+    if (
+        "network" in item.keywords
+        and os.environ.get("BOOKMARK_PROCESSOR_OFFLINE_MODE") == "true"
+    ):
         pytest.skip("network tests skipped in offline mode")
 
 
 def pytest_addoption(parser):
     """Add custom command line options."""
     parser.addoption(
-        "--runslow", 
-        action="store_true", 
-        default=False, 
-        help="run slow tests"
+        "--runslow", action="store_true", default=False, help="run slow tests"
     )
     parser.addoption(
-        "--runnetwork", 
-        action="store_true", 
-        default=False, 
-        help="run network tests (disable offline mode)"
+        "--runnetwork",
+        action="store_true",
+        default=False,
+        help="run network tests (disable offline mode)",
     )
 
 
 # ============================================================================
 # Temporary Directory and File Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def temp_dir() -> Generator[Path, None, None]:
@@ -118,7 +122,7 @@ def temp_csv_file(temp_dir: Path) -> Path:
 def temp_config_file(temp_dir: Path) -> Path:
     """Create a temporary configuration file."""
     config_path = temp_dir / "test_config.ini"
-    
+
     # Create a basic test configuration
     config_content = """
 [network]
@@ -147,7 +151,7 @@ auto_cleanup = true
 log_level = DEBUG
 console_output = true
 """
-    
+
     config_path.write_text(config_content)
     return config_path
 
@@ -163,6 +167,7 @@ def temp_checkpoint_dir(temp_dir: Path) -> Path:
 # ============================================================================
 # Configuration Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def test_config(temp_config_file: Path) -> Configuration:
@@ -192,6 +197,7 @@ def performance_config() -> Dict[str, Any]:
 # ============================================================================
 # Data Fixtures - Raw Data
 # ============================================================================
+
 
 @pytest.fixture
 def sample_raindrop_export_data() -> List[Dict[str, str]]:
@@ -233,6 +239,7 @@ def invalid_csv_content() -> str:
 # Data Fixtures - DataFrames
 # ============================================================================
 
+
 @pytest.fixture
 def sample_export_dataframe() -> pd.DataFrame:
     """Sample raindrop.io export DataFrame."""
@@ -248,10 +255,21 @@ def expected_import_dataframe() -> pd.DataFrame:
 @pytest.fixture
 def empty_dataframe() -> pd.DataFrame:
     """Empty DataFrame with correct columns."""
-    return pd.DataFrame(columns=[
-        'id', 'title', 'note', 'excerpt', 'url', 
-        'folder', 'tags', 'created', 'cover', 'highlights', 'favorite'
-    ])
+    return pd.DataFrame(
+        columns=[
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
+        ]
+    )
 
 
 @pytest.fixture
@@ -259,22 +277,23 @@ def large_sample_dataframe() -> pd.DataFrame:
     """Large sample DataFrame for performance testing."""
     # Create a larger dataset based on the sample data
     base_data = SAMPLE_RAINDROP_EXPORT_ROWS[:3]  # Use first 3 rows
-    
+
     large_data = []
     for i in range(100):  # Create 100 bookmarks
         for j, row in enumerate(base_data):
             new_row = row.copy()
-            new_row['id'] = str(i * len(base_data) + j + 1)
-            new_row['url'] = f"{row['url']}?test={i}_{j}"
-            new_row['title'] = f"{row['title']} - Test {i}_{j}"
+            new_row["id"] = str(i * len(base_data) + j + 1)
+            new_row["url"] = f"{row['url']}?test={i}_{j}"
+            new_row["title"] = f"{row['title']} - Test {i}_{j}"
             large_data.append(new_row)
-    
+
     return pd.DataFrame(large_data)
 
 
 # ============================================================================
 # Data Fixtures - Objects
 # ============================================================================
+
 
 @pytest.fixture
 def sample_bookmark_objects() -> List[Bookmark]:
@@ -297,7 +316,7 @@ def valid_bookmark() -> Bookmark:
         url="https://example.com",
         folder="Test",
         tags=["test", "example"],
-        note="Test note"
+        note="Test note",
     )
 
 
@@ -305,12 +324,7 @@ def valid_bookmark() -> Bookmark:
 def invalid_bookmark() -> Bookmark:
     """Invalid bookmark for testing error handling."""
     return Bookmark(
-        id="invalid",
-        title="",
-        url="",  # Invalid empty URL
-        folder="",
-        tags=[],
-        note=""
+        id="invalid", title="", url="", folder="", tags=[], note=""  # Invalid empty URL
     )
 
 
@@ -327,7 +341,7 @@ def processing_results() -> ProcessingResults:
         ai_processing_success=85,
         ai_processing_failed=15,
         errors=["Error 1", "Error 2"],
-        processing_time=120.5
+        processing_time=120.5,
     )
 
 
@@ -335,33 +349,38 @@ def processing_results() -> ProcessingResults:
 # Mock Fixtures - Network and External Services
 # ============================================================================
 
+
 @pytest.fixture
 def mock_requests_session():
     """Mock requests.Session for URL validation tests."""
-    with patch('requests.Session') as mock_session_class:
+    with patch("requests.Session") as mock_session_class:
         mock_session = MagicMock()
         mock_session_class.return_value = mock_session
-        
+
         # Default successful response
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.url = "https://example.com"
-        mock_response.headers = {'content-type': 'text/html'}
-        mock_response.text = "<html><head><title>Test</title></head><body>Test content</body></html>"
+        mock_response.headers = {"content-type": "text/html"}
+        mock_response.text = (
+            "<html><head><title>Test</title></head><body>Test content</body></html>"
+        )
         mock_response.history = []
-        
+
         mock_session.get.return_value = mock_response
         mock_session.head.return_value = mock_response
-        
+
         yield mock_session
 
 
 @pytest.fixture
 def mock_ai_processor():
     """Mock AI processor for testing without actual AI models."""
-    with patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor') as mock_class:
+    with patch(
+        "bookmark_processor.core.ai_processor.EnhancedAIProcessor"
+    ) as mock_class:
         mock_processor = Mock()
-        
+
         # Mock successful AI processing
         def mock_process_batch(bookmarks):
             for bookmark in bookmarks:
@@ -371,14 +390,16 @@ def mock_ai_processor():
                     bookmark.enhanced_description = result["enhanced_description"]
                     bookmark.optimized_tags = result["generated_tags"]
                 else:
-                    bookmark.enhanced_description = f"AI description for {bookmark.title}"
+                    bookmark.enhanced_description = (
+                        f"AI description for {bookmark.title}"
+                    )
                     bookmark.optimized_tags = ["ai", "generated", "tag"]
             return bookmarks
-        
+
         mock_processor.process_batch = mock_process_batch
         mock_processor.is_available = True
         mock_processor.model_name = "test-model"
-        
+
         mock_class.return_value = mock_processor
         yield mock_processor
 
@@ -386,24 +407,26 @@ def mock_ai_processor():
 @pytest.fixture
 def mock_content_extractor():
     """Mock content extractor for testing without actual web requests."""
-    with patch('bookmark_processor.core.content_analyzer.ContentAnalyzer') as mock_class:
+    with patch(
+        "bookmark_processor.core.content_analyzer.ContentAnalyzer"
+    ) as mock_class:
         mock_extractor = Mock()
-        
+
         def mock_extract_content(url):
             if url in MOCK_CONTENT_DATA:
                 data = MOCK_CONTENT_DATA[url]
                 return BookmarkMetadata(
                     title=data["title"],
                     description=data["description"],
-                    keywords=data["meta_keywords"]
+                    keywords=data["meta_keywords"],
                 )
             else:
                 return BookmarkMetadata(
                     title=f"Mock title for {url}",
                     description=f"Mock description for {url}",
-                    keywords=["mock", "test"]
+                    keywords=["mock", "test"],
                 )
-        
+
         mock_extractor.extract_metadata = mock_extract_content
         mock_class.return_value = mock_extractor
         yield mock_extractor
@@ -412,13 +435,15 @@ def mock_content_extractor():
 @pytest.fixture
 def mock_rate_limiter():
     """Mock rate limiter for testing without delays."""
-    with patch('bookmark_processor.utils.intelligent_rate_limiter.IntelligentRateLimiter') as mock_class:
+    with patch(
+        "bookmark_processor.utils.intelligent_rate_limiter.IntelligentRateLimiter"
+    ) as mock_class:
         mock_limiter = Mock()
         mock_limiter.get_delay.return_value = 0.0  # No delays in tests
         mock_limiter.should_retry.return_value = True
         mock_limiter.record_request.return_value = None
         mock_limiter.record_error.return_value = None
-        
+
         mock_class.return_value = mock_limiter
         yield mock_limiter
 
@@ -426,6 +451,7 @@ def mock_rate_limiter():
 # ============================================================================
 # File System Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_csv_file(temp_dir: Path, sample_export_dataframe: pd.DataFrame) -> Path:
@@ -463,49 +489,52 @@ def large_csv_file(temp_dir: Path, large_sample_dataframe: pd.DataFrame) -> Path
 # Integration Test Environment Fixtures
 # ============================================================================
 
+
 @pytest.fixture
-def integration_test_environment(temp_dir: Path, temp_config_file: Path, temp_checkpoint_dir: Path):
+def integration_test_environment(
+    temp_dir: Path, temp_config_file: Path, temp_checkpoint_dir: Path
+):
     """Set up a complete integration test environment."""
     # Create necessary directories
     data_dir = temp_dir / "data"
     logs_dir = temp_dir / "logs"
     output_dir = temp_dir / "output"
-    
+
     for directory in [data_dir, logs_dir, output_dir]:
         directory.mkdir(exist_ok=True)
-    
+
     # Set up environment variables for integration testing
     test_env = {
-        'BOOKMARK_PROCESSOR_CONFIG': str(temp_config_file),
-        'BOOKMARK_PROCESSOR_CHECKPOINT_DIR': str(temp_checkpoint_dir),
-        'BOOKMARK_PROCESSOR_TEST_MODE': 'true',
-        'BOOKMARK_PROCESSOR_LOG_LEVEL': 'DEBUG',
-        'BOOKMARK_PROCESSOR_DATA_DIR': str(data_dir),
-        'BOOKMARK_PROCESSOR_LOGS_DIR': str(logs_dir),
-        'BOOKMARK_PROCESSOR_OUTPUT_DIR': str(output_dir),
-        'BOOKMARK_PROCESSOR_OFFLINE_MODE': 'true'  # Default to offline
+        "BOOKMARK_PROCESSOR_CONFIG": str(temp_config_file),
+        "BOOKMARK_PROCESSOR_CHECKPOINT_DIR": str(temp_checkpoint_dir),
+        "BOOKMARK_PROCESSOR_TEST_MODE": "true",
+        "BOOKMARK_PROCESSOR_LOG_LEVEL": "DEBUG",
+        "BOOKMARK_PROCESSOR_DATA_DIR": str(data_dir),
+        "BOOKMARK_PROCESSOR_LOGS_DIR": str(logs_dir),
+        "BOOKMARK_PROCESSOR_OUTPUT_DIR": str(output_dir),
+        "BOOKMARK_PROCESSOR_OFFLINE_MODE": "true",  # Default to offline
     }
-    
+
     # Store original environment
     original_env = {}
     for key, value in test_env.items():
         if key in os.environ:
             original_env[key] = os.environ[key]
         os.environ[key] = value
-    
+
     # Create test environment object
     environment = {
-        'temp_dir': temp_dir,
-        'data_dir': data_dir,
-        'logs_dir': logs_dir,
-        'output_dir': output_dir,
-        'config_file': temp_config_file,
-        'checkpoint_dir': temp_checkpoint_dir,
-        'env_vars': test_env
+        "temp_dir": temp_dir,
+        "data_dir": data_dir,
+        "logs_dir": logs_dir,
+        "output_dir": output_dir,
+        "config_file": temp_config_file,
+        "checkpoint_dir": temp_checkpoint_dir,
+        "env_vars": test_env,
     }
-    
+
     yield environment
-    
+
     # Restore original environment
     for key in test_env.keys():
         if key in original_env:
@@ -519,28 +548,28 @@ def isolated_test_environment(integration_test_environment):
     """Create an isolated test environment for each test."""
     # Create unique subdirectories for this test instance
     test_id = f"test_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
-    base_dir = integration_test_environment['temp_dir']
-    
+    base_dir = integration_test_environment["temp_dir"]
+
     test_env = {
-        'test_id': test_id,
-        'test_dir': base_dir / test_id,
-        'input_dir': base_dir / test_id / "input",
-        'output_dir': base_dir / test_id / "output",
-        'checkpoint_dir': base_dir / test_id / "checkpoints",
-        'logs_dir': base_dir / test_id / "logs",
-        'config_dir': base_dir / test_id / "config"
+        "test_id": test_id,
+        "test_dir": base_dir / test_id,
+        "input_dir": base_dir / test_id / "input",
+        "output_dir": base_dir / test_id / "output",
+        "checkpoint_dir": base_dir / test_id / "checkpoints",
+        "logs_dir": base_dir / test_id / "logs",
+        "config_dir": base_dir / test_id / "config",
     }
-    
+
     # Create all directories
     for directory in test_env.values():
         if isinstance(directory, Path):
             directory.mkdir(parents=True, exist_ok=True)
-    
+
     # Copy base environment
     test_env.update(integration_test_environment)
-    
+
     yield test_env
-    
+
     # Cleanup is handled by the parent fixture
 
 
@@ -548,28 +577,28 @@ def isolated_test_environment(integration_test_environment):
 def database_test_environment(integration_test_environment):
     """Set up test environment with database-like storage simulation."""
     # Create SQLite-like storage for checkpoint testing
-    db_dir = integration_test_environment['temp_dir'] / "db"
+    db_dir = integration_test_environment["temp_dir"] / "db"
     db_dir.mkdir(exist_ok=True)
-    
+
     # Create mock database files
     checkpoint_db = db_dir / "checkpoints.db"
     progress_db = db_dir / "progress.db"
-    
+
     # Initialize with empty JSON structure (simulating database)
     checkpoint_db.write_text('{"checkpoints": {}, "metadata": {"version": "1.0"}}')
     progress_db.write_text('{"sessions": {}, "statistics": {}}')
-    
+
     db_env = {
-        'db_dir': db_dir,
-        'checkpoint_db': checkpoint_db,
-        'progress_db': progress_db,
-        'BOOKMARK_PROCESSOR_CHECKPOINT_DB': str(checkpoint_db),
-        'BOOKMARK_PROCESSOR_PROGRESS_DB': str(progress_db)
+        "db_dir": db_dir,
+        "checkpoint_db": checkpoint_db,
+        "progress_db": progress_db,
+        "BOOKMARK_PROCESSOR_CHECKPOINT_DB": str(checkpoint_db),
+        "BOOKMARK_PROCESSOR_PROGRESS_DB": str(progress_db),
     }
-    
+
     # Update environment
     integration_test_environment.update(db_env)
-    
+
     yield integration_test_environment
 
 
@@ -577,34 +606,35 @@ def database_test_environment(integration_test_environment):
 # Environment and State Fixtures
 # ============================================================================
 
+
 @pytest.fixture(autouse=True)
 def clean_environment():
     """Clean environment before and after each test."""
     # Store original values
     original_env = {}
     env_vars_to_clean = [
-        'BOOKMARK_PROCESSOR_CONFIG',
-        'BOOKMARK_PROCESSOR_CHECKPOINT_DIR',
-        'TRANSFORMERS_CACHE',
-        'CLAUDE_API_KEY',
-        'OPENAI_API_KEY',
-        'BOOKMARK_PROCESSOR_TEST_MODE',
-        'BOOKMARK_PROCESSOR_LOG_LEVEL',
-        'BOOKMARK_PROCESSOR_DATA_DIR',
-        'BOOKMARK_PROCESSOR_LOGS_DIR',
-        'BOOKMARK_PROCESSOR_OUTPUT_DIR',
-        'BOOKMARK_PROCESSOR_OFFLINE_MODE',
-        'BOOKMARK_PROCESSOR_CHECKPOINT_DB',
-        'BOOKMARK_PROCESSOR_PROGRESS_DB'
+        "BOOKMARK_PROCESSOR_CONFIG",
+        "BOOKMARK_PROCESSOR_CHECKPOINT_DIR",
+        "TRANSFORMERS_CACHE",
+        "CLAUDE_API_KEY",
+        "OPENAI_API_KEY",
+        "BOOKMARK_PROCESSOR_TEST_MODE",
+        "BOOKMARK_PROCESSOR_LOG_LEVEL",
+        "BOOKMARK_PROCESSOR_DATA_DIR",
+        "BOOKMARK_PROCESSOR_LOGS_DIR",
+        "BOOKMARK_PROCESSOR_OUTPUT_DIR",
+        "BOOKMARK_PROCESSOR_OFFLINE_MODE",
+        "BOOKMARK_PROCESSOR_CHECKPOINT_DB",
+        "BOOKMARK_PROCESSOR_PROGRESS_DB",
     ]
-    
+
     for var in env_vars_to_clean:
         if var in os.environ:
             original_env[var] = os.environ[var]
             del os.environ[var]
-    
+
     yield
-    
+
     # Restore original values
     for var, value in original_env.items():
         os.environ[var] = value
@@ -614,8 +644,8 @@ def clean_environment():
 def mock_datetime():
     """Mock datetime for consistent testing."""
     test_datetime = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-    
-    with patch('bookmark_processor.core.data_models.datetime') as mock_dt:
+
+    with patch("bookmark_processor.core.data_models.datetime") as mock_dt:
         mock_dt.now.return_value = test_datetime
         mock_dt.utcnow.return_value = test_datetime
         mock_dt.side_effect = lambda *args, **kw: datetime(*args, **kw)
@@ -626,98 +656,96 @@ def mock_datetime():
 # Integration Test Helpers and Utilities
 # ============================================================================
 
+
 class IntegrationTestHelper:
     """Helper class for integration testing."""
-    
+
     def __init__(self, test_environment: Dict[str, Any]):
         self.env = test_environment
         self._setup_logging()
-    
+
     def _setup_logging(self):
         """Set up logging for integration tests."""
         import logging
-        log_file = self.env.get('logs_dir', Path()) / 'integration_test.log'
-        
+
+        log_file = self.env.get("logs_dir", Path()) / "integration_test.log"
+
         logging.basicConfig(
             level=logging.DEBUG,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()
-            ]
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
         )
-        self.logger = logging.getLogger('integration_test')
-    
+        self.logger = logging.getLogger("integration_test")
+
     def create_test_data_file(self, filename: str, data: List[Dict[str, str]]) -> Path:
         """Create a test data file in the test environment."""
-        file_path = self.env['input_dir'] / filename
+        file_path = self.env["input_dir"] / filename
         df = pd.DataFrame(data)
         df.to_csv(file_path, index=False)
         self.logger.info(f"Created test data file: {file_path}")
         return file_path
-    
-    def create_checkpoint_scenario(self, checkpoint_id: str, progress: Dict[str, Any]) -> Path:
+
+    def create_checkpoint_scenario(
+        self, checkpoint_id: str, progress: Dict[str, Any]
+    ) -> Path:
         """Create a checkpoint scenario for testing resume functionality."""
-        checkpoint_file = self.env['checkpoint_dir'] / f"{checkpoint_id}.json"
+        checkpoint_file = self.env["checkpoint_dir"] / f"{checkpoint_id}.json"
         import json
-        
+
         checkpoint_data = {
-            'checkpoint_id': checkpoint_id,
-            'timestamp': datetime.now().isoformat(),
-            'progress': progress,
-            'metadata': {
-                'test_mode': True,
-                'created_by': 'integration_test'
-            }
+            "checkpoint_id": checkpoint_id,
+            "timestamp": datetime.now().isoformat(),
+            "progress": progress,
+            "metadata": {"test_mode": True, "created_by": "integration_test"},
         }
-        
+
         checkpoint_file.write_text(json.dumps(checkpoint_data, indent=2))
         self.logger.info(f"Created checkpoint scenario: {checkpoint_file}")
         return checkpoint_file
-    
+
     def simulate_network_conditions(self, condition: str) -> Dict[str, Any]:
         """Simulate different network conditions for testing."""
         conditions = {
-            'fast': {'delay': 0.1, 'timeout': 5, 'error_rate': 0.01},
-            'slow': {'delay': 2.0, 'timeout': 30, 'error_rate': 0.05},
-            'unstable': {'delay': 1.0, 'timeout': 10, 'error_rate': 0.15},
-            'offline': {'delay': 0, 'timeout': 1, 'error_rate': 1.0}
+            "fast": {"delay": 0.1, "timeout": 5, "error_rate": 0.01},
+            "slow": {"delay": 2.0, "timeout": 30, "error_rate": 0.05},
+            "unstable": {"delay": 1.0, "timeout": 10, "error_rate": 0.15},
+            "offline": {"delay": 0, "timeout": 1, "error_rate": 1.0},
         }
-        
-        return conditions.get(condition, conditions['fast'])
-    
+
+        return conditions.get(condition, conditions["fast"])
+
     def verify_output_structure(self, output_file: Path) -> bool:
         """Verify that output file has correct structure."""
         if not output_file.exists():
             return False
-        
+
         try:
             df = pd.read_csv(output_file)
-            expected_columns = ['url', 'folder', 'title', 'note', 'tags', 'created']
+            expected_columns = ["url", "folder", "title", "note", "tags", "created"]
             return list(df.columns) == expected_columns
         except Exception as e:
             self.logger.error(f"Error verifying output structure: {e}")
             return False
-    
+
     def collect_test_artifacts(self) -> Dict[str, Path]:
         """Collect all test artifacts for analysis."""
         artifacts = {}
-        
+
         # Log files
-        log_files = list(self.env['logs_dir'].glob('*.log'))
+        log_files = list(self.env["logs_dir"].glob("*.log"))
         if log_files:
-            artifacts['logs'] = log_files
-        
+            artifacts["logs"] = log_files
+
         # Checkpoint files
-        checkpoint_files = list(self.env['checkpoint_dir'].glob('*.json'))
+        checkpoint_files = list(self.env["checkpoint_dir"].glob("*.json"))
         if checkpoint_files:
-            artifacts['checkpoints'] = checkpoint_files
-        
+            artifacts["checkpoints"] = checkpoint_files
+
         # Output files
-        output_files = list(self.env['output_dir'].glob('*.csv'))
+        output_files = list(self.env["output_dir"].glob("*.csv"))
         if output_files:
-            artifacts['outputs'] = output_files
-        
+            artifacts["outputs"] = output_files
+
         return artifacts
 
 
@@ -729,83 +757,77 @@ def integration_test_helper(integration_test_environment):
 
 class ProcessingScenario:
     """Represents a processing scenario for integration testing."""
-    
-    def __init__(self, name: str, config: Dict[str, Any], expected_results: Dict[str, Any]):
+
+    def __init__(
+        self, name: str, config: Dict[str, Any], expected_results: Dict[str, Any]
+    ):
         self.name = name
         self.config = config
         self.expected_results = expected_results
         self.actual_results = None
         self.artifacts = {}
-    
+
     def run(self, processor, input_file: Path, output_file: Path):
         """Run the processing scenario."""
         # This will be implemented by specific test cases
         raise NotImplementedError
-    
+
     def verify_results(self) -> bool:
         """Verify that actual results match expected results."""
         if not self.actual_results:
             return False
-        
+
         for key, expected_value in self.expected_results.items():
             actual_value = getattr(self.actual_results, key, None)
             if actual_value != expected_value:
                 return False
-        
+
         return True
 
 
 # Standard processing scenarios for reuse across tests
 STANDARD_SCENARIOS = {
-    'minimal_processing': ProcessingScenario(
-        name='Minimal Processing',
+    "minimal_processing": ProcessingScenario(
+        name="Minimal Processing",
         config={
-            'batch_size': 5,
-            'max_retries': 1,
-            'timeout': 5,
-            'enable_ai_processing': False,
-            'enable_checkpoints': False
+            "batch_size": 5,
+            "max_retries": 1,
+            "timeout": 5,
+            "enable_ai_processing": False,
+            "enable_checkpoints": False,
         },
-        expected_results={
-            'should_complete': True,
-            'min_success_rate': 0.8
-        }
+        expected_results={"should_complete": True, "min_success_rate": 0.8},
     ),
-    'full_processing': ProcessingScenario(
-        name='Full Processing with AI',
+    "full_processing": ProcessingScenario(
+        name="Full Processing with AI",
         config={
-            'batch_size': 10,
-            'max_retries': 3,
-            'timeout': 30,
-            'enable_ai_processing': True,
-            'enable_checkpoints': True
+            "batch_size": 10,
+            "max_retries": 3,
+            "timeout": 30,
+            "enable_ai_processing": True,
+            "enable_checkpoints": True,
         },
-        expected_results={
-            'should_complete': True,
-            'min_success_rate': 0.7
-        }
+        expected_results={"should_complete": True, "min_success_rate": 0.7},
     ),
-    'error_resilience': ProcessingScenario(
-        name='Error Resilience',
+    "error_resilience": ProcessingScenario(
+        name="Error Resilience",
         config={
-            'batch_size': 3,
-            'max_retries': 2,
-            'timeout': 5,
-            'enable_ai_processing': False,
-            'enable_checkpoints': True,
-            'simulate_errors': True
+            "batch_size": 3,
+            "max_retries": 2,
+            "timeout": 5,
+            "enable_ai_processing": False,
+            "enable_checkpoints": True,
+            "simulate_errors": True,
         },
-        expected_results={
-            'should_complete': True,
-            'min_success_rate': 0.5
-        }
-    )
+        expected_results={"should_complete": True, "min_success_rate": 0.5},
+    ),
 }
 
 
 # ============================================================================
 # Assertion Helpers
 # ============================================================================
+
 
 def assert_bookmark_valid(bookmark: Bookmark) -> None:
     """Assert that a bookmark is valid."""
@@ -817,14 +839,20 @@ def assert_bookmark_valid(bookmark: Bookmark) -> None:
 def assert_dataframe_structure(df: pd.DataFrame, expected_columns: List[str]) -> None:
     """Assert that a DataFrame has the expected structure."""
     assert isinstance(df, pd.DataFrame), "Expected a pandas DataFrame"
-    assert list(df.columns) == expected_columns, f"Expected columns {expected_columns}, got {list(df.columns)}"
+    assert (
+        list(df.columns) == expected_columns
+    ), f"Expected columns {expected_columns}, got {list(df.columns)}"
 
 
 def assert_processing_results_valid(results: ProcessingResults) -> None:
     """Assert that processing results are valid."""
     assert results.total_bookmarks >= 0, "Total bookmarks should be non-negative"
-    assert results.processed_bookmarks <= results.total_bookmarks, "Processed should not exceed total"
-    assert results.valid_bookmarks <= results.processed_bookmarks, "Valid should not exceed processed"
+    assert (
+        results.processed_bookmarks <= results.total_bookmarks
+    ), "Processed should not exceed total"
+    assert (
+        results.valid_bookmarks <= results.processed_bookmarks
+    ), "Valid should not exceed processed"
     assert isinstance(results.errors, list), "Errors should be a list"
     assert results.processing_time >= 0, "Processing time should be non-negative"
 
@@ -833,54 +861,56 @@ def assert_integration_test_complete(
     test_helper: IntegrationTestHelper,
     input_file: Path,
     output_file: Path,
-    results: ProcessingResults
+    results: ProcessingResults,
 ) -> None:
     """Assert that an integration test completed successfully."""
     # Input file should exist and be readable
     assert input_file.exists(), f"Input file should exist: {input_file}"
     input_df = pd.read_csv(input_file)
     assert len(input_df) > 0, "Input file should contain data"
-    
+
     # Output file should be created with correct structure
     assert output_file.exists(), f"Output file should be created: {output_file}"
-    assert test_helper.verify_output_structure(output_file), "Output should have correct structure"
-    
+    assert test_helper.verify_output_structure(
+        output_file
+    ), "Output should have correct structure"
+
     # Results should be valid
     assert_processing_results_valid(results)
-    
+
     # Processing should have made progress
     assert results.processed_bookmarks > 0, "Should have processed some bookmarks"
 
 
 def assert_checkpoint_functionality(
-    checkpoint_dir: Path,
-    initial_count: int,
-    resumed_count: int
+    checkpoint_dir: Path, initial_count: int, resumed_count: int
 ) -> None:
     """Assert that checkpoint functionality works correctly."""
     # Checkpoint files should exist
-    checkpoint_files = list(checkpoint_dir.glob('*.json'))
+    checkpoint_files = list(checkpoint_dir.glob("*.json"))
     assert len(checkpoint_files) > 0, "Checkpoint files should be created"
-    
+
     # Resumed processing should continue from where it left off
-    assert resumed_count >= initial_count, "Resumed processing should continue from checkpoint"
+    assert (
+        resumed_count >= initial_count
+    ), "Resumed processing should continue from checkpoint"
 
 
 def assert_error_handling(
-    results: ProcessingResults,
-    expected_error_types: List[str]
+    results: ProcessingResults, expected_error_types: List[str]
 ) -> None:
     """Assert that error handling works correctly."""
     # Should have some errors if we're testing error handling
     assert len(results.errors) > 0, "Should have recorded errors"
-    
+
     # Should continue processing despite errors
     assert results.processed_bookmarks > 0, "Should continue processing despite errors"
-    
+
     # Error types should be as expected
     for error_type in expected_error_types:
-        assert any(error_type in str(error) for error in results.errors), \
-            f"Should have {error_type} errors"
+        assert any(
+            error_type in str(error) for error in results.errors
+        ), f"Should have {error_type} errors"
 
 
 # ============================================================================
@@ -914,12 +944,15 @@ TAG_FORMAT_TEST_CASES = [
     (["", "valid", ""], "valid"),
 ]
 
-# Date parsing test cases  
+# Date parsing test cases
 DATE_PARSING_TEST_CASES = [
     # (date_string, expected_datetime_or_none)
     ("", None),
     ("2024-01-01T00:00:00Z", datetime(2024, 1, 1, tzinfo=timezone.utc)),
-    ("2024-01-01T12:30:45+00:00", datetime(2024, 1, 1, 12, 30, 45, tzinfo=timezone.utc)),
+    (
+        "2024-01-01T12:30:45+00:00",
+        datetime(2024, 1, 1, 12, 30, 45, tzinfo=timezone.utc),
+    ),
     ("invalid-date", None),
     ("2024-13-01T00:00:00Z", None),  # Invalid month
 ]
@@ -927,15 +960,42 @@ DATE_PARSING_TEST_CASES = [
 
 # Export these for use in tests
 __all__ = [
-    'temp_dir', 'temp_csv_file', 'temp_config_file', 'temp_checkpoint_dir',
-    'test_config', 'minimal_config', 'standard_config', 'performance_config',
-    'sample_raindrop_export_data', 'expected_raindrop_import_data',
-    'mock_content_data', 'mock_ai_results', 'malformed_bookmark_data',
-    'sample_export_dataframe', 'expected_import_dataframe', 'empty_dataframe', 'large_sample_dataframe',
-    'sample_bookmark_objects', 'sample_processed_bookmark', 'valid_bookmark', 'invalid_bookmark',
-    'processing_results', 'mock_requests_session', 'mock_ai_processor', 'mock_content_extractor',
-    'mock_rate_limiter', 'sample_csv_file', 'invalid_csv_file', 'empty_csv_file', 'large_csv_file',
-    'clean_environment', 'mock_datetime',
-    'assert_bookmark_valid', 'assert_dataframe_structure', 'assert_processing_results_valid',
-    'URL_TEST_CASES', 'TAG_FORMAT_TEST_CASES', 'DATE_PARSING_TEST_CASES'
+    "temp_dir",
+    "temp_csv_file",
+    "temp_config_file",
+    "temp_checkpoint_dir",
+    "test_config",
+    "minimal_config",
+    "standard_config",
+    "performance_config",
+    "sample_raindrop_export_data",
+    "expected_raindrop_import_data",
+    "mock_content_data",
+    "mock_ai_results",
+    "malformed_bookmark_data",
+    "sample_export_dataframe",
+    "expected_import_dataframe",
+    "empty_dataframe",
+    "large_sample_dataframe",
+    "sample_bookmark_objects",
+    "sample_processed_bookmark",
+    "valid_bookmark",
+    "invalid_bookmark",
+    "processing_results",
+    "mock_requests_session",
+    "mock_ai_processor",
+    "mock_content_extractor",
+    "mock_rate_limiter",
+    "sample_csv_file",
+    "invalid_csv_file",
+    "empty_csv_file",
+    "large_csv_file",
+    "clean_environment",
+    "mock_datetime",
+    "assert_bookmark_valid",
+    "assert_dataframe_structure",
+    "assert_processing_results_valid",
+    "URL_TEST_CASES",
+    "TAG_FORMAT_TEST_CASES",
+    "DATE_PARSING_TEST_CASES",
 ]

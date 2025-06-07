@@ -1,0 +1,159 @@
+{
+  "input_file": "/tmp/tmpfioxq6km.csv",
+  "output_file": "/tmp/tmpfioxq6km_checkpoint_output.csv",
+  "total_bookmarks": 6,
+  "config_hash": "unknown",
+  "current_stage": "completed",
+  "stage_progress": 0,
+  "processed_urls": [
+    "https://developer.mozilla.org/js",
+    "https://reactjs.org/docs"
+  ],
+  "validated_bookmarks": [
+    {
+      "bookmark": {
+        "id": "3",
+        "title": "JavaScript Guide",
+        "note": "Web development",
+        "excerpt": "MDN JavaScript docs",
+        "url": "https://developer.mozilla.org/js",
+        "folder": "Programming/JavaScript",
+        "tags": [
+          "javascript",
+          "web"
+        ],
+        "created": "2024-01-03T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://developer.mozilla.org/js",
+        "folder_hierarchy": [
+          "Programming",
+          "JavaScript"
+        ]
+      },
+      "validation": {
+        "url": "https://developer.mozilla.org/js",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:29.738147",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "4",
+        "title": "React Documentation",
+        "note": "React framework",
+        "excerpt": "React official docs",
+        "url": "https://reactjs.org/docs",
+        "folder": "Programming/Frontend",
+        "tags": [
+          "react",
+          "frontend"
+        ],
+        "created": "2024-01-04T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://reactjs.org/docs",
+        "folder_hierarchy": [
+          "Programming",
+          "Frontend"
+        ]
+      },
+      "validation": {
+        "url": "https://reactjs.org/docs",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:29.738152",
+        "security_validation": null
+      }
+    }
+  ],
+  "failed_validations": [],
+  "content_data": {
+    "https://developer.mozilla.org/js": {
+      "url": "https://developer.mozilla.org/js",
+      "title": "\u00f0\u009f\u00a4\u00b7\u00f0\u009f\u008f\u00bd\u00e2\u0080\u008d\u00e2\u0099\u0080\u00ef\u00b8\u008f Page not found | 404",
+      "meta_description": "The MDN Web Docs site provides information about Open Web technologies including HTML, CSS, and APIs for both Web sites and progressive web apps.",
+      "meta_keywords": "",
+      "main_content": "User Note: Web development",
+      "headings": [
+        "Page not found"
+      ],
+      "content_type": "text/html",
+      "language": "en-US",
+      "word_count": 0,
+      "reading_time_minutes": 0,
+      "content_categories": [],
+      "quality_score": 0.7,
+      "extraction_time": 0.20190954208374023,
+      "timestamp": "2025-06-06T22:23:29.764669"
+    },
+    "https://reactjs.org/docs": {
+      "url": "https://reactjs.org/docs",
+      "title": "React - Page Not Found",
+      "meta_description": "React official docs",
+      "meta_keywords": "",
+      "main_content": "User Note: React framework | Please contact the owner of the site that linked you to the original URL and let them know their link is broken.",
+      "headings": [
+        "Page Not Found"
+      ],
+      "content_type": "text/html; charset=utf-8",
+      "language": "en",
+      "word_count": 22,
+      "reading_time_minutes": 1,
+      "content_categories": [
+        "documentation"
+      ],
+      "quality_score": 0.6,
+      "extraction_time": 0.2822589874267578,
+      "timestamp": "2025-06-06T22:23:29.966828"
+    }
+  },
+  "ai_results": {
+    "https://developer.mozilla.org/js": {
+      "original_url": "https://developer.mozilla.org/js",
+      "enhanced_description": "First resume AI: JavaScript Guide",
+      "processing_method": "first_resume",
+      "processing_time": 0.1,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:30.257376"
+    }
+  },
+  "tag_assignments": {
+    "https://developer.mozilla.org/js": [
+      "page",
+      "web",
+      "documentation"
+    ],
+    "https://reactjs.org/docs": [
+      "documentation",
+      "page",
+      "web"
+    ]
+  },
+  "start_time": "2025-06-06T22:23:29.754308",
+  "last_checkpoint_time": "2025-06-06T22:23:30.286738",
+  "stage_start_time": "2025-06-06T22:23:30.286727",
+  "processing_stats": {}
+}

@@ -1,0 +1,89 @@
+{
+  "input_file": "/tmp/tmpet0qq1wj.csv",
+  "output_file": "/tmp/tmpet0qq1wj_checkpoint_output.csv",
+  "total_bookmarks": 6,
+  "config_hash": "unknown",
+  "current_stage": "completed",
+  "stage_progress": 0,
+  "processed_urls": [
+    "https://docs.python.org/tutorial"
+  ],
+  "validated_bookmarks": [
+    {
+      "bookmark": {
+        "id": "1",
+        "title": "Python Tutorial",
+        "note": "Learn Python basics",
+        "excerpt": "Official Python tutorial",
+        "url": "https://docs.python.org/tutorial",
+        "folder": "Programming/Python",
+        "tags": [
+          "python",
+          "tutorial"
+        ],
+        "created": "2024-01-01T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://docs.python.org/tutorial",
+        "folder_hierarchy": [
+          "Programming",
+          "Python"
+        ]
+      },
+      "validation": {
+        "url": "https://docs.python.org/tutorial",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.399958",
+        "security_validation": null
+      }
+    }
+  ],
+  "failed_validations": [],
+  "content_data": {
+    "https://docs.python.org/tutorial": {
+      "url": "https://docs.python.org/tutorial",
+      "title": "The Python Tutorial \u2014 Python 3.13.4 documentation",
+      "meta_description": "Python is an easy to learn, powerful programming language. It has efficient high-level data structures and a simple but effective approach to object-oriented programming. Python\u00e2\u0080\u0099s elegant syntax an...",
+      "meta_keywords": "",
+      "main_content": "User Note: Learn Python basics | The Python Tutorial \u00c2\u00b6 Tip This tutorial is designed for programmers that are new to the Python language, not beginners who are new to programming. Python is an easy to learn, powerful programming language. It has efficient high-level data structures and a simple but effective approach to object-oriented programming. Python\u00e2\u0080\u0099s elegant syntax and dynamic typing, together with its interpreted nature, make it an ideal language for scripting and rapid application development in many areas on most platforms. The Python interpreter and the extensive standard library are freely available in source or binary form for all major platforms from the Python web site, https://www.python.org/ , and may be freely distributed. The same site also contains distributions of and pointers to many free third party Python modules, programs and tools, and additional documentation. The Python interpreter is easily extended with new functions and data types implemented in C or C",
+      "headings": [
+        "The Python Tutorial\u00c2\u00b6",
+        "Navigation",
+        "This page",
+        "Navigation",
+        "Previous topic",
+        "Next topic"
+      ],
+      "content_type": "text/html",
+      "language": "en",
+      "word_count": 894,
+      "reading_time_minutes": 4,
+      "content_categories": [
+        "documentation",
+        "tool",
+        "repository"
+      ],
+      "quality_score": 1.0,
+      "extraction_time": 0.18425464630126953,
+      "timestamp": "2025-06-06T22:23:30.434426"
+    }
+  },
+  "ai_results": {},
+  "tag_assignments": {
+    "https://docs.python.org/tutorial": []
+  },
+  "start_time": "2025-06-06T22:23:30.426614",
+  "last_checkpoint_time": "2025-06-06T22:23:30.691950",
+  "stage_start_time": "2025-06-06T22:23:30.658395",
+  "processing_stats": {}
+}

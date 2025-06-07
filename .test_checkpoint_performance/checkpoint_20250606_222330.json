@@ -1,0 +1,1483 @@
+{
+  "input_file": "/tmp/tmpjdl6sn9a.csv",
+  "output_file": "/tmp/tmpjdl6sn9a_perf_output.csv",
+  "total_bookmarks": 20,
+  "config_hash": "unknown",
+  "current_stage": "completed",
+  "stage_progress": 0,
+  "processed_urls": [
+    "https://example.com/7",
+    "https://example.com/8",
+    "https://example.com/2",
+    "https://example.com/11",
+    "https://example.com/14",
+    "https://example.com/18",
+    "https://example.com/10",
+    "https://example.com/1",
+    "https://example.com/13",
+    "https://example.com/15",
+    "https://example.com/16",
+    "https://example.com/5",
+    "https://example.com/3",
+    "https://example.com/0",
+    "https://example.com/6",
+    "https://example.com/4",
+    "https://example.com/17",
+    "https://example.com/12",
+    "https://example.com/19",
+    "https://example.com/9"
+  ],
+  "validated_bookmarks": [
+    {
+      "bookmark": {
+        "id": "0",
+        "title": "Bookmark 0",
+        "note": "Note 0",
+        "excerpt": "Excerpt 0",
+        "url": "https://example.com/0",
+        "folder": "Folder0",
+        "tags": [
+          "tag0",
+          "test"
+        ],
+        "created": "2024-01-01T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/0",
+        "folder_hierarchy": [
+          "Folder0"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/0",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725571",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "1",
+        "title": "Bookmark 1",
+        "note": "Note 1",
+        "excerpt": "Excerpt 1",
+        "url": "https://example.com/1",
+        "folder": "Folder1",
+        "tags": [
+          "tag1",
+          "test"
+        ],
+        "created": "2024-01-02T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/1",
+        "folder_hierarchy": [
+          "Folder1"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/1",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725576",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "2",
+        "title": "Bookmark 2",
+        "note": "Note 2",
+        "excerpt": "Excerpt 2",
+        "url": "https://example.com/2",
+        "folder": "Folder2",
+        "tags": [
+          "tag2",
+          "test"
+        ],
+        "created": "2024-01-03T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/2",
+        "folder_hierarchy": [
+          "Folder2"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/2",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725577",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "3",
+        "title": "Bookmark 3",
+        "note": "Note 3",
+        "excerpt": "Excerpt 3",
+        "url": "https://example.com/3",
+        "folder": "Folder0",
+        "tags": [
+          "tag3",
+          "test"
+        ],
+        "created": "2024-01-04T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/3",
+        "folder_hierarchy": [
+          "Folder0"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/3",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725578",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "4",
+        "title": "Bookmark 4",
+        "note": "Note 4",
+        "excerpt": "Excerpt 4",
+        "url": "https://example.com/4",
+        "folder": "Folder1",
+        "tags": [
+          "tag4",
+          "test"
+        ],
+        "created": "2024-01-05T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/4",
+        "folder_hierarchy": [
+          "Folder1"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/4",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725578",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "5",
+        "title": "Bookmark 5",
+        "note": "Note 5",
+        "excerpt": "Excerpt 5",
+        "url": "https://example.com/5",
+        "folder": "Folder2",
+        "tags": [
+          "tag0",
+          "test"
+        ],
+        "created": "2024-01-06T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/5",
+        "folder_hierarchy": [
+          "Folder2"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/5",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725579",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "6",
+        "title": "Bookmark 6",
+        "note": "Note 6",
+        "excerpt": "Excerpt 6",
+        "url": "https://example.com/6",
+        "folder": "Folder0",
+        "tags": [
+          "tag1",
+          "test"
+        ],
+        "created": "2024-01-07T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/6",
+        "folder_hierarchy": [
+          "Folder0"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/6",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725580",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "7",
+        "title": "Bookmark 7",
+        "note": "Note 7",
+        "excerpt": "Excerpt 7",
+        "url": "https://example.com/7",
+        "folder": "Folder1",
+        "tags": [
+          "tag2",
+          "test"
+        ],
+        "created": "2024-01-08T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/7",
+        "folder_hierarchy": [
+          "Folder1"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/7",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725580",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "8",
+        "title": "Bookmark 8",
+        "note": "Note 8",
+        "excerpt": "Excerpt 8",
+        "url": "https://example.com/8",
+        "folder": "Folder2",
+        "tags": [
+          "tag3",
+          "test"
+        ],
+        "created": "2024-01-09T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/8",
+        "folder_hierarchy": [
+          "Folder2"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/8",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725581",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "9",
+        "title": "Bookmark 9",
+        "note": "Note 9",
+        "excerpt": "Excerpt 9",
+        "url": "https://example.com/9",
+        "folder": "Folder0",
+        "tags": [
+          "tag4",
+          "test"
+        ],
+        "created": "2024-01-10T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/9",
+        "folder_hierarchy": [
+          "Folder0"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/9",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725582",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "10",
+        "title": "Bookmark 10",
+        "note": "Note 10",
+        "excerpt": "Excerpt 10",
+        "url": "https://example.com/10",
+        "folder": "Folder1",
+        "tags": [
+          "tag0",
+          "test"
+        ],
+        "created": "2024-01-11T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/10",
+        "folder_hierarchy": [
+          "Folder1"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/10",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725582",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "11",
+        "title": "Bookmark 11",
+        "note": "Note 11",
+        "excerpt": "Excerpt 11",
+        "url": "https://example.com/11",
+        "folder": "Folder2",
+        "tags": [
+          "tag1",
+          "test"
+        ],
+        "created": "2024-01-12T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/11",
+        "folder_hierarchy": [
+          "Folder2"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/11",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725583",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "12",
+        "title": "Bookmark 12",
+        "note": "Note 12",
+        "excerpt": "Excerpt 12",
+        "url": "https://example.com/12",
+        "folder": "Folder0",
+        "tags": [
+          "tag2",
+          "test"
+        ],
+        "created": "2024-01-13T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/12",
+        "folder_hierarchy": [
+          "Folder0"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/12",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725584",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "13",
+        "title": "Bookmark 13",
+        "note": "Note 13",
+        "excerpt": "Excerpt 13",
+        "url": "https://example.com/13",
+        "folder": "Folder1",
+        "tags": [
+          "tag3",
+          "test"
+        ],
+        "created": "2024-01-14T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/13",
+        "folder_hierarchy": [
+          "Folder1"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/13",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725584",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "14",
+        "title": "Bookmark 14",
+        "note": "Note 14",
+        "excerpt": "Excerpt 14",
+        "url": "https://example.com/14",
+        "folder": "Folder2",
+        "tags": [
+          "tag4",
+          "test"
+        ],
+        "created": "2024-01-15T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/14",
+        "folder_hierarchy": [
+          "Folder2"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/14",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725585",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "15",
+        "title": "Bookmark 15",
+        "note": "Note 15",
+        "excerpt": "Excerpt 15",
+        "url": "https://example.com/15",
+        "folder": "Folder0",
+        "tags": [
+          "tag0",
+          "test"
+        ],
+        "created": "2024-01-16T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/15",
+        "folder_hierarchy": [
+          "Folder0"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/15",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725586",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "16",
+        "title": "Bookmark 16",
+        "note": "Note 16",
+        "excerpt": "Excerpt 16",
+        "url": "https://example.com/16",
+        "folder": "Folder1",
+        "tags": [
+          "tag1",
+          "test"
+        ],
+        "created": "2024-01-17T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/16",
+        "folder_hierarchy": [
+          "Folder1"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/16",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725586",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "17",
+        "title": "Bookmark 17",
+        "note": "Note 17",
+        "excerpt": "Excerpt 17",
+        "url": "https://example.com/17",
+        "folder": "Folder2",
+        "tags": [
+          "tag2",
+          "test"
+        ],
+        "created": "2024-01-18T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/17",
+        "folder_hierarchy": [
+          "Folder2"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/17",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725587",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "18",
+        "title": "Bookmark 18",
+        "note": "Note 18",
+        "excerpt": "Excerpt 18",
+        "url": "https://example.com/18",
+        "folder": "Folder0",
+        "tags": [
+          "tag3",
+          "test"
+        ],
+        "created": "2024-01-19T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/18",
+        "folder_hierarchy": [
+          "Folder0"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/18",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725587",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "19",
+        "title": "Bookmark 19",
+        "note": "Note 19",
+        "excerpt": "Excerpt 19",
+        "url": "https://example.com/19",
+        "folder": "Folder1",
+        "tags": [
+          "tag4",
+          "test"
+        ],
+        "created": "2024-01-20T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://example.com/19",
+        "folder_hierarchy": [
+          "Folder1"
+        ]
+      },
+      "validation": {
+        "url": "https://example.com/19",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:23:30.725589",
+        "security_validation": null
+      }
+    }
+  ],
+  "failed_validations": [],
+  "content_data": {
+    "https://example.com/0": {
+      "url": "https://example.com/0",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 0",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 0 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.9997913837432861,
+      "timestamp": "2025-06-06T22:23:30.753801"
+    },
+    "https://example.com/1": {
+      "url": "https://example.com/1",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 1",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 1 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.27610135078430176,
+      "timestamp": "2025-06-06T22:23:31.753765"
+    },
+    "https://example.com/2": {
+      "url": "https://example.com/2",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 2",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 2 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.8226702213287354,
+      "timestamp": "2025-06-06T22:23:32.030137"
+    },
+    "https://example.com/3": {
+      "url": "https://example.com/3",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 3",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 3 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.28739404678344727,
+      "timestamp": "2025-06-06T22:23:32.852988"
+    },
+    "https://example.com/4": {
+      "url": "https://example.com/4",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 4",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 4 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.8197636604309082,
+      "timestamp": "2025-06-06T22:23:33.140590"
+    },
+    "https://example.com/5": {
+      "url": "https://example.com/5",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 5",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 5 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.29479503631591797,
+      "timestamp": "2025-06-06T22:23:33.960561"
+    },
+    "https://example.com/6": {
+      "url": "https://example.com/6",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 6",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 6 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.28417181968688965,
+      "timestamp": "2025-06-06T22:23:34.255567"
+    },
+    "https://example.com/7": {
+      "url": "https://example.com/7",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 7",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 7 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.9453628063201904,
+      "timestamp": "2025-06-06T22:23:34.539915"
+    },
+    "https://example.com/8": {
+      "url": "https://example.com/8",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 8",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 8 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.2893204689025879,
+      "timestamp": "2025-06-06T22:23:35.485475"
+    },
+    "https://example.com/9": {
+      "url": "https://example.com/9",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 9",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 9 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.8424899578094482,
+      "timestamp": "2025-06-06T22:23:35.774982"
+    },
+    "https://example.com/10": {
+      "url": "https://example.com/10",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 10",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 10 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.3685908317565918,
+      "timestamp": "2025-06-06T22:23:36.617658"
+    },
+    "https://example.com/11": {
+      "url": "https://example.com/11",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 11",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 11 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.2858083248138428,
+      "timestamp": "2025-06-06T22:23:36.986443"
+    },
+    "https://example.com/12": {
+      "url": "https://example.com/12",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 12",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 12 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.2854752540588379,
+      "timestamp": "2025-06-06T22:23:37.272542"
+    },
+    "https://example.com/13": {
+      "url": "https://example.com/13",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 13",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 13 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.27875566482543945,
+      "timestamp": "2025-06-06T22:23:37.558219"
+    },
+    "https://example.com/14": {
+      "url": "https://example.com/14",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 14",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 14 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": -2.124378204345703,
+      "timestamp": "2025-06-06T22:23:37.837149"
+    },
+    "https://example.com/15": {
+      "url": "https://example.com/15",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 15",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 15 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.6815721988677979,
+      "timestamp": "2025-06-06T22:23:35.712839"
+    },
+    "https://example.com/16": {
+      "url": "https://example.com/16",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 16",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 16 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.37530994415283203,
+      "timestamp": "2025-06-06T22:23:36.394467"
+    },
+    "https://example.com/17": {
+      "url": "https://example.com/17",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 17",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 17 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.28461146354675293,
+      "timestamp": "2025-06-06T22:23:36.769834"
+    },
+    "https://example.com/18": {
+      "url": "https://example.com/18",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 18",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 18 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.8955373764038086,
+      "timestamp": "2025-06-06T22:23:37.054500"
+    },
+    "https://example.com/19": {
+      "url": "https://example.com/19",
+      "title": "Example Domain",
+      "meta_description": "Excerpt 19",
+      "meta_keywords": "",
+      "main_content": "User Note: Note 19 | This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+      "headings": [
+        "Example Domain"
+      ],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 24,
+      "reading_time_minutes": 1,
+      "content_categories": [],
+      "quality_score": 0.4,
+      "extraction_time": 0.8138861656188965,
+      "timestamp": "2025-06-06T22:23:37.950280"
+    }
+  },
+  "ai_results": {
+    "https://example.com/0": {
+      "original_url": "https://example.com/0",
+      "enhanced_description": "AI: Bookmark 0",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780303"
+    },
+    "https://example.com/1": {
+      "original_url": "https://example.com/1",
+      "enhanced_description": "AI: Bookmark 1",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780309"
+    },
+    "https://example.com/2": {
+      "original_url": "https://example.com/2",
+      "enhanced_description": "AI: Bookmark 2",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780311"
+    },
+    "https://example.com/3": {
+      "original_url": "https://example.com/3",
+      "enhanced_description": "AI: Bookmark 3",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780314"
+    },
+    "https://example.com/4": {
+      "original_url": "https://example.com/4",
+      "enhanced_description": "AI: Bookmark 4",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780315"
+    },
+    "https://example.com/5": {
+      "original_url": "https://example.com/5",
+      "enhanced_description": "AI: Bookmark 5",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780386"
+    },
+    "https://example.com/6": {
+      "original_url": "https://example.com/6",
+      "enhanced_description": "AI: Bookmark 6",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780388"
+    },
+    "https://example.com/7": {
+      "original_url": "https://example.com/7",
+      "enhanced_description": "AI: Bookmark 7",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780390"
+    },
+    "https://example.com/8": {
+      "original_url": "https://example.com/8",
+      "enhanced_description": "AI: Bookmark 8",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780392"
+    },
+    "https://example.com/9": {
+      "original_url": "https://example.com/9",
+      "enhanced_description": "AI: Bookmark 9",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780394"
+    },
+    "https://example.com/10": {
+      "original_url": "https://example.com/10",
+      "enhanced_description": "AI: Bookmark 10",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780430"
+    },
+    "https://example.com/11": {
+      "original_url": "https://example.com/11",
+      "enhanced_description": "AI: Bookmark 11",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780432"
+    },
+    "https://example.com/12": {
+      "original_url": "https://example.com/12",
+      "enhanced_description": "AI: Bookmark 12",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780434"
+    },
+    "https://example.com/13": {
+      "original_url": "https://example.com/13",
+      "enhanced_description": "AI: Bookmark 13",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780436"
+    },
+    "https://example.com/14": {
+      "original_url": "https://example.com/14",
+      "enhanced_description": "AI: Bookmark 14",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780437"
+    },
+    "https://example.com/15": {
+      "original_url": "https://example.com/15",
+      "enhanced_description": "AI: Bookmark 15",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780468"
+    },
+    "https://example.com/16": {
+      "original_url": "https://example.com/16",
+      "enhanced_description": "AI: Bookmark 16",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780470"
+    },
+    "https://example.com/17": {
+      "original_url": "https://example.com/17",
+      "enhanced_description": "AI: Bookmark 17",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780472"
+    },
+    "https://example.com/18": {
+      "original_url": "https://example.com/18",
+      "enhanced_description": "AI: Bookmark 18",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780473"
+    },
+    "https://example.com/19": {
+      "original_url": "https://example.com/19",
+      "enhanced_description": "AI: Bookmark 19",
+      "processing_method": "perf_test",
+      "processing_time": 0.01,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:23:38.780475"
+    }
+  },
+  "tag_assignments": {
+    "https://example.com/0": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag0",
+      "test"
+    ],
+    "https://example.com/1": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag1",
+      "test"
+    ],
+    "https://example.com/2": [
+      "example",
+      "bookmark",
+      "domain",
+      "test",
+      "tag2"
+    ],
+    "https://example.com/3": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag3",
+      "test"
+    ],
+    "https://example.com/4": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag4",
+      "test"
+    ],
+    "https://example.com/5": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag0",
+      "test"
+    ],
+    "https://example.com/6": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag1",
+      "test"
+    ],
+    "https://example.com/7": [
+      "example",
+      "bookmark",
+      "domain",
+      "test",
+      "tag2"
+    ],
+    "https://example.com/8": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag3",
+      "test"
+    ],
+    "https://example.com/9": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag4",
+      "test"
+    ],
+    "https://example.com/10": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag0",
+      "test"
+    ],
+    "https://example.com/11": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag1",
+      "test"
+    ],
+    "https://example.com/12": [
+      "example",
+      "bookmark",
+      "domain",
+      "test",
+      "tag2"
+    ],
+    "https://example.com/13": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag3",
+      "test"
+    ],
+    "https://example.com/14": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag4",
+      "test"
+    ],
+    "https://example.com/15": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag0",
+      "test"
+    ],
+    "https://example.com/16": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag1",
+      "test"
+    ],
+    "https://example.com/17": [
+      "example",
+      "bookmark",
+      "domain",
+      "test",
+      "tag2"
+    ],
+    "https://example.com/18": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag3",
+      "test"
+    ],
+    "https://example.com/19": [
+      "example",
+      "bookmark",
+      "domain",
+      "tag4",
+      "test"
+    ]
+  },
+  "start_time": "2025-06-06T22:23:30.743888",
+  "last_checkpoint_time": "2025-06-06T22:23:38.846317",
+  "stage_start_time": "2025-06-06T22:23:38.832211",
+  "processing_stats": {}
+}

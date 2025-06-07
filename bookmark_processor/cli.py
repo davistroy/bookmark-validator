@@ -152,7 +152,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             default="highest_quality",
             help="Strategy for resolving duplicates (default: highest_quality)",
         )
-        
+
         # Folder generation options
         parser.add_argument(
             "--generate-folders",
@@ -171,7 +171,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             default=20,
             help="Maximum bookmarks per folder (default: 20)",
         )
-        
+
         # Output format options
         parser.add_argument(
             "--chrome-html",
@@ -209,11 +209,11 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
         """
         # Validate file paths
         input_path = validate_input_file(args.input)
-        
+
         # If no input file specified, validate auto-detection mode
         if input_path is None:
             validate_auto_detection_mode()
-            
+
         output_path = validate_output_file(args.output)
         config_path = validate_config_file(args.config)
 
@@ -252,7 +252,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
 
         Returns:
             Configured Configuration object
-            
+
         Raises:
             ValidationError: If AI engine validation fails
         """
@@ -293,37 +293,55 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
 
             if validated_args["verbose"]:
                 print("✓ Arguments validated and configuration loaded successfully!")
-                
+
                 # Handle input display based on mode
-                if validated_args['input_path'] is None:
+                if validated_args["input_path"] is None:
                     print(f"  Input: Auto-detection mode (current directory)")
                     # Show auto-detection details
                     try:
-                        from bookmark_processor.core.multi_file_processor import MultiFileProcessor
+                        from bookmark_processor.core.multi_file_processor import (
+                            MultiFileProcessor,
+                        )
+
                         processor = MultiFileProcessor()
                         report = processor.validate_directory_for_auto_detection()
                         print(f"  Detected files: {len(report['valid_files'])}")
-                        print(f"  Total estimated bookmarks: {report['total_estimated_bookmarks']}")
-                        for file_info in report['valid_files'][:3]:  # Show first 3 files
-                            print(f"    - {file_info['name']} ({file_info['format']}, ~{file_info['estimated_bookmarks']} bookmarks)")
-                        if len(report['valid_files']) > 3:
-                            print(f"    ... and {len(report['valid_files']) - 3} more files")
+                        print(
+                            f"  Total estimated bookmarks: {report['total_estimated_bookmarks']}"
+                        )
+                        for file_info in report["valid_files"][
+                            :3
+                        ]:  # Show first 3 files
+                            print(
+                                f"    - {file_info['name']} ({file_info['format']}, ~{file_info['estimated_bookmarks']} bookmarks)"
+                            )
+                        if len(report["valid_files"]) > 3:
+                            print(
+                                f"    ... and {len(report['valid_files']) - 3} more files"
+                            )
                     except Exception:
                         pass
                 else:
                     print(f"  Input: {validated_args['input_path']}")
                     # Show single file format information
                     try:
-                        from bookmark_processor.core.import_module import MultiFormatImporter
+                        from bookmark_processor.core.import_module import (
+                            MultiFormatImporter,
+                        )
+
                         importer = MultiFormatImporter()
-                        file_info = importer.get_file_info(validated_args['input_path'])
+                        file_info = importer.get_file_info(validated_args["input_path"])
                         print(f"  Input format: {file_info['format']}")
-                        print(f"  File size: {file_info['size_bytes'] / 1024 / 1024:.2f} MB")
-                        if file_info['estimated_bookmarks'] > 0:
-                            print(f"  Estimated bookmarks: {file_info['estimated_bookmarks']}")
+                        print(
+                            f"  File size: {file_info['size_bytes'] / 1024 / 1024:.2f} MB"
+                        )
+                        if file_info["estimated_bookmarks"] > 0:
+                            print(
+                                f"  Estimated bookmarks: {file_info['estimated_bookmarks']}"
+                            )
                     except Exception:
                         pass
-                
+
                 print(f"  Output: {validated_args['output_path']}")
                 if validated_args["config_path"]:
                     print(f"  Config: {validated_args['config_path']}")
@@ -333,8 +351,10 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                 print(f"  Resume: {validated_args['resume']}")
                 print(f"  Clear checkpoints: {validated_args['clear_checkpoints']}")
                 print(f"  Duplicate detection: {validated_args['detect_duplicates']}")
-                if validated_args['detect_duplicates']:
-                    print(f"  Duplicate strategy: {validated_args['duplicate_strategy']}")
+                if validated_args["detect_duplicates"]:
+                    print(
+                        f"  Duplicate strategy: {validated_args['duplicate_strategy']}"
+                    )
 
             # Initialize and run the bookmark processor
             processor = BookmarkProcessor(config)

@@ -1,0 +1,336 @@
+{
+  "input_file": "/tmp/tmpne7rqn91.csv",
+  "output_file": "/tmp/tmpne7rqn91_error_output.csv",
+  "total_bookmarks": 8,
+  "config_hash": "unknown",
+  "current_stage": "completed",
+  "stage_progress": 0,
+  "processed_urls": [
+    "https://httpbin.org/status/500",
+    "https://httpbin.org/delay/10",
+    "https://httpbin.org/status/200",
+    "https://httpbin.org/status/404",
+    "https://httpbin.org/redirect/10",
+    "https://httpbin.org/status/429",
+    "https://nonexistent-domain-12345.com",
+    "not-a-valid-url"
+  ],
+  "validated_bookmarks": [
+    {
+      "bookmark": {
+        "id": "2",
+        "title": "Timeout URL",
+        "note": "Slow response",
+        "excerpt": "Will timeout",
+        "url": "https://httpbin.org/delay/10",
+        "folder": "Test/Timeout",
+        "tags": [
+          "test",
+          "slow"
+        ],
+        "created": "2024-01-02T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://httpbin.org/delay/10",
+        "folder_hierarchy": [
+          "Test",
+          "Timeout"
+        ]
+      },
+      "validation": {
+        "url": "https://httpbin.org/delay/10",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": "https://httpbin.org/delay/10",
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:24:03.772511",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "3",
+        "title": "Not Found",
+        "note": "Missing page",
+        "excerpt": "404 error",
+        "url": "https://httpbin.org/status/404",
+        "folder": "Test/NotFound",
+        "tags": [
+          "test",
+          "error"
+        ],
+        "created": "2024-01-03T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://httpbin.org/status/404",
+        "folder_hierarchy": [
+          "Test",
+          "NotFound"
+        ]
+      },
+      "validation": {
+        "url": "https://httpbin.org/status/404",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": "https://httpbin.org/status/404",
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:24:03.772513",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "6",
+        "title": "Connection Error",
+        "note": "Network issue",
+        "excerpt": "Connection fails",
+        "url": "https://nonexistent-domain-12345.com",
+        "folder": "Test/Network",
+        "tags": [
+          "test",
+          "network"
+        ],
+        "created": "2024-01-06T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://nonexistent-domain-12345.com",
+        "folder_hierarchy": [
+          "Test",
+          "Network"
+        ]
+      },
+      "validation": {
+        "url": "https://nonexistent-domain-12345.com",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": "https://nonexistent-domain-12345.com",
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:24:03.772516",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "8",
+        "title": "Redirect Loop",
+        "note": "Infinite redirect",
+        "excerpt": "Redirect issue",
+        "url": "https://httpbin.org/redirect/10",
+        "folder": "Test/Redirect",
+        "tags": [
+          "test",
+          "redirect"
+        ],
+        "created": "2024-01-08T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://httpbin.org/redirect/10",
+        "folder_hierarchy": [
+          "Test",
+          "Redirect"
+        ]
+      },
+      "validation": {
+        "url": "https://httpbin.org/redirect/10",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": "https://httpbin.org/redirect/10",
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-06T22:24:03.772517",
+        "security_validation": null
+      }
+    }
+  ],
+  "failed_validations": [
+    {
+      "url": "https://httpbin.org/status/200",
+      "is_valid": false,
+      "status_code": 500,
+      "final_url": null,
+      "response_time": 0.0,
+      "error_message": "Server error",
+      "error_type": "HTTPError",
+      "content_type": null,
+      "content_length": null,
+      "timestamp": "2025-06-06T22:24:03.772509",
+      "security_validation": null
+    },
+    {
+      "url": "https://httpbin.org/status/500",
+      "is_valid": false,
+      "status_code": 500,
+      "final_url": null,
+      "response_time": 0.0,
+      "error_message": "Server error",
+      "error_type": "HTTPError",
+      "content_type": null,
+      "content_length": null,
+      "timestamp": "2025-06-06T22:24:03.772514",
+      "security_validation": null
+    },
+    {
+      "url": "not-a-valid-url",
+      "is_valid": false,
+      "status_code": null,
+      "final_url": null,
+      "response_time": 0.0,
+      "error_message": "Request timeout",
+      "error_type": "TimeoutError",
+      "content_type": null,
+      "content_length": null,
+      "timestamp": "2025-06-06T22:24:03.772515",
+      "security_validation": null
+    },
+    {
+      "url": "https://httpbin.org/status/429",
+      "is_valid": false,
+      "status_code": 500,
+      "final_url": null,
+      "response_time": 0.0,
+      "error_message": "Server error",
+      "error_type": "HTTPError",
+      "content_type": null,
+      "content_length": null,
+      "timestamp": "2025-06-06T22:24:03.772517",
+      "security_validation": null
+    }
+  ],
+  "content_data": {
+    "https://httpbin.org/delay/10": {
+      "url": "https://httpbin.org/delay/10",
+      "title": "",
+      "meta_description": "",
+      "meta_keywords": "",
+      "main_content": "Timeout after 5.0s",
+      "headings": [],
+      "content_type": "",
+      "language": "",
+      "word_count": 0,
+      "reading_time_minutes": 0,
+      "content_categories": [],
+      "quality_score": 0.0,
+      "extraction_time": 2.197788715362549,
+      "timestamp": "2025-06-06T22:24:03.780162"
+    },
+    "https://httpbin.org/status/404": {
+      "url": "https://httpbin.org/status/404",
+      "title": "Not Found",
+      "meta_description": "404 error",
+      "meta_keywords": "",
+      "main_content": "User Note: Missing page",
+      "headings": [],
+      "content_type": "text/html; charset=utf-8",
+      "language": "",
+      "word_count": 0,
+      "reading_time_minutes": 0,
+      "content_categories": [],
+      "quality_score": 0.30000000000000004,
+      "extraction_time": 0.1639847755432129,
+      "timestamp": "2025-06-06T22:24:05.978307"
+    },
+    "https://nonexistent-domain-12345.com": {
+      "url": "https://nonexistent-domain-12345.com",
+      "title": "",
+      "meta_description": "",
+      "meta_keywords": "",
+      "main_content": "Request error: HTTPSConnectionPool(host='nonexistent-domain-12345.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x7fee9f0b6450>: Failed to resolve 'nonexistent-domain-12345.com' ([Errno -2] Name or service not known)\"))",
+      "headings": [],
+      "content_type": "",
+      "language": "",
+      "word_count": 0,
+      "reading_time_minutes": 0,
+      "content_categories": [],
+      "quality_score": 0.0,
+      "extraction_time": 0.010986566543579102,
+      "timestamp": "2025-06-06T22:24:06.142565"
+    },
+    "https://httpbin.org/redirect/10": {
+      "url": "https://httpbin.org/redirect/10",
+      "title": "",
+      "meta_description": "",
+      "meta_keywords": "",
+      "main_content": "Non-HTML content: application/json",
+      "headings": [],
+      "content_type": "application/json",
+      "language": "",
+      "word_count": 0,
+      "reading_time_minutes": 0,
+      "content_categories": [],
+      "quality_score": 0.0,
+      "extraction_time": 0.9084889888763428,
+      "timestamp": "2025-06-06T22:24:06.153589"
+    }
+  },
+  "ai_results": {
+    "https://httpbin.org/status/404": {
+      "original_url": "https://httpbin.org/status/404",
+      "enhanced_description": "AI processed: Not Found",
+      "processing_method": "concurrent_test",
+      "processing_time": 0.1,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:24:07.071364"
+    },
+    "https://nonexistent-domain-12345.com": {
+      "original_url": "https://nonexistent-domain-12345.com",
+      "enhanced_description": "AI processed: Connection Error",
+      "processing_method": "concurrent_test",
+      "processing_time": 0.1,
+      "model_used": null,
+      "confidence_score": 0.0,
+      "error_message": null,
+      "timestamp": "2025-06-06T22:24:07.071367"
+    }
+  },
+  "tag_assignments": {
+    "https://httpbin.org/delay/10": [
+      "test"
+    ],
+    "https://httpbin.org/status/404": [
+      "error",
+      "test",
+      "artificial-intelligence"
+    ],
+    "https://nonexistent-domain-12345.com": [
+      "error",
+      "test",
+      "artificial-intelligence"
+    ],
+    "https://httpbin.org/redirect/10": [
+      "test"
+    ]
+  },
+  "start_time": "2025-06-06T22:24:03.772239",
+  "last_checkpoint_time": "2025-06-06T22:24:07.136577",
+  "stage_start_time": "2025-06-06T22:24:07.109440",
+  "processing_stats": {}
+}

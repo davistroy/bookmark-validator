@@ -232,9 +232,13 @@ class BookmarkProcessor:
                         "duplicate_strategy", "highest_quality"
                     ),
                     generate_folders=validated_args.get("generate_folders", True),
-                    max_bookmarks_per_folder=validated_args.get("max_bookmarks_per_folder", 20),
+                    max_bookmarks_per_folder=validated_args.get(
+                        "max_bookmarks_per_folder", 20
+                    ),
                     ai_engine=validated_args.get("ai_engine", "local"),
-                    generate_chrome_html=validated_args.get("generate_chrome_html", False),
+                    generate_chrome_html=validated_args.get(
+                        "generate_chrome_html", False
+                    ),
                     chrome_html_output=validated_args.get("chrome_html_output"),
                     html_title=validated_args.get("html_title", "Enhanced Bookmarks"),
                 )
@@ -248,16 +252,18 @@ class BookmarkProcessor:
                 print(f"  AI processed: {results.ai_processed}")
                 print(f"  Tagged bookmarks: {results.tagged_bookmarks}")
                 print(f"  Unique tags: {results.unique_tags}")
-                
+
                 # Add folder generation statistics if available
                 if validated_args.get("generate_folders", True):
                     if results.statistics.get("folder_generation"):
                         folder_stats = results.statistics["folder_generation"]
-                        print(f"  AI-generated folders: {folder_stats.get('total_folders', 0)}")
+                        print(
+                            f"  AI-generated folders: {folder_stats.get('total_folders', 0)}"
+                        )
                         print(f"  Max folder depth: {folder_stats.get('max_depth', 0)}")
                     else:
                         print("  AI folder generation: Not completed")
-                
+
                 print(f"  Processing time: {results.processing_time:.2f}s")
                 print(f"  Output file: {output_file}")
 

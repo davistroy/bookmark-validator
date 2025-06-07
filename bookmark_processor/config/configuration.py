@@ -28,13 +28,15 @@ class Configuration:
         """
         self.config = configparser.ConfigParser()
         self._load_default_config()
-        
+
         # Try to load user config from standard location if not specified
         if config_path:
             self._load_user_config(config_path)
         else:
             # Check for user_config.ini in the same directory as default config
-            user_config_path = self._get_default_config_path().parent / "user_config.ini"
+            user_config_path = (
+                self._get_default_config_path().parent / "user_config.ini"
+            )
             if user_config_path.exists():
                 self._load_user_config(user_config_path)
 
@@ -118,7 +120,7 @@ class Configuration:
             "show_running_costs": "true",
             "cost_confirmation_interval": "10.0",
         }
-        
+
         # Executable settings
         self.config["executable"] = {
             "model_cache_dir": "~/.cache/bookmark-processor/models",
@@ -155,7 +157,7 @@ class Configuration:
         if args.get("verbose"):
             self.config.set("logging", "log_level", "DEBUG")
             self.config.set("logging", "console_output", "true")
-            
+
         # Update AI engine setting
         if "ai_engine" in args and args["ai_engine"]:
             self.config.set("ai", "default_engine", args["ai_engine"])
@@ -185,18 +187,18 @@ class Configuration:
     def get_checkpoint_dir(self) -> Path:
         """Get checkpoint directory."""
         return Path(self.get("checkpoint", "checkpoint_dir", ".bookmark_checkpoints"))
-    
+
     def get_ai_engine(self) -> str:
         """Get the configured AI engine."""
         return self.get("ai", "default_engine", fallback="local")
-    
+
     def get_api_key(self, provider: str) -> Optional[str]:
         """
         Get API key for a provider. Returns None if not configured.
-        
+
         Args:
             provider: API provider name (claude or openai)
-            
+
         Returns:
             API key string or None
         """
@@ -207,32 +209,38 @@ class Configuration:
             return key if key and key.strip() else None
         except (configparser.NoSectionError, configparser.NoOptionError):
             return None
-    
+
     def has_api_key(self, provider: str) -> bool:
         """Check if API key is configured for a provider."""
         return self.get_api_key(provider) is not None
-    
+
     def get_rate_limit(self, provider: str) -> int:
         """Get rate limit (requests per minute) for a provider."""
         return self.getint("ai", f"{provider}_rpm", fallback=60)
-    
+
     def get_batch_size(self, provider: str) -> int:
         """Get batch size for a provider."""
         return self.getint("ai", f"{provider}_batch_size", fallback=10)
-    
+
     def get_cost_tracking_settings(self) -> Dict[str, Any]:
         """Get cost tracking configuration."""
         return {
-            "show_running_costs": self.getboolean("ai", "show_running_costs", fallback=True),
-            "cost_confirmation_interval": self.getfloat("ai", "cost_confirmation_interval", fallback=10.0),
-            "max_cost_per_run": self.getfloat("ai", "max_cost_per_run", fallback=0.0),  # 0 = no limit
+            "show_running_costs": self.getboolean(
+                "ai", "show_running_costs", fallback=True
+            ),
+            "cost_confirmation_interval": self.getfloat(
+                "ai", "cost_confirmation_interval", fallback=10.0
+            ),
+            "max_cost_per_run": self.getfloat(
+                "ai", "max_cost_per_run", fallback=0.0
+            ),  # 0 = no limit
             "pause_at_cost": self.getboolean("ai", "pause_at_cost", fallback=True),
         }
-    
+
     def validate_ai_configuration(self) -> Tuple[bool, Optional[str]]:
         """
         Validate AI configuration including API keys.
-        
+
         Returns:
             Tuple of (is_valid, error_message)
         """
