@@ -379,7 +379,7 @@ class AIManager:
 
     async def generate_descriptions_batch(self, bookmarks, existing_content=None):
         """
-        Generate descriptions for a batch of bookmarks.
+        Generate descriptions for a batch of bookmarks with concurrent processing.
 
         Args:
             bookmarks: List of bookmark objects
@@ -388,24 +388,133 @@ class AIManager:
         Returns:
             List of tuples (enhanced_description, metadata)
         """
-        # For now, process individually
-        # TODO: Implement true batch processing for supported providers
-        results = []
+        if not bookmarks:
+            return []
 
-        for i, bookmark in enumerate(bookmarks):
-            content = (
-                existing_content[i]
-                if existing_content and i < len(existing_content)
-                else None
+        # Get optimal concurrency based on current provider and rate limits
+        optimal_concurrency = self._get_optimal_concurrency()
+        semaphore = asyncio.Semaphore(optimal_concurrency)
+
+        async def process_single_bookmark(i: int, bookmark) -> tuple:
+            """Process a single bookmark with rate limiting."""
+            async with semaphore:
+                content = (
+                    existing_content[i]
+                    if existing_content and i < len(existing_content)
+                    else None
+                )
+                try:
+                    result = await self.generate_description(bookmark, content)
+                    return result
+                except Exception as e:
+                    # Return error result instead of raising
+                    from datetime import datetime
+
+                    error_metadata = {
+                        "provider": self.get_current_provider(),
+                        "error": str(e),
+                        "success": False,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                    return ("", error_metadata)
+
+        # Create tasks for concurrent processing
+        tasks = [
+            process_single_bookmark(i, bookmark) for i, bookmark in enumerate(bookmarks)
+        ]
+
+        # Process concurrently with proper error handling
+        try:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Handle any exceptions that occurred during processing
+            processed_results = []
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    # Convert exception to error result
+                    from datetime import datetime
+
+                    error_metadata = {
+                        "provider": self.get_current_provider(),
+                        "error": str(result),
+                        "success": False,
+                        "timestamp": datetime.now().isoformat(),
+                        "bookmark_index": i,
+                    }
+                    processed_results.append(("", error_metadata))
+                else:
+                    processed_results.append(result)
+
+            return processed_results
+
+        except Exception as e:
+            # Fallback to sequential processing if concurrent processing fails
+            logging.warning(
+                f"Concurrent batch processing failed, falling back to sequential: {e}"
             )
-            result = await self.generate_description(bookmark, content)
-            results.append(result)
+            results = []
+            for i, bookmark in enumerate(bookmarks):
+                content = (
+                    existing_content[i]
+                    if existing_content and i < len(existing_content)
+                    else None
+                )
+                try:
+                    result = await self.generate_description(bookmark, content)
+                    results.append(result)
+                except Exception as bookmark_error:
+                    from datetime import datetime
 
-        return results
+                    error_metadata = {
+                        "provider": self.get_current_provider(),
+                        "error": str(bookmark_error),
+                        "success": False,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                    results.append(("", error_metadata))
+            return results
 
     def get_current_provider(self) -> str:
         """Get the name of the currently active provider."""
         return self.current_provider or "none"
+
+    def _get_optimal_concurrency(self) -> int:
+        """Calculate optimal concurrency based on current provider and rate limits."""
+        provider = self.get_current_provider()
+
+        # Base concurrency limits per provider
+        base_limits = {
+            "local": 20,  # Higher for local processing
+            "claude": 5,  # Conservative for Claude API
+            "openai": 8,  # Moderate for OpenAI API
+            "none": 1,  # Fallback
+        }
+
+        base_limit = base_limits.get(provider, 3)
+
+        try:
+            # Try to get rate limiter status for dynamic adjustment
+            from ..utils.rate_limiter import get_rate_limiter
+
+            rate_limiter = get_rate_limiter(provider)
+            status = rate_limiter.get_status()
+
+            # Adjust based on current utilization
+            utilization = status.get("utilization_percent", 0)
+            if utilization > 80:
+                # High utilization, reduce concurrency
+                return max(1, base_limit // 2)
+            elif utilization < 30:
+                # Low utilization, can increase concurrency
+                return min(base_limit * 2, 50)
+            else:
+                # Normal utilization
+                return base_limit
+
+        except Exception as e:
+            # Fallback to base limits if rate limiter unavailable
+            logging.debug(f"Could not get rate limiter status for {provider}: {e}")
+            return base_limit
 
     def get_provider_info(self) -> Dict[str, Any]:
         """

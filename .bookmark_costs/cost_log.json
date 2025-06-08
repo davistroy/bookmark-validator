@@ -1,0 +1,215 @@
+{
+  "records": [
+    {
+      "timestamp": 1749349585.330379,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 1000,
+      "output_tokens": 150,
+      "cost_usd": 0.001,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749349585.3339233,
+      "provider": "openai",
+      "model": "gpt-3.5-turbo",
+      "input_tokens": 800,
+      "output_tokens": 120,
+      "cost_usd": 0.002,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749349585.8303523,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 5000,
+      "output_tokens": 1000,
+      "cost_usd": 1.5,
+      "operation_type": "description_generation",
+      "bookmark_count": 10,
+      "success": true
+    },
+    {
+      "timestamp": 1749349659.569406,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 1000,
+      "output_tokens": 150,
+      "cost_usd": 0.001,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749349659.572285,
+      "provider": "openai",
+      "model": "gpt-3.5-turbo",
+      "input_tokens": 800,
+      "output_tokens": 120,
+      "cost_usd": 0.002,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749349659.7822692,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 5000,
+      "output_tokens": 1000,
+      "cost_usd": 1.5,
+      "operation_type": "description_generation",
+      "bookmark_count": 10,
+      "success": true
+    },
+    {
+      "timestamp": 1749384979.0026927,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 1000,
+      "output_tokens": 150,
+      "cost_usd": 0.001,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749384979.0067987,
+      "provider": "openai",
+      "model": "gpt-3.5-turbo",
+      "input_tokens": 800,
+      "output_tokens": 120,
+      "cost_usd": 0.002,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749384979.4819567,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 5000,
+      "output_tokens": 1000,
+      "cost_usd": 1.5,
+      "operation_type": "description_generation",
+      "bookmark_count": 10,
+      "success": true
+    },
+    {
+      "timestamp": 1749385048.3949823,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 1000,
+      "output_tokens": 150,
+      "cost_usd": 0.001,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749385048.3992884,
+      "provider": "openai",
+      "model": "gpt-3.5-turbo",
+      "input_tokens": 800,
+      "output_tokens": 120,
+      "cost_usd": 0.002,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749385048.616799,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 5000,
+      "output_tokens": 1000,
+      "cost_usd": 1.5,
+      "operation_type": "description_generation",
+      "bookmark_count": 10,
+      "success": true
+    },
+    {
+      "timestamp": 1749407102.5686853,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 1000,
+      "output_tokens": 150,
+      "cost_usd": 0.001,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749407102.5738745,
+      "provider": "openai",
+      "model": "gpt-3.5-turbo",
+      "input_tokens": 800,
+      "output_tokens": 120,
+      "cost_usd": 0.002,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749407102.9447904,
+      "provider": "claude",
+      "model": "claude-3-haiku-20240307",
+      "input_tokens": 5000,
+      "output_tokens": 1000,
+      "cost_usd": 1.5,
+      "operation_type": "description_generation",
+      "bookmark_count": 10,
+      "success": true
+    },
+    {
+      "timestamp": 1749407151.6332335,
+      "provider": "claude",
+      "model": "claude-model",
+      "input_tokens": 1000,
+      "output_tokens": 200,
+      "cost_usd": 0.001,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749407151.6369956,
+      "provider": "openai",
+      "model": "openai-model",
+      "input_tokens": 1000,
+      "output_tokens": 200,
+      "cost_usd": 0.002,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749407151.6534045,
+      "provider": "claude",
+      "model": "claude-model",
+      "input_tokens": 1000,
+      "output_tokens": 200,
+      "cost_usd": 0.0015,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    },
+    {
+      "timestamp": 1749407151.6696658,
+      "provider": "openai",
+      "model": "openai-model",
+      "input_tokens": 1000,
+      "output_tokens": 200,
+      "cost_usd": 0.0018,
+      "operation_type": "description_generation",
+      "bookmark_count": 1,
+      "success": true
+    }
+  ],
+  "total_cost": 7.5213,
+  "last_updated": 1749407151.6697772
+}

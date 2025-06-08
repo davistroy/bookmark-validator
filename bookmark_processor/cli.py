@@ -62,6 +62,10 @@ Examples:
     --no-folders --ai-engine openai
   bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
     --max-bookmarks-per-folder 15 --verbose
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --config my_config.toml --ai-engine claude --verbose
+  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
+    --ai-engine local --batch-size 200 --verbose
 
 Output Formats:
   By default, only CSV output (raindrop.io import format) is generated.
@@ -73,11 +77,27 @@ AI Folder Generation:
   Use --no-folders to disable and preserve original folder structure.
   Use --max-bookmarks-per-folder to adjust folder size limits.
 
-Cloud AI Setup:
-  Copy user_config.ini.template to user_config.ini and add your API keys:
+Configuration System:
+  The application uses a modern Pydantic-based configuration system.
+  Configuration can be provided via TOML or JSON files:
+  
+  • Create user_config.toml in the application directory
+  • Or use --config to specify a custom configuration file path
+  • Environment variables: CLAUDE_API_KEY, OPENAI_API_KEY
+  
+  Example configuration (user_config.toml):
+  [processing]
+  ai_engine = "claude"
+  batch_size = 100
+  
   [ai]
-  claude_api_key = your-claude-api-key-here
-  openai_api_key = your-openai-api-key-here
+  claude_api_key = "your-actual-claude-api-key"
+  claude_rpm = 50
+  cost_confirmation_interval = 10.0
+  
+  [network]
+  timeout = 30
+  concurrent_requests = 10
 
 Duplicate Detection:
   By default, duplicate URLs are detected and removed using the 'highest_quality'
@@ -92,6 +112,17 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "--version", "-V", action="version", version="%(prog)s 1.0.0"
         )
 
+        # Configuration template generation
+        parser.add_argument(
+            "--create-config",
+            choices=["basic", "claude", "openai", "performance", "large-dataset"],
+            help="Create a configuration template file. "
+            "Options: 'basic' (general purpose), 'claude' (Claude AI optimized), "
+            "'openai' (OpenAI optimized), 'performance' (high-speed local), "
+            "'large-dataset' (conservative for 3000+ bookmarks). "
+            "Creates user_config.toml in current directory.",
+        )
+
         # Input arguments
         parser.add_argument(
             "--input",
@@ -101,12 +132,17 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
         parser.add_argument(
             "--output",
             "-o",
-            required=True,
             help="Output CSV file (raindrop.io import format)",
         )
 
         # Optional arguments
-        parser.add_argument("--config", "-c", help="Custom configuration file path")
+        parser.add_argument(
+            "--config",
+            "-c",
+            help="Custom configuration file path (TOML or JSON format). "
+            "If not specified, looks for user_config.toml/user_config.json "
+            "in the application directory.",
+        )
         parser.add_argument(
             "--resume",
             "-r",
@@ -114,7 +150,11 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             help="Resume from existing checkpoint",
         )
         parser.add_argument(
-            "--verbose", "-v", action="store_true", help="Enable verbose logging"
+            "--verbose",
+            "-v",
+            action="store_true",
+            help="Enable verbose output with detailed configuration information, "
+            "AI engine status, rate limiting details, and processing statistics.",
         )
         parser.add_argument(
             "--batch-size",
@@ -139,7 +179,11 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "--ai-engine",
             choices=["local", "claude", "openai"],
             default="local",
-            help="Select AI engine for processing (default: local)",
+            help="Select AI engine for enhanced descriptions and tagging. "
+            "Options: 'local' (free, uses facebook/bart-large-cnn), "
+            "'claude' (requires API key, high quality), "
+            "'openai' (requires API key, versatile). "
+            "Use --verbose to see detailed engine configuration.",
         )
         parser.add_argument(
             "--no-duplicates",
@@ -214,6 +258,9 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
         if input_path is None:
             validate_auto_detection_mode()
 
+        # Require output file for normal processing
+        if not args.output:
+            raise ValidationError("Output file is required (use --output/-o)")
         output_path = validate_output_file(args.output)
         config_path = validate_config_file(args.config)
 
@@ -272,11 +319,105 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
 
         return config
 
+    def _handle_create_config(self, config_type: str) -> int:
+        """Handle creation of configuration template files."""
+        from pathlib import Path
+        import shutil
+
+        # Template file mappings
+        template_files = {
+            "basic": "user_config.toml.template",
+            "claude": "claude_config.toml.template",
+            "openai": "openai_config.toml.template",
+            "performance": "local_performance.toml.template",
+            "large-dataset": "large_dataset.toml.template",
+        }
+
+        if config_type not in template_files:
+            print(f"❌ Unknown configuration type: {config_type}")
+            print(f"Available types: {', '.join(template_files.keys())}")
+            return 1
+
+        try:
+            # Get the template file path
+            config_dir = Path(__file__).parent / "config"
+            template_path = config_dir / template_files[config_type]
+            output_path = Path("user_config.toml")
+
+            if not template_path.exists():
+                print(f"❌ Template file not found: {template_path}")
+                return 1
+
+            # Check if output file already exists
+            if output_path.exists():
+                response = input(
+                    f"⚠️  Configuration file '{output_path}' already exists. Overwrite? (y/N): "
+                )
+                if response.lower() != "y":
+                    print("❌ Configuration creation cancelled.")
+                    return 1
+
+            # Copy template to user_config.toml
+            shutil.copy2(template_path, output_path)
+
+            print(f"✅ Created configuration file: {output_path}")
+            print(f"📁 Template type: {config_type}")
+            print()
+            print("📝 Next steps:")
+            print(
+                "1. Edit the configuration file to add your API keys (if using cloud AI)"
+            )
+            print("2. Adjust settings to match your requirements")
+            print(
+                "3. Use with: bookmark-processor --config user_config.toml --input bookmarks.csv --output enhanced.csv"
+            )
+            print()
+
+            # Show specific guidance based on template type
+            if config_type == "claude":
+                print("🔧 Claude AI Configuration:")
+                print("• Add your Claude API key from: https://console.anthropic.com/")
+                print("• Recommended for high-quality descriptions")
+                print("• Lower rate limits help control costs")
+            elif config_type == "openai":
+                print("🔧 OpenAI Configuration:")
+                print(
+                    "• Add your OpenAI API key from: https://platform.openai.com/api-keys"
+                )
+                print("• Versatile and widely compatible")
+                print("• Check your usage tier for appropriate rate limits")
+            elif config_type == "performance":
+                print("🔧 Performance Configuration:")
+                print("• Optimized for maximum speed using local AI")
+                print("• No API keys required - completely free")
+                print("• Higher concurrent requests may trigger rate limiting")
+            elif config_type == "large-dataset":
+                print("🔧 Large Dataset Configuration:")
+                print("• Conservative settings for 3000+ bookmarks")
+                print("• Smaller batch sizes to prevent memory issues")
+                print("• More frequent checkpoints for safety")
+            elif config_type == "basic":
+                print("🔧 Basic Configuration:")
+                print("• Balanced settings for general use")
+                print("• Local AI by default (no API costs)")
+                print("• Ready to use out of the box")
+
+            return 0
+
+        except Exception as e:
+            print(f"❌ Error creating configuration file: {e}")
+            return 1
+
     def run(self, args=None) -> int:
         """Execute CLI interface."""
         try:
             # Parse and validate arguments
             parsed_args = self.parse_args(args)
+
+            # Handle configuration template creation
+            if parsed_args.create_config:
+                return self._handle_create_config(parsed_args.create_config)
+
             validated_args = self.validate_args(parsed_args)
 
             # Process arguments and set up configuration
@@ -293,6 +434,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
 
             if validated_args["verbose"]:
                 print("✓ Arguments validated and configuration loaded successfully!")
+                print("📋 Configuration Details:")
 
                 # Handle input display based on mode
                 if validated_args["input_path"] is None:
@@ -345,7 +487,48 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                 print(f"  Output: {validated_args['output_path']}")
                 if validated_args["config_path"]:
                     print(f"  Config: {validated_args['config_path']}")
-                print(f"  AI engine: {validated_args['ai_engine']}")
+                # Enhanced AI engine display with configuration details
+                ai_engine = validated_args["ai_engine"]
+                print(f"  AI engine: {ai_engine}")
+
+                # Show engine-specific configuration
+                if ai_engine == "local":
+                    print("    → Using local AI model (no API costs)")
+                    print("    → Model: facebook/bart-large-cnn")
+                    print("    → Processing: GPU-accelerated if available")
+                elif ai_engine == "claude":
+                    has_key = config.has_api_key("claude")
+                    rate_limit = config.get_rate_limit("claude")
+                    print(
+                        f"    → Claude API {'✓ configured' if has_key else '✗ missing API key'}"
+                    )
+                    print(f"    → Rate limit: {rate_limit} requests/minute")
+                    print(f"    → Batch size: {config.get_batch_size('claude')}")
+                    if has_key:
+                        cost_settings = config.get_cost_tracking_settings()
+                        print("    → Cost tracking: enabled")
+                        print(
+                            f"    → Cost confirmation: every ${cost_settings['cost_confirmation_interval']:.1f}"
+                        )
+                    else:
+                        print("    → Add API key to configuration to enable")
+                elif ai_engine == "openai":
+                    has_key = config.has_api_key("openai")
+                    rate_limit = config.get_rate_limit("openai")
+                    print(
+                        f"    → OpenAI API {'✓ configured' if has_key else '✗ missing API key'}"
+                    )
+                    print(f"    → Rate limit: {rate_limit} requests/minute")
+                    print(f"    → Batch size: {config.get_batch_size('openai')}")
+                    if has_key:
+                        cost_settings = config.get_cost_tracking_settings()
+                        print("    → Cost tracking: enabled")
+                        print(
+                            f"    → Cost confirmation: every ${cost_settings['cost_confirmation_interval']:.1f}"
+                        )
+                    else:
+                        print("    → Add API key to configuration to enable")
+
                 print(f"  Batch size: {validated_args['batch_size']}")
                 print(f"  Max retries: {validated_args['max_retries']}")
                 print(f"  Resume: {validated_args['resume']}")

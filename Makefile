@@ -93,8 +93,11 @@ build:
 	python setup.py sdist bdist_wheel
 
 build-executable:
+	@echo "Validating platform compatibility..."
+	python3 scripts/validate_platform.py
+	@echo "Building Linux/WSL executable..."
 	chmod +x build_linux.sh
-	./build_linux.sh
+	bash build_linux.sh
 
 # Documentation targets
 docs:

@@ -323,6 +323,40 @@ class MockAIProcessor:
         }
 
 
+class MockEnhancedAIProcessor(MockAIProcessor):
+    """Mock EnhancedAIProcessor for testing with enhanced AI functionality."""
+    
+    def __init__(self, success_rate: float = 1.0, processing_delay: float = 0.0, engine: str = "local"):
+        super().__init__(success_rate, processing_delay)
+        self.engine = engine
+        self.stats = {
+            "total_processed": 0,
+            "ai_generated": 0,
+            "fallback_used": 0,
+            "errors": 0,
+            "processing_times": [],
+        }
+    
+    def process_bookmark(self, bookmark: Bookmark) -> Bookmark:
+        """Process bookmark and update stats like the real processor."""
+        result = super().process_bookmark(bookmark)
+        
+        # Update stats to match real processor
+        self.stats["total_processed"] += 1
+        if result.processing_status.ai_processed:
+            self.stats["ai_generated"] += 1
+        else:
+            if result.processing_status.ai_processing_error:
+                self.stats["errors"] += 1
+            else:
+                self.stats["fallback_used"] += 1
+        
+        # Add fake processing time
+        self.stats["processing_times"].append(0.1)
+        
+        return result
+
+
 class MockContentAnalyzer:
     """Mock content analyzer for testing content extraction."""
 

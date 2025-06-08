@@ -1,13 +1,33 @@
 #!/bin/bash
-# Linux Build Script for Bookmark Processor
+# Linux/WSL Build Script for Bookmark Processor
 
 set -e  # Exit on any error
 
-echo "🚀 Building Bookmark Processor for Linux..."
+echo "🚀 Building Bookmark Processor for Linux/WSL..."
+
+# Check if we're running in WSL
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    echo "📋 Detected WSL environment"
+elif [[ "$(uname -s)" == "Linux" ]]; then
+    echo "📋 Detected native Linux environment"
+else
+    echo "❌ This script is designed for Linux/WSL only"
+    exit 1
+fi
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
+
+# Validate platform compatibility if validation script exists
+if [ -f "$PROJECT_ROOT/scripts/validate_platform.py" ]; then
+    echo "🔍 Validating platform compatibility..."
+    python3 "$PROJECT_ROOT/scripts/validate_platform.py" || {
+        echo "❌ Platform validation failed. Exiting."
+        exit 1
+    }
+    echo ""
+fi
 
 # Activate virtual environment if it exists
 if [ -d "$PROJECT_ROOT/venv" ]; then

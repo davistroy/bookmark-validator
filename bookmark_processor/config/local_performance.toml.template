@@ -1,0 +1,56 @@
+# ===============================================
+# High-Performance Local Configuration (TOML Format)
+# ===============================================
+# Optimized for fast local processing with maximum throughput
+# No API keys required - completely free and offline
+
+# ========================================
+# Processing Configuration (Performance Optimized)
+# ========================================
+[processing]
+# Local AI model - no costs or API limits
+ai_engine = "local"
+
+# Large batch size for maximum throughput
+batch_size = 200
+
+# Shorter descriptions for faster processing
+max_description_length = 120
+
+# ========================================
+# Network Configuration (Aggressive)
+# ========================================
+[network]
+# Shorter timeout for faster processing
+timeout = 20
+max_retries = 2
+
+# Higher concurrent requests for speed
+# WARNING: May trigger rate limiting on some websites
+concurrent_requests = 20
+
+# ========================================
+# AI Configuration (Local only)
+# ========================================
+[ai]
+# These settings are ignored for local AI but kept for consistency
+claude_rpm = 50
+openai_rpm = 60
+cost_confirmation_interval = 10.0
+
+# No API keys needed for local processing
+
+# ========================================
+# Output Configuration
+# ========================================
+[output]
+format = "raindrop_import"
+detailed_errors = true
+
+# ========================================
+# Checkpoint Configuration (Performance Focused)
+# ========================================
+checkpoint_enabled = true
+# Less frequent checkpoints for speed (higher risk)
+checkpoint_interval = 100
+checkpoint_dir = ".bookmark_checkpoints"

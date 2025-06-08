@@ -1,0 +1,57 @@
+# ===============================================
+# Claude AI Optimized Configuration (TOML Format)
+# ===============================================
+# Optimized configuration for high-quality bookmark processing with Claude AI
+# Copy this to user_config.toml and add your Claude API key
+
+# ========================================
+# Processing Configuration (Claude Optimized)
+# ========================================
+[processing]
+# Using Claude for superior description quality
+ai_engine = "claude"
+
+# Smaller batch size for Claude to manage API costs
+batch_size = 50
+
+# Longer descriptions taking advantage of Claude's capabilities
+max_description_length = 200
+
+# ========================================
+# Network Configuration (Conservative)
+# ========================================
+[network]
+# Conservative settings to avoid rate limiting
+timeout = 45
+max_retries = 2
+concurrent_requests = 8
+
+# ========================================
+# Claude AI Configuration
+# ========================================
+[ai]
+# Claude rate limiting - adjust based on your API tier
+# Tier 1: 50 RPM, Tier 2: 1000 RPM, Tier 3: 5000 RPM
+claude_rpm = 50
+
+# Lower cost confirmation for better cost control
+cost_confirmation_interval = 5.0
+
+# REQUIRED: Add your Claude API key here
+# Get your key from: https://console.anthropic.com/
+claude_api_key = "your-claude-api-key-here"
+
+# ========================================
+# Output Configuration
+# ========================================
+[output]
+format = "raindrop_import"
+detailed_errors = true
+
+# ========================================
+# Checkpoint Configuration (Frequent saves for API processing)
+# ========================================
+checkpoint_enabled = true
+# More frequent checkpoints for cloud AI processing
+checkpoint_interval = 25
+checkpoint_dir = ".bookmark_checkpoints"

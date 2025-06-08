@@ -15,7 +15,7 @@ This guide provides comprehensive installation instructions for the Bookmark Val
 
 ### Minimum Requirements
 - **Operating System**: Linux (Ubuntu 20.04+, Debian 11+, CentOS 8+) or WSL2
-- **Python**: Python 3.8 or higher
+- **Python**: Python 3.9 or higher
 - **Memory**: 4GB RAM (8GB recommended for large datasets)
 - **Storage**: 2GB free disk space (additional space for AI model cache)
 - **Network**: Internet connection for URL validation and model downloads
@@ -38,7 +38,7 @@ This guide provides comprehensive installation instructions for the Bookmark Val
    sudo dnf update -y
    ```
 
-2. **Install Python 3.8+ and pip**:
+2. **Install Python 3.9+ and pip**:
    ```bash
    # Ubuntu/Debian
    sudo apt install python3 python3-pip python3-venv git -y
@@ -168,32 +168,39 @@ After installation, verify that the tool is working correctly:
 
 ### 1. Check Installation
 ```bash
-# If installed from source
-python -m bookmark_processor --version
-
-# If installed via pip/pipx
-bookmark-processor --version
-```
-
-### 2. Run Help Command
-```bash
-# If installed from source
+# Check if installed correctly (Python module)
 python -m bookmark_processor --help
 
-# If installed via pip/pipx
-bookmark-processor --help
+# Or check version
+python -m bookmark_processor --version
 ```
 
-### 3. Test with Sample Data
+### 2. Test with Sample Data
 ```bash
-# Create a test CSV file
+# Create a test CSV file with raindrop.io export format
 cat > test_bookmarks.csv << EOF
 id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite
 1,Example Site,Test note,Test excerpt,https://example.com,Test,test,2024-01-01T00:00:00Z,,,false
+2,GitHub,Code repository,,https://github.com,Development,"code, git",2024-01-02T00:00:00Z,,,false
 EOF
 
-# Run the processor
+# Run the processor with small test data
 python -m bookmark_processor --input test_bookmarks.csv --output test_output.csv --verbose
+
+# Check the output format (should be 6-column raindrop import format)
+head -5 test_output.csv
+```
+
+### 3. Test Core Features
+```bash
+# Test checkpoint/resume functionality
+python -m bookmark_processor --input test_bookmarks.csv --output test_output.csv --resume
+
+# Test with different batch sizes
+python -m bookmark_processor --input test_bookmarks.csv --output test_output.csv --batch-size 10
+
+# Test with cloud AI (requires API key configuration)
+python -m bookmark_processor --input test_bookmarks.csv --output test_output.csv --ai-engine claude
 ```
 
 ## Configuration
@@ -222,13 +229,13 @@ python -m bookmark_processor --input test_bookmarks.csv --output test_output.csv
 ### Common Issues
 
 #### 1. Python Version Error
-**Problem**: `Python 3.8+ required`
+**Problem**: `Python 3.9+ required`
 **Solution**:
 ```bash
 # Check Python version
 python3 --version
 
-# Install Python 3.8+ if needed (Ubuntu/Debian)
+# Install Python 3.9+ if needed (Ubuntu/Debian)
 sudo apt install software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update

@@ -441,7 +441,7 @@ simulate_errors = false
         self.cleanup()
 
 
-class TestEnvironmentManager:
+class EnvironmentManager:
     """Manages multiple test environments and provides factory methods."""
 
     def __init__(self):

@@ -383,10 +383,10 @@ class TestBookmark:
         assert export_dict["title"] == bookmark.get_effective_title()
         assert export_dict["note"] == bookmark.get_effective_description()
 
-        # Test tag formatting
+        # Test tag formatting (multiple tags should be quoted per CLAUDE.md)
         bookmark.optimized_tags = ["tag1", "tag2", "tag3"]
         export_dict = bookmark.to_export_dict()
-        assert export_dict["tags"] == "tag1, tag2, tag3"
+        assert export_dict["tags"] == '"tag1, tag2, tag3"'
 
         # Test single tag (no quotes)
         bookmark.optimized_tags = ["single"]

@@ -19,7 +19,7 @@ from tests.framework import (
     IntegrationTestFixtures,
     ScenarioRunner,
     StandardScenarios,
-    TestEnvironmentManager,
+    EnvironmentManager,
 )
 
 
@@ -30,7 +30,7 @@ class TestComprehensiveIntegration:
     @pytest.fixture(autouse=True)
     def setup_test_environment(self):
         """Set up test environment for each test."""
-        self.env_manager = TestEnvironmentManager()
+        self.env_manager = EnvironmentManager()
         self.logger = logging.getLogger("test_comprehensive_integration")
 
     def teardown_method(self, method):
@@ -454,7 +454,7 @@ class TestNetworkIntegration:
     def test_offline_mode_handling(self):
         """Test behavior when network is completely unavailable."""
 
-        env_manager = TestEnvironmentManager()
+        env_manager = EnvironmentManager()
 
         with env_manager.temporary_environment("offline_test") as env:
             with IntegrationTestFixtures(env) as fixtures:

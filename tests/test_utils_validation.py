@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 
 from bookmark_processor.utils.cli_validators import CLIValidator
-from bookmark_processor.utils.config_validators import ConfigValidator
+# ConfigValidator was removed during Pydantic migration - validation is now handled by Configuration class
 from bookmark_processor.utils.csv_field_validators import CSVFieldValidator
 from bookmark_processor.utils.input_validator import InputValidator
 from bookmark_processor.utils.validation import (
@@ -335,95 +335,11 @@ class TestCSVFieldValidator:
         assert len(errors) >= 2  # Should have errors for invalid dates
 
 
-class TestConfigValidator:
-    """Test configuration validator."""
-
-    def test_init(self):
-        """Test ConfigValidator initialization."""
-        validator = ConfigValidator()
-        assert validator is not None
-
-    def test_validate_network_config(self):
-        """Test network configuration validation."""
-        validator = ConfigValidator()
-
-        # Valid configuration
-        valid_config = {
-            "timeout": 30,
-            "max_retries": 3,
-            "default_delay": 0.5,
-            "max_concurrent_requests": 10,
-        }
-
-        errors = validator.validate_network_config(valid_config)
-        assert len(errors) == 0
-
-    def test_validate_network_config_invalid(self):
-        """Test network configuration validation with invalid values."""
-        validator = ConfigValidator()
-
-        # Invalid configuration
-        invalid_config = {
-            "timeout": -1,  # Invalid
-            "max_retries": 100,  # Too high
-            "default_delay": -0.5,  # Invalid
-            "max_concurrent_requests": 0,  # Invalid
-        }
-
-        errors = validator.validate_network_config(invalid_config)
-        assert len(errors) > 0
-
-    def test_validate_processing_config(self):
-        """Test processing configuration validation."""
-        validator = ConfigValidator()
-
-        # Valid configuration
-        valid_config = {
-            "batch_size": 50,
-            "max_tags_per_bookmark": 5,
-            "target_unique_tags": 100,
-        }
-
-        errors = validator.validate_processing_config(valid_config)
-        assert len(errors) == 0
-
-    def test_validate_processing_config_invalid(self):
-        """Test processing configuration validation with invalid values."""
-        validator = ConfigValidator()
-
-        # Invalid configuration
-        invalid_config = {
-            "batch_size": 0,  # Invalid
-            "max_tags_per_bookmark": -1,  # Invalid
-            "target_unique_tags": 10001,  # Too high
-        }
-
-        errors = validator.validate_processing_config(invalid_config)
-        assert len(errors) > 0
-
-    def test_validate_ai_config(self):
-        """Test AI configuration validation."""
-        validator = ConfigValidator()
-
-        # Valid configuration
-        valid_config = {"default_engine": "local", "claude_rpm": 50, "openai_rpm": 60}
-
-        errors = validator.validate_ai_config(valid_config)
-        assert len(errors) == 0
-
-    def test_validate_ai_config_invalid(self):
-        """Test AI configuration validation with invalid values."""
-        validator = ConfigValidator()
-
-        # Invalid configuration
-        invalid_config = {
-            "default_engine": "invalid_engine",  # Invalid
-            "claude_rpm": -1,  # Invalid
-            "openai_rpm": 10001,  # Too high
-        }
-
-        errors = validator.validate_ai_config(invalid_config)
-        assert len(errors) > 0
+# NOTE: ConfigValidator tests commented out - ConfigValidator was removed during Pydantic migration
+# Configuration validation is now handled by the Configuration class using Pydantic models
+# class TestConfigValidator:
+#     """Test configuration validator."""
+#     ... (tests removed - validation moved to Configuration class)
 
 
 class TestCLIValidator:

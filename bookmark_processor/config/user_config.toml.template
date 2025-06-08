@@ -1,0 +1,86 @@
+# ===============================================
+# Bookmark Processor Configuration (TOML Format)
+# ===============================================
+# Copy this file to user_config.toml and customize as needed
+# IMPORTANT: Add your API keys and ensure this file is in .gitignore
+
+# ========================================
+# Processing Configuration
+# ========================================
+[processing]
+# AI engine for enhanced descriptions and tagging
+# Options:
+#   "local"  - Free, uses facebook/bart-large-cnn (no API key required)
+#   "claude" - High-quality results, requires Claude API key
+#   "openai" - Versatile results, requires OpenAI API key
+ai_engine = "local"
+
+# Number of bookmarks to process in each batch (10-1000)
+# Recommended: 50-200 for optimal memory usage
+batch_size = 100
+
+# Maximum length for AI-generated descriptions (50-500 characters)
+# Recommended: 100-200 for readability
+max_description_length = 150
+
+# ========================================
+# Network Configuration  
+# ========================================
+[network]
+# Request timeout in seconds (5-300)
+# Recommended: 30 seconds for balanced performance
+timeout = 30
+
+# Maximum retry attempts for failed requests (0-10)
+# Values above 5 may cause slow processing
+max_retries = 3
+
+# Maximum concurrent requests (1-50)
+# Higher values may cause rate limiting
+# Recommended: 10-15 for optimal results
+concurrent_requests = 10
+
+# ========================================
+# AI Engine Configuration
+# ========================================
+[ai]
+# Rate limiting (requests per minute)
+# Check your API tier limits to avoid rate limiting
+claude_rpm = 50
+openai_rpm = 60
+
+# Cost confirmation threshold in USD (0.0-100.0)
+# Set to 0 to disable cost confirmations
+cost_confirmation_interval = 10.0
+
+# API Keys (NEVER commit these to version control!)
+# Uncomment and replace with your actual API keys when using cloud AI engines
+# Get Claude API key from: https://console.anthropic.com/
+# Get OpenAI API key from: https://platform.openai.com/api-keys
+# claude_api_key = "your-claude-api-key-here"
+# openai_api_key = "your-openai-api-key-here"
+
+# ========================================
+# Output Configuration
+# ========================================
+[output]
+# Output format (must be "raindrop_import" for Raindrop.io compatibility)
+format = "raindrop_import"
+
+# Include detailed error logging
+# Recommended: true for better debugging
+detailed_errors = true
+
+# ========================================
+# Checkpoint Configuration
+# ========================================
+# Enable checkpoint/resume functionality
+# Recommended: true for long-running processes to prevent data loss
+checkpoint_enabled = true
+
+# Save checkpoint every N items (1-1000)
+# Recommended: 50-100 for optimal balance between safety and performance
+checkpoint_interval = 50
+
+# Checkpoint directory (will be created if it doesn't exist)
+checkpoint_dir = ".bookmark_checkpoints"

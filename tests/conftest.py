@@ -612,20 +612,27 @@ def clean_environment():
     """Clean environment before and after each test."""
     # Store original values
     original_env = {}
+    
+    # Environment variables that should be cleaned between tests
+    # but NOT the core test mode variables that should persist
     env_vars_to_clean = [
         "BOOKMARK_PROCESSOR_CONFIG",
         "BOOKMARK_PROCESSOR_CHECKPOINT_DIR",
         "TRANSFORMERS_CACHE",
         "CLAUDE_API_KEY",
         "OPENAI_API_KEY",
-        "BOOKMARK_PROCESSOR_TEST_MODE",
-        "BOOKMARK_PROCESSOR_LOG_LEVEL",
         "BOOKMARK_PROCESSOR_DATA_DIR",
         "BOOKMARK_PROCESSOR_LOGS_DIR",
         "BOOKMARK_PROCESSOR_OUTPUT_DIR",
-        "BOOKMARK_PROCESSOR_OFFLINE_MODE",
         "BOOKMARK_PROCESSOR_CHECKPOINT_DB",
         "BOOKMARK_PROCESSOR_PROGRESS_DB",
+    ]
+    
+    # Preserve essential test environment variables set by pytest_configure
+    essential_test_vars = [
+        "BOOKMARK_PROCESSOR_TEST_MODE",
+        "BOOKMARK_PROCESSOR_LOG_LEVEL", 
+        "BOOKMARK_PROCESSOR_OFFLINE_MODE",
     ]
 
     for var in env_vars_to_clean:
@@ -635,9 +642,10 @@ def clean_environment():
 
     yield
 
-    # Restore original values
+    # Restore original values but don't override essential test variables
     for var, value in original_env.items():
-        os.environ[var] = value
+        if var not in essential_test_vars:
+            os.environ[var] = value
 
 
 @pytest.fixture

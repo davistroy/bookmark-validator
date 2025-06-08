@@ -1,0 +1,59 @@
+# ===============================================
+# Large Dataset Configuration (TOML Format)
+# ===============================================
+# Conservative configuration for processing large bookmark collections (3000+ items)
+# Optimized for reliability and memory efficiency over speed
+
+# ========================================
+# Processing Configuration (Conservative)
+# ========================================
+[processing]
+# Local AI to avoid API costs on large datasets
+ai_engine = "local"
+
+# Small batch size to conserve memory
+batch_size = 50
+
+# Standard description length
+max_description_length = 150
+
+# ========================================
+# Network Configuration (Conservative)
+# ========================================
+[network]
+# Longer timeout for reliability
+timeout = 45
+
+# More retries for better success rate
+max_retries = 5
+
+# Conservative concurrent requests to avoid rate limiting
+concurrent_requests = 8
+
+# ========================================
+# AI Configuration
+# ========================================
+[ai]
+# Conservative rate limits if switching to cloud AI later
+claude_rpm = 30
+openai_rpm = 40
+cost_confirmation_interval = 5.0
+
+# API keys can be added later if needed
+# claude_api_key = "your-claude-api-key-here"
+# openai_api_key = "your-openai-api-key-here"
+
+# ========================================
+# Output Configuration
+# ========================================
+[output]
+format = "raindrop_import"
+detailed_errors = true
+
+# ========================================
+# Checkpoint Configuration (Frequent saves for large datasets)
+# ========================================
+checkpoint_enabled = true
+# Frequent checkpoints to prevent data loss on interruption
+checkpoint_interval = 25
+checkpoint_dir = ".bookmark_checkpoints"

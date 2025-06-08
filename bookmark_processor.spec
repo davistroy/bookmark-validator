@@ -1,9 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Simplified PyInstaller spec file for Linux/WSL build
 
 import sys
+import os
 from pathlib import Path
 
-project_root = Path("/mnt/c/Users/Troy Davis/OneDrive/Projects/Code/Python/bookmark-validator")
+# Use relative path to avoid hardcoded system paths
+project_root = Path(os.getcwd())
 
 a = Analysis(
     [str(project_root / "bookmark_processor" / "main.py")],
@@ -11,46 +14,27 @@ a = Analysis(
     binaries=[],
     datas=[
         (str(project_root / "bookmark_processor" / "config" / "default_config.ini"), "bookmark_processor/config"),
-        (str(project_root / "bookmark_processor" / "data" / "*.txt"), "bookmark_processor/data"),
-        (str(project_root / "bookmark_processor" / "data" / "*.json"), "bookmark_processor/data"),
+        (str(project_root / "bookmark_processor" / "data" / "user_agents.txt"), "bookmark_processor/data"),
+        (str(project_root / "bookmark_processor" / "data" / "site_delays.json"), "bookmark_processor/data"),
     ],
     hiddenimports=[
         "bookmark_processor",
         "bookmark_processor.cli",
-        "bookmark_processor.core.bookmark_processor",
-        "bookmark_processor.core.pipeline",
         "bookmark_processor.core.csv_handler",
         "bookmark_processor.core.url_validator",
-        "bookmark_processor.core.content_analyzer",
         "bookmark_processor.core.ai_processor",
-        "bookmark_processor.core.tag_generator",
-        "bookmark_processor.core.checkpoint_manager",
+        "bookmark_processor.core.pipeline",
         "bookmark_processor.core.data_models",
-        "bookmark_processor.utils.intelligent_rate_limiter",
-        "bookmark_processor.utils.browser_simulator",
-        "bookmark_processor.utils.retry_handler",
-        "bookmark_processor.utils.progress_tracker",
-        "bookmark_processor.utils.logging_setup",
-        "bookmark_processor.utils.validation",
         "bookmark_processor.config.configuration",
         "pandas",
-        "numpy",
         "requests",
-        "urllib3",
         "beautifulsoup4",
         "bs4",
         "tqdm",
         "validators",
         "chardet",
         "lxml",
-        "datetime",
-        "json",
-        "csv",
-        "logging",
-        "configparser",
-        "pathlib",
-        "dataclasses",
-        "typing"
+        "configparser"
     ],
     hookspath=[],
     hooksconfig={},
@@ -58,13 +42,26 @@ a = Analysis(
     excludes=[
         "tkinter",
         "matplotlib",
-        "PIL",
+        "PIL", 
+        "pillow",
         "IPython",
         "jupyter",
         "notebook",
         "test",
         "tests",
-        "testing"
+        "testing",
+        "torch",
+        "tensorflow",
+        "transformers",
+        "sklearn",
+        "scipy",
+        "sympy",
+        "nltk",
+        "spacy",
+        "jinja2",
+        "plotly",
+        "seaborn",
+        "statsmodels"
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,

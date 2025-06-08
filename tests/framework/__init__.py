@@ -8,7 +8,7 @@ including test environment setup, scenario management, and result validation.
 from .test_environment import (
     IntegrationTestEnvironment,
     NetworkSimulator,
-    TestEnvironmentManager,
+    EnvironmentManager,
 )
 from .test_fixtures import DataGenerator, IntegrationTestFixtures, MockServiceManager
 from .test_scenarios import ScenarioRunner, StandardScenarios, TestScenario
@@ -21,7 +21,7 @@ from .test_validators import (
 
 __all__ = [
     "IntegrationTestEnvironment",
-    "TestEnvironmentManager",
+    "EnvironmentManager",
     "NetworkSimulator",
     "TestScenario",
     "ScenarioRunner",

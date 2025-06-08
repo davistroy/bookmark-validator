@@ -77,6 +77,11 @@ class RaindropCSVHandler:
     def __init__(self):
         """Initialize the CSV handler."""
         self.logger = logging.getLogger(__name__)
+        # Provide instance properties for backward compatibility with tests
+        self.export_columns = self.EXPORT_COLUMNS
+        self.import_columns = self.IMPORT_COLUMNS
+        self.required_export_columns = ["url"]
+        self.required_import_columns = ["url"]
 
     def detect_encoding(self, file_path: Union[str, Path]) -> str:
         """
@@ -199,6 +204,56 @@ class RaindropCSVHandler:
             f"Last error: {last_error}"
         )
 
+    def _try_parse_csv(
+        self, file_path: Union[str, Path], encodings: List[str]
+    ) -> pd.DataFrame:
+        """
+        Try to parse CSV with different encodings.
+
+        Args:
+            file_path: Path to CSV file
+            encodings: List of encodings to try
+
+        Returns:
+            Successfully parsed DataFrame
+
+        Raises:
+            CSVParsingError: If all encodings fail
+        """
+        path = Path(file_path)
+
+        for encoding in encodings:
+            try:
+                return pd.read_csv(path, encoding=encoding)
+            except Exception as e:
+                self.logger.debug(f"Failed to parse with encoding {encoding}: {e}")
+                continue
+
+        raise CSVParsingError(
+            f"Could not parse CSV with any of the provided encodings: {encodings}"
+        )
+
+    def _clean_dataframe_values(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Clean and normalize DataFrame values.
+
+        Args:
+            df: Input DataFrame
+
+        Returns:
+            Cleaned DataFrame
+        """
+        cleaned_df = df.copy()
+
+        # Clean string columns
+        for col in cleaned_df.columns:
+            if cleaned_df[col].dtype == "object":
+                cleaned_df[col] = cleaned_df[col].apply(
+                    lambda x: str(x).strip() if pd.notnull(x) else ""
+                )
+
+        return cleaned_df
+
     def read_csv_with_fallback(self, file_path: Union[str, Path]) -> pd.DataFrame:
         """
         Read CSV file with multiple fallback strategies.
@@ -213,6 +268,10 @@ class RaindropCSVHandler:
             CSVError: If file cannot be read with any strategy
         """
         path = Path(file_path)
+
+        # Check if file exists
+        if not path.exists():
+            raise CSVError(f"CSV file not found: {path}")
 
         # Check if file is empty
         if path.stat().st_size == 0:
@@ -257,6 +316,10 @@ class RaindropCSVHandler:
             f"Could not read CSV file with any parsing strategy: {path}"
         )
 
+    def validate_export_dataframe(self, df: pd.DataFrame) -> None:
+        """Alias for validate_export_structure for backward compatibility."""
+        return self.validate_export_structure(df)
+
     def validate_export_structure(self, df: pd.DataFrame) -> None:
         """
         Validate that DataFrame matches raindrop.io export structure.
@@ -272,8 +335,8 @@ class RaindropCSVHandler:
 
         # Check number of columns
         if len(df.columns) != len(self.EXPORT_COLUMNS):
-            raise CSVStructureError(
-                f"Invalid column count: expected {len(self.EXPORT_COLUMNS)} "
+            raise CSVFormatError(
+                f"Missing required columns: expected {len(self.EXPORT_COLUMNS)} "
                 f"columns, got {len(df.columns)}. "
                 f"Expected columns: {', '.join(self.EXPORT_COLUMNS)}. "
                 f"Found columns: {', '.join(df.columns)}"
@@ -305,18 +368,25 @@ class RaindropCSVHandler:
             error_messages.append(f"Unexpected columns: {', '.join(extra_columns)}")
 
         if error_messages:
-            raise CSVStructureError(
-                f"CSV structure validation failed. {' '.join(error_messages)}. "
+            raise CSVFormatError(
+                f"Missing required columns. {' '.join(error_messages)}. "
                 f"Expected columns: {', '.join(self.EXPORT_COLUMNS)}"
             )
 
         # Check for required column - at minimum 'url' should have some data
         if "url" in df.columns:
-            non_empty_urls = df["url"].notna() & (df["url"].str.strip() != "")
-            if not non_empty_urls.any():
+            # Check for any empty URLs
+            empty_urls = df["url"].isna() | (df["url"].str.strip() == "")
+            if empty_urls.any():
                 raise CSVValidationError(
-                    "No valid URLs found in the 'url' column - "
-                    "at least one bookmark must have a URL"
+                    "Empty URL found in row(s). All bookmarks must have valid URLs"
+                )
+
+            # Check for duplicate URLs
+            duplicates = df["url"].duplicated()
+            if duplicates.any():
+                raise CSVValidationError(
+                    "Duplicate URLs found. All bookmark URLs must be unique"
                 )
 
         self.logger.info("CSV structure validation passed")
@@ -803,7 +873,9 @@ class RaindropCSVHandler:
             # URL seems valid, just clean it up
             url = re.sub(r"\s", "", url)  # Remove any whitespace
 
-        elif url.startswith(("javascript:", "data:", "mailto:", "ftp:", "file:")):
+        elif url.startswith(
+            ("javascript:", "data:", "mailto:", "ftp:", "file:")
+        ):
             # Special protocols - don't modify
             pass
 
@@ -852,7 +924,15 @@ class RaindropCSVHandler:
                 if cleaned_tag and len(cleaned_tag) > 1:
                     cleaned_tags.append(cleaned_tag)
 
-        return list(set(cleaned_tags))  # Remove duplicates
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_tags = []
+        for tag in cleaned_tags:
+            if tag not in seen:
+                seen.add(tag)
+                unique_tags.append(tag)
+
+        return unique_tags
 
     def _parse_datetime_field(self, value: Any) -> Optional[datetime]:
         """
@@ -874,8 +954,10 @@ class RaindropCSVHandler:
         # Try various datetime formats
         formats = [
             "%Y-%m-%dT%H:%M:%SZ",  # ISO format with Z
+            "%Y-%m-%dT%H:%M:%S+00:00",  # ISO format with timezone
             "%Y-%m-%dT%H:%M:%S",  # ISO format
             "%Y-%m-%d %H:%M:%S",  # Standard format
+            "%Y/%m/%d %H:%M:%S",  # Slash format with time
             "%Y-%m-%d",  # Date only
             "%m/%d/%Y",  # US format
             "%d/%m/%Y",  # European format
@@ -883,9 +965,23 @@ class RaindropCSVHandler:
 
         for fmt in formats:
             try:
-                return datetime.strptime(datetime_str, fmt)
+                dt = datetime.strptime(datetime_str, fmt)
+                # If timezone aware, convert to UTC naive
+                if dt.tzinfo is not None:
+                    dt = dt.replace(tzinfo=None)
+                return dt
             except ValueError:
                 continue
+
+        # Try to handle timezone formats manually
+        try:
+            # Handle formats like "2024-01-01T00:00:00+00:00"
+            if "+" in datetime_str or datetime_str.endswith("Z"):
+                # Remove timezone info for basic parsing
+                clean_dt = datetime_str.replace("+00:00", "").replace("Z", "")
+                return datetime.fromisoformat(clean_dt)
+        except (ValueError, AttributeError):
+            pass
 
         # If all formats fail, log warning and return None
         self.logger.warning(f"Could not parse datetime: {datetime_str}")
@@ -910,6 +1006,10 @@ class RaindropCSVHandler:
         # Convert string representations
         str_value = str(value).lower().strip()
         return str_value in ("true", "1", "yes", "on", "enabled")
+
+    def transform_export_to_bookmarks(self, df: pd.DataFrame) -> List[Bookmark]:
+        """Alias for transform_dataframe_to_bookmarks for backward compatibility."""
+        return self.transform_dataframe_to_bookmarks(df)
 
     def transform_dataframe_to_bookmarks(self, df: pd.DataFrame) -> List[Bookmark]:
         """

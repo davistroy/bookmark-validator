@@ -117,8 +117,9 @@ class Bookmark:
                 path = parsed.path.rstrip("/")
                 if path:
                     normalized += path
-                else:
-                    normalized += "/"
+            elif parsed.path == "/" and len(parsed.path) == 1:
+                # Don't add trailing slash for root if it's just a single slash
+                pass
 
             if parsed.query:
                 # Sort query parameters for consistency
@@ -301,7 +302,7 @@ class Bookmark:
         elif len(tags) == 1:
             formatted_tags = tags[0]
         else:
-            formatted_tags = ", ".join(tags)
+            formatted_tags = f'"{", ".join(tags)}"'
 
         return {
             "url": self.url,
@@ -403,7 +404,11 @@ class Bookmark:
             "url": self.url,
             "folder": self.folder,
             "tags": self.tags,
-            "created": self.created.isoformat() if self.created else "",
+            "created": (
+                self.created.isoformat()
+                if hasattr(self.created, "isoformat")
+                else (self.created or "")
+            ),
             "cover": self.cover,
             "highlights": self.highlights,
             "favorite": self.favorite,

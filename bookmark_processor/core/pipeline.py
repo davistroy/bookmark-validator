@@ -568,7 +568,7 @@ class BookmarkProcessingPipeline:
                 batch = bookmarks_to_process[i : i + self.config.batch_size]
 
                 # Process batch
-                batch_results = self.ai_processor.batch_process(
+                batch_results = self.ai_processor.process_batch(
                     batch,
                     content_data_map=self.content_data,
                     progress_callback=self._ai_progress_callback,
@@ -576,8 +576,8 @@ class BookmarkProcessingPipeline:
 
                 # Store results
                 for result in batch_results:
-                    self.ai_results[result.original_url] = result
-                    self.checkpoint_manager.add_ai_result(result.original_url, result)
+                    self.ai_results[result.url] = result
+                    self.checkpoint_manager.add_ai_result(result.url, result)
 
                 # Update progress
                 if self.progress_tracker:

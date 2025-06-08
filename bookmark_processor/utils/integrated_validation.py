@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .cli_validators import validate_cli_arguments
-from .config_validators import get_config_validation_report, validate_user_config
+
+# NOTE: config_validators was removed during Pydantic migration - validation moved to Configuration class
 from .csv_field_validators import validate_bookmark_record, validate_csv_row
 from .data_recovery import (
     DataRecoveryManager,
@@ -60,20 +61,21 @@ class IntegratedValidator:
             errors.append(f"CLI Argument Error: {cli_error}")
             return False, errors
 
-        # Validate configuration file if provided
+        # Configuration validation now handled by Configuration class during Pydantic migration
+        # The Configuration class validates itself during initialization
         if config_path:
-            config_result = validate_user_config(config_path)
-            if not config_result.is_valid:
-                config_errors = [issue.message for issue in config_result.get_errors()]
-                errors.extend(
-                    [f"Configuration Error: {error}" for error in config_errors]
-                )
-                return False, errors
+            try:
+                # Import here to avoid circular imports
+                from bookmark_processor.config.configuration import Configuration
 
-            # Log configuration warnings
-            config_warnings = [issue.message for issue in config_result.get_warnings()]
-            for warning in config_warnings:
-                self.logger.warning(f"Configuration Warning: {warning}")
+                # Test loading the configuration - it will validate itself
+                config = Configuration(config_file=config_path)
+                self.logger.info(
+                    f"Configuration loaded successfully from {config_path}"
+                )
+            except Exception as e:
+                errors.append(f"Configuration Error: {e}")
+                return False, errors
 
         return True, []
 

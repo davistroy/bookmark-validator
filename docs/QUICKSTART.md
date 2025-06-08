@@ -5,7 +5,7 @@ Get up and running with the Bookmark Validation and Enhancement Tool in just a f
 ## Prerequisites
 
 - Linux or WSL2 environment
-- Python 3.8+ installed
+- Python 3.9+ installed
 - Internet connection
 
 ## 1️⃣ Installation (2 minutes)

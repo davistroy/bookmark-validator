@@ -35,6 +35,17 @@ except Exception as e:
 from .content_analyzer import ContentData
 from .data_models import Bookmark
 
+# Import cloud clients for module-level access (needed for test patching)
+try:
+    from .claude_api_client import ClaudeAPIClient
+except ImportError:
+    ClaudeAPIClient = None
+
+try:
+    from .openai_api_client import OpenAIAPIClient
+except ImportError:
+    OpenAIAPIClient = None
+
 
 @dataclass
 class AIProcessingResult:
@@ -160,6 +171,8 @@ class EnhancedAIProcessor:
 
     def __init__(
         self,
+        engine: str = "local",
+        api_key: Optional[str] = None,
         model_cache_dir: Optional[str] = None,
         max_description_length: int = 150,
         min_content_length: int = 10,
@@ -168,14 +181,47 @@ class EnhancedAIProcessor:
         Initialize AI processor.
 
         Args:
+            engine: AI engine to use ('local', 'claude', 'openai')
+            api_key: API key for cloud services
             model_cache_dir: Directory to cache AI models
             max_description_length: Maximum length of generated descriptions
             min_content_length: Minimum length of content to consider valid
         """
+        self.engine = engine
+        self.api_key = api_key
         self.max_description_length = max_description_length
         self.min_content_length = min_content_length
+        self.cloud_client = None
+        self.model_name = "facebook/bart-large-cnn"
+        self.processed_count = 0
 
-        # Initialize model manager
+        # Initialize based on engine type
+        if engine == "claude" and api_key:
+            if ClaudeAPIClient is not None:
+                self.cloud_client = ClaudeAPIClient(api_key=api_key)
+                if not self.cloud_client.is_available:
+                    logging.warning("Claude API not available, falling back to local")
+                    self.engine = "local"
+            else:
+                logging.warning("Claude client not available, falling back to local")
+                self.engine = "local"
+        elif engine == "openai" and api_key:
+            if OpenAIAPIClient is not None:
+                self.cloud_client = OpenAIAPIClient(api_key=api_key)
+                if not self.cloud_client.is_available:
+                    logging.warning("OpenAI API not available, falling back to local")
+                    self.engine = "local"
+            else:
+                logging.warning("OpenAI client not available, falling back to local")
+                self.engine = "local"
+        elif engine not in ["local", "claude", "openai"]:
+            logging.warning(f"Unknown engine '{engine}', falling back to local")
+            self.engine = "local"
+        elif engine in ["claude", "openai"] and not api_key:
+            logging.warning(f"No API key provided for {engine}, falling back to local")
+            self.engine = "local"
+
+        # Initialize model manager for local processing
         self.model_manager = ModelManager(model_cache_dir)
 
         # Processing statistics
@@ -187,180 +233,92 @@ class EnhancedAIProcessor:
             "processing_times": [],
         }
 
-        logging.info(f"AI processor initialized (max_length={max_description_length})")
+        logging.info(
+            f"AI processor initialized (engine={self.engine}, max_length={max_description_length})"
+        )
 
-    def process_bookmark(
-        self, bookmark: Bookmark, content_data: Optional[ContentData] = None
-    ) -> AIProcessingResult:
+    @property
+    def is_available(self) -> bool:
+        """Check if AI processor is available and ready to use."""
+        # In test mode, always consider AI available
+        if os.getenv("BOOKMARK_PROCESSOR_TEST_MODE") == "true":
+            return True
+
+        if self.engine == "local":
+            return TRANSFORMERS_AVAILABLE
+        elif self.cloud_client:
+            return self.cloud_client.is_available
+        return False
+
+    def process_bookmark(self, bookmark: Bookmark) -> Bookmark:
         """
         Process a bookmark to generate enhanced description.
 
         Args:
-            bookmark: Bookmark object with existing data
-            content_data: Optional content data from web analysis
+            bookmark: Bookmark object to process in place
 
         Returns:
-            AIProcessingResult with enhanced description
+            The modified bookmark object
         """
         start_time = time.time()
+        self.processed_count += 1
 
         try:
-            # Prepare input context from existing data
-            input_context = self._prepare_input_context(bookmark, content_data)
+            # Try to generate enhanced description
+            enhanced_description = None
 
-            # Try AI generation with context
-            if input_context and len(input_context) >= self.min_content_length:
-                ai_result = self._generate_with_ai(input_context, bookmark.url)
-                if ai_result:
-                    processing_time = time.time() - start_time
-                    self.stats["ai_generated"] += 1
-                    self.stats["processing_times"].append(processing_time)
+            if self.engine == "local":
+                enhanced_description = self._process_with_local_ai(bookmark)
+            elif self.cloud_client and self.cloud_client.is_available:
+                enhanced_description = self._process_with_cloud_ai(bookmark)
 
-                    return AIProcessingResult(
-                        original_url=bookmark.url,
-                        enhanced_description=ai_result,
-                        processing_method="ai_with_context",
-                        processing_time=processing_time,
-                        model_used=self.model_manager.model_name,
-                        confidence_score=0.8,
-                    )
-
-            # Apply fallback hierarchy
-            fallback_result = self._apply_fallback_strategy(bookmark, content_data)
-            processing_time = time.time() - start_time
-            self.stats["fallback_used"] += 1
-
-            return AIProcessingResult(
-                original_url=bookmark.url,
-                enhanced_description=fallback_result["description"],
-                processing_method=fallback_result["method"],
-                processing_time=processing_time,
-                confidence_score=fallback_result["confidence"],
-            )
+            if enhanced_description:
+                bookmark.enhanced_description = enhanced_description
+                bookmark.processing_status.ai_processed = True
+                bookmark.processing_status.ai_processing_error = None
+                self.stats["ai_generated"] += 1
+            else:
+                # Fallback to existing content
+                fallback_desc = self._generate_fallback_description(bookmark)
+                bookmark.enhanced_description = fallback_desc
+                bookmark.processing_status.ai_processed = False
+                self.stats["fallback_used"] += 1
 
         except Exception as e:
-            processing_time = time.time() - start_time
+            error_msg = str(e)
+            logging.error(f"AI processing failed for {bookmark.url}: {error_msg}")
+
+            # Set error state and fallback description
+            bookmark.processing_status.ai_processed = False
+            bookmark.processing_status.ai_processing_error = error_msg
+            bookmark.enhanced_description = self._generate_fallback_description(
+                bookmark
+            )
             self.stats["errors"] += 1
 
-            logging.error(f"AI processing failed for {bookmark.url}: {e}")
-
-            # Emergency fallback
-            fallback_desc = self._emergency_fallback(bookmark)
-
-            return AIProcessingResult(
-                original_url=bookmark.url,
-                enhanced_description=fallback_desc,
-                processing_method="emergency_fallback",
-                processing_time=processing_time,
-                error_message=str(e),
-                confidence_score=0.1,
-            )
         finally:
+            processing_time = time.time() - start_time
+            self.stats["processing_times"].append(processing_time)
             self.stats["total_processed"] += 1
+            bookmark.processing_status.processing_attempts += 1
+            bookmark.processing_status.last_attempt = datetime.now()
 
-    def batch_process(
-        self,
-        bookmarks: List[Bookmark],
-        content_data_map: Optional[Dict[str, ContentData]] = None,
-        progress_callback: Optional[callable] = None,
-    ) -> List[AIProcessingResult]:
-        """
-        Process multiple bookmarks in batch.
+        return bookmark
 
-        Args:
-            bookmarks: List of bookmarks to process
-            content_data_map: Optional mapping of URL to ContentData
-            progress_callback: Optional progress callback
-
-        Returns:
-            List of AIProcessingResult objects
-        """
-        if content_data_map is None:
-            content_data_map = {}
-
-        results = []
-
-        # Pre-load AI model if available
-        if TRANSFORMERS_AVAILABLE:
-            self.model_manager.get_summarizer()
-
-        for i, bookmark in enumerate(bookmarks):
-            try:
-                content_data = content_data_map.get(bookmark.url)
-                result = self.process_bookmark(bookmark, content_data)
-                results.append(result)
-
-                if progress_callback:
-                    progress_callback(
-                        f"AI processed {i+1}/{len(bookmarks)}: {bookmark.url}"
-                    )
-
-            except Exception as e:
-                logging.error(f"Batch processing error for {bookmark.url}: {e}")
-                # Continue with other bookmarks
-                error_result = AIProcessingResult(
-                    original_url=bookmark.url,
-                    enhanced_description=self._emergency_fallback(bookmark),
-                    processing_method="error_fallback",
-                    processing_time=0.0,
-                    error_message=str(e),
-                )
-                results.append(error_result)
-
-        return results
-
-    def _prepare_input_context(
-        self, bookmark: Bookmark, content_data: Optional[ContentData]
-    ) -> str:
-        """Prepare context from existing bookmark data"""
-        context_parts = []
-
-        # Priority 1: User's existing note (highest weight)
-        if bookmark.note and len(bookmark.note.strip()) > self.min_content_length:
-            context_parts.append(f"User Note: {bookmark.note.strip()}")
-
-        # Priority 2: Existing excerpt from raindrop
-        if bookmark.excerpt and len(bookmark.excerpt.strip()) > self.min_content_length:
-            context_parts.append(f"Excerpt: {bookmark.excerpt.strip()}")
-
-        # Priority 3: Page title
-        if bookmark.title and len(bookmark.title.strip()) > 5:
-            context_parts.append(f"Title: {bookmark.title.strip()}")
-
-        # Priority 4: Content data if available
-        if content_data:
-            if (
-                content_data.meta_description
-                and len(content_data.meta_description) > 20
-            ):
-                context_parts.append(f"Description: {content_data.meta_description}")
-
-            if content_data.main_content and len(content_data.main_content) > 50:
-                # Use first 500 characters of content for context
-                truncated_content = content_data.main_content[:500]
-                context_parts.append(f"Content: {truncated_content}")
-
-        return " | ".join(context_parts)
-
-    def _generate_with_ai(self, input_context: str, url: str) -> Optional[str]:
-        """Generate enhanced description using AI"""
+    def _process_with_local_ai(self, bookmark: Bookmark) -> Optional[str]:
+        """Process bookmark with local AI model."""
         summarizer = self.model_manager.get_summarizer()
-
         if not summarizer:
             return None
 
         try:
-            # Prepare input for summarization
-            # Add instruction to maintain context and enhance
-            prompt = f"Enhance this bookmark description while preserving the original context: {input_context}"
+            input_text = self._prepare_input_text(bookmark)
+            if not input_text or len(input_text) < self.min_content_length:
+                return None
 
-            # Limit input length for the model
-            if len(prompt) > 1000:
-                prompt = prompt[:1000] + "..."
-
-            # Generate summary
+            # Generate with AI
             result = summarizer(
-                prompt,
+                input_text,
                 max_length=self.max_description_length,
                 min_length=30,
                 do_sample=False,
@@ -369,65 +327,124 @@ class EnhancedAIProcessor:
 
             if result and len(result) > 0:
                 enhanced_desc = result[0]["summary_text"]
-
-                # Clean and validate the result
-                enhanced_desc = self._clean_ai_output(enhanced_desc)
-
-                if len(enhanced_desc) >= 20:  # Minimum useful length
-                    return enhanced_desc
+                return self._clean_ai_output(enhanced_desc)
 
         except Exception as e:
-            logging.debug(f"AI generation failed for {url}: {e}")
+            logging.debug(f"Local AI processing failed for {bookmark.url}: {e}")
 
         return None
 
-    def _apply_fallback_strategy(
-        self, bookmark: Bookmark, content_data: Optional[ContentData]
-    ) -> Dict[str, Any]:
-        """Apply fallback hierarchy for description generation"""
+    def _process_with_cloud_ai(self, bookmark: Bookmark) -> Optional[str]:
+        """Process bookmark with cloud AI service."""
+        try:
+            return self.cloud_client.generate_description(bookmark)
+        except Exception as e:
+            logging.debug(f"Cloud AI processing failed for {bookmark.url}: {e}")
+            return None
 
-        # Fallback 1: Use existing excerpt if good quality
-        if bookmark.excerpt and len(bookmark.excerpt.strip()) > 20:
-            desc = bookmark.excerpt.strip()[: self.max_description_length]
-            return {
-                "description": desc,
-                "method": "existing_excerpt",
-                "confidence": 0.7,
-            }
+    def _prepare_input_text(self, bookmark: Bookmark) -> str:
+        """Prepare input text for AI processing."""
+        context_parts = []
 
-        # Fallback 2: Use meta description from content
-        if (
-            content_data
-            and content_data.meta_description
-            and len(content_data.meta_description.strip()) > 20
-        ):
-            desc = content_data.meta_description.strip()[: self.max_description_length]
-            return {
-                "description": desc,
-                "method": "meta_description",
-                "confidence": 0.6,
-            }
+        # Add title
+        if bookmark.title and bookmark.title.strip():
+            context_parts.append(f"Title: {bookmark.title.strip()}")
 
-        # Fallback 3: Enhanced title + domain
-        title = bookmark.title or "Bookmark"
-        domain = self._extract_domain(bookmark.url)
+        # Add user note (highest priority)
+        if bookmark.note and bookmark.note.strip():
+            context_parts.append(f"Note: {bookmark.note.strip()}")
 
-        # Create a more descriptive fallback
-        if content_data and content_data.content_categories:
-            category = content_data.content_categories[0]
-            desc = f"{title} - {category.title()} content from {domain}"
-        else:
-            desc = f"{title} - Content from {domain}"
+        # Add excerpt
+        if bookmark.excerpt and bookmark.excerpt.strip():
+            context_parts.append(f"Excerpt: {bookmark.excerpt.strip()}")
 
-        desc = desc[: self.max_description_length]
+        # Add domain context
+        if bookmark.url:
+            domain = self._extract_domain(bookmark.url)
+            context_parts.append(f"Domain: {domain}")
 
-        return {"description": desc, "method": "title_based", "confidence": 0.4}
+        return " | ".join(context_parts)
 
-    def _emergency_fallback(self, bookmark: Bookmark) -> str:
-        """Emergency fallback for complete failures"""
+    def _generate_fallback_description(self, bookmark: Bookmark) -> str:
+        """Generate fallback description using existing content."""
+        # Priority: note -> excerpt -> title-based
+        if bookmark.note and bookmark.note.strip():
+            return bookmark.note.strip()[: self.max_description_length]
+
+        if bookmark.excerpt and bookmark.excerpt.strip():
+            return bookmark.excerpt.strip()[: self.max_description_length]
+
+        # Generate title-based description
         title = bookmark.title or "Bookmark"
         domain = self._extract_domain(bookmark.url)
         return f"{title} from {domain}"[: self.max_description_length]
+
+    def process_batch(
+        self,
+        bookmarks: List[Bookmark],
+        content_data_map: Dict = None,
+        progress_callback=None,
+    ) -> List[Bookmark]:
+        """
+        Process multiple bookmarks in batch.
+
+        Args:
+            bookmarks: List of bookmarks to process
+            content_data_map: Optional mapping of URLs to content data
+            progress_callback: Optional callback for progress updates
+
+        Returns:
+            List of processed Bookmark objects
+        """
+        results = []
+
+        # Pre-load AI model if available for local processing
+        if self.engine == "local" and TRANSFORMERS_AVAILABLE:
+            self.model_manager.get_summarizer()
+
+        for bookmark in bookmarks:
+            try:
+                result = self.process_bookmark(bookmark)
+                results.append(result)
+            except Exception as e:
+                logging.error(f"Batch processing error for {bookmark.url}: {e}")
+                # Set error state and continue
+                bookmark.processing_status.ai_processed = False
+                bookmark.processing_status.ai_processing_error = str(e)
+                bookmark.enhanced_description = self._generate_fallback_description(
+                    bookmark
+                )
+                results.append(bookmark)
+
+        return results
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get processing statistics."""
+        stats = {
+            "engine": self.engine,
+            "model_name": self.model_name,
+            "is_available": self.is_available,
+            "processed_count": self.processed_count,
+            "total_processed": self.stats["total_processed"],
+            "ai_generated": self.stats["ai_generated"],
+            "fallback_used": self.stats["fallback_used"],
+            "errors": self.stats["errors"],
+        }
+
+        if self.stats["processing_times"]:
+            stats["average_processing_time"] = sum(
+                self.stats["processing_times"]
+            ) / len(self.stats["processing_times"])
+            stats["total_processing_time"] = sum(self.stats["processing_times"])
+        else:
+            stats["average_processing_time"] = 0.0
+            stats["total_processing_time"] = 0.0
+
+        return stats
+
+    def get_processing_statistics(self) -> Dict[str, Any]:
+        """Get processing statistics for pipeline compatibility."""
+        return self.get_statistics()
 
     def _clean_ai_output(self, text: str) -> str:
         """Clean and validate AI-generated text"""
@@ -469,31 +486,6 @@ class EnhancedAIProcessor:
             return domain
         except:
             return "unknown"
-
-    def get_processing_statistics(self) -> Dict[str, Any]:
-        """Get processing statistics"""
-        stats = self.stats.copy()
-
-        if stats["processing_times"]:
-            stats["average_processing_time"] = sum(stats["processing_times"]) / len(
-                stats["processing_times"]
-            )
-            stats["total_processing_time"] = sum(stats["processing_times"])
-        else:
-            stats["average_processing_time"] = 0.0
-            stats["total_processing_time"] = 0.0
-
-        if stats["total_processed"] > 0:
-            stats["ai_success_rate"] = stats["ai_generated"] / stats["total_processed"]
-            stats["error_rate"] = stats["errors"] / stats["total_processed"]
-        else:
-            stats["ai_success_rate"] = 0.0
-            stats["error_rate"] = 0.0
-
-        # Don't include raw processing times in output
-        del stats["processing_times"]
-
-        return stats
 
     def clear_cache(self):
         """Clear model cache"""

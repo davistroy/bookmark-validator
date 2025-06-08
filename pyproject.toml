@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bookmark-processor"
 version = "1.0.0"
-description = "A powerful Windows tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create optimized tagging systems"
+description = "A powerful Linux/WSL tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create optimized tagging systems"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
 ]
 
 [project.urls]
@@ -72,13 +72,19 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-ra -q --strict-markers"
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
+    "unit: Unit tests for individual components",
+    "integration: Integration tests for complete workflows",
+    "slow: Tests that take longer to run (> 5 seconds)",
+    "network: Tests that require network access (mocked)",
+    "ai: Tests related to AI processing functionality",
+    "security: Security-related tests",
+    "performance: Performance and load tests",
+    "mock: Tests that heavily rely on mocking",
+    "parametrize: Parameterized tests with multiple inputs",
 ]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.9"
 ignore_errors = true
 follow_imports = "skip"
 warn_unused_configs = false

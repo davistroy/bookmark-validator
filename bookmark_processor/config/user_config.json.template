@@ -1,0 +1,40 @@
+{
+  "_comment": "Bookmark Processor Configuration (JSON Format)",
+  "_instructions": [
+    "Copy this file to user_config.json and customize as needed",
+    "IMPORTANT: Add your API keys and ensure this file is in .gitignore"
+  ],
+  
+  "processing": {
+    "ai_engine": "local",
+    "batch_size": 100,
+    "max_description_length": 150
+  },
+  
+  "network": {
+    "timeout": 30,
+    "max_retries": 3,
+    "concurrent_requests": 10
+  },
+  
+  "ai": {
+    "claude_rpm": 50,
+    "openai_rpm": 60,
+    "cost_confirmation_interval": 10.0,
+    "_api_key_instructions": [
+      "Uncomment and add your actual API keys below",
+      "NEVER commit these to version control!"
+    ],
+    "claude_api_key": "your-claude-api-key-here",
+    "openai_api_key": "your-openai-api-key-here"
+  },
+  
+  "output": {
+    "format": "raindrop_import",
+    "detailed_errors": true
+  },
+  
+  "checkpoint_enabled": true,
+  "checkpoint_interval": 50,
+  "checkpoint_dir": ".bookmark_checkpoints"
+}

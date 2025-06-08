@@ -67,4 +67,9 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
-*~ 
+*~
+
+# Scripts directory (keep tracked but ignore any temp files)
+!scripts/
+scripts/*.tmp
+scripts/*.log 

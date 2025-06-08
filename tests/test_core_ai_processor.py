@@ -15,7 +15,7 @@ from bookmark_processor.core.base_api_client import BaseAPIClient
 from bookmark_processor.core.claude_api_client import ClaudeAPIClient
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.openai_api_client import OpenAIAPIClient
-from tests.fixtures.mock_utilities import MockAIProcessor
+from tests.fixtures.mock_utilities import MockAIProcessor, MockEnhancedAIProcessor
 from tests.fixtures.test_data import MOCK_AI_RESULTS, create_sample_bookmark_objects
 
 

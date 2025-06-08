@@ -1,0 +1,58 @@
+# ===============================================
+# OpenAI Optimized Configuration (TOML Format)
+# ===============================================
+# Optimized configuration for versatile bookmark processing with OpenAI GPT
+# Copy this to user_config.toml and add your OpenAI API key
+
+# ========================================
+# Processing Configuration (OpenAI Optimized)
+# ========================================
+[processing]
+# Using OpenAI for versatile and consistent results
+ai_engine = "openai"
+
+# Moderate batch size for OpenAI rate limits
+batch_size = 75
+
+# Standard description length for GPT models
+max_description_length = 150
+
+# ========================================
+# Network Configuration (Balanced)
+# ========================================
+[network]
+# Balanced settings for OpenAI API reliability
+timeout = 40
+max_retries = 3
+concurrent_requests = 10
+
+# ========================================
+# OpenAI Configuration
+# ========================================
+[ai]
+# OpenAI rate limiting - adjust based on your usage tier
+# Free tier: 3 RPM, Pay-as-you-go: 3500 RPM, Tier 1+: higher
+openai_rpm = 60
+
+# Standard cost confirmation
+cost_confirmation_interval = 10.0
+
+# REQUIRED: Add your OpenAI API key here
+# Get your key from: https://platform.openai.com/api-keys
+# Format: sk-...
+openai_api_key = "your-openai-api-key-here"
+
+# ========================================
+# Output Configuration
+# ========================================
+[output]
+format = "raindrop_import"
+detailed_errors = true
+
+# ========================================
+# Checkpoint Configuration
+# ========================================
+checkpoint_enabled = true
+# Standard checkpoint interval for API processing
+checkpoint_interval = 40
+checkpoint_dir = ".bookmark_checkpoints"

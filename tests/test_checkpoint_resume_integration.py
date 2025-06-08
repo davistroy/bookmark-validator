@@ -24,6 +24,7 @@ from bookmark_processor.core.checkpoint_manager import (
 )
 from bookmark_processor.core.content_analyzer import ContentData
 from bookmark_processor.core.csv_handler import RaindropCSVHandler
+from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.pipeline import BookmarkProcessingPipeline, PipelineConfig
 from bookmark_processor.core.url_validator import ValidationResult
 
@@ -164,12 +165,19 @@ class TestCheckpointResumeIntegration:
             url="https://docs.python.org/tutorial", is_valid=True, status_code=200
         )
 
-        # Create mock bookmark
-        mock_bookmark = Mock()
-        mock_bookmark.url = "https://docs.python.org/tutorial"
-        mock_bookmark.title = "Python Tutorial"
+        # Create real bookmark object
+        test_bookmark = Bookmark(
+            id="1",
+            title="Python Tutorial",
+            url="https://docs.python.org/tutorial",
+            note="Learn Python basics",
+            excerpt="Official Python tutorial",
+            folder="Programming/Python",
+            tags=["python", "tutorial"],
+            created="2024-01-01T00:00:00Z",
+        )
 
-        checkpoint_manager.add_validated_bookmark(validation_result, mock_bookmark)
+        checkpoint_manager.add_validated_bookmark(validation_result, test_bookmark)
         checkpoint_manager.save_checkpoint(force=True)
 
         # Create pipeline and resume
@@ -251,14 +259,21 @@ class TestCheckpointResumeIntegration:
             "https://deeplearning.ai/courses",
         ]
 
-        for url in urls:
+        for i, url in enumerate(urls):
             validation_result = ValidationResult(
                 url=url, is_valid=True, status_code=200
             )
-            mock_bookmark = Mock()
-            mock_bookmark.url = url
-            mock_bookmark.title = f"Title for {url}"
-            checkpoint_manager.add_validated_bookmark(validation_result, mock_bookmark)
+            test_bookmark = Bookmark(
+                id=str(i+2),  # Starting from 2 since first one was id=1
+                title=f"Title for {url}",
+                url=url,
+                note=f"Test note for {url}",
+                excerpt=f"Test excerpt for {url}",
+                folder="Test/Folder",
+                tags=["test", "bookmark"],
+                created="2024-01-01T00:00:00Z",
+            )
+            checkpoint_manager.add_validated_bookmark(validation_result, test_bookmark)
 
         # Add some AI processing results (partial completion)
         processed_urls = urls[:3]  # First 3 URLs processed
@@ -425,9 +440,17 @@ class TestCheckpointResumeIntegration:
         validation_result = ValidationResult(
             url="https://docs.python.org/tutorial", is_valid=True, status_code=200
         )
-        mock_bookmark = Mock()
-        mock_bookmark.url = "https://docs.python.org/tutorial"
-        checkpoint_manager.add_validated_bookmark(validation_result, mock_bookmark)
+        test_bookmark = Bookmark(
+            id="config_test_1",
+            title="Python Tutorial Config Test",
+            url="https://docs.python.org/tutorial",
+            note="Config test note",
+            excerpt="Config test excerpt",
+            folder="Config/Test",
+            tags=["config", "test"],
+            created="2024-01-01T00:00:00Z",
+        )
+        checkpoint_manager.add_validated_bookmark(validation_result, test_bookmark)
         checkpoint_manager.save_checkpoint(force=True)
 
         # Create new pipeline with modified configuration
@@ -537,13 +560,21 @@ class TestCheckpointResumeIntegration:
 
         # Add partial URL validation
         urls = ["https://docs.python.org/tutorial", "https://arxiv.org/abs/12345"]
-        for url in urls:
+        for i, url in enumerate(urls):
             validation_result = ValidationResult(
                 url=url, is_valid=True, status_code=200
             )
-            mock_bookmark = Mock()
-            mock_bookmark.url = url
-            checkpoint_manager.add_validated_bookmark(validation_result, mock_bookmark)
+            test_bookmark = Bookmark(
+                id=f"multi_resume_{i+1}",
+                title=f"Multi Resume Test {i+1}",
+                url=url,
+                note=f"Multi resume note {i+1}",
+                excerpt=f"Multi resume excerpt {i+1}",
+                folder="MultiResume/Test",
+                tags=["multi", "resume"],
+                created="2024-01-01T00:00:00Z",
+            )
+            checkpoint_manager.add_validated_bookmark(validation_result, test_bookmark)
 
         checkpoint_manager.save_checkpoint(force=True)
 

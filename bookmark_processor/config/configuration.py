@@ -1,137 +1,42 @@
 """
-Configuration management for the Bookmark Processor.
+New Pydantic-based configuration management for the Bookmark Processor.
 
-This module handles loading and merging configuration from multiple sources:
-1. Default configuration
-2. User configuration file
-3. Command-line arguments
+This module replaces the old ConfigParser-based system with a modern Pydantic
+configuration system that reduces 42 options to 15 essential ones with built-in
+validation and type safety.
 """
 
-import configparser
 import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from bookmark_processor.utils.api_key_validator import APIKeyValidator
+from .pydantic_config import BookmarkConfig, ConfigurationManager, format_config_error
 
 
 class Configuration:
-    """Manages application configuration with multiple sources."""
+    """
+    Modern configuration manager that wraps the Pydantic-based system.
+
+    This class provides a compatibility layer that maintains the same interface
+    as the old ConfigParser-based Configuration class while using the new
+    Pydantic system underneath.
+    """
 
     def __init__(self, config_path: Optional[Path] = None):
         """
         Initialize configuration manager.
 
         Args:
-            config_path: Optional path to user configuration file
+            config_path: Optional path to user configuration file (TOML/JSON)
         """
-        self.config = configparser.ConfigParser()
-        self._load_default_config()
+        self._manager = ConfigurationManager(config_path)
+        self._config = self._manager.config
 
-        # Try to load user config from standard location if not specified
-        if config_path:
-            self._load_user_config(config_path)
-        else:
-            # Check for user_config.ini in the same directory as default config
-            user_config_path = (
-                self._get_default_config_path().parent / "user_config.ini"
-            )
-            if user_config_path.exists():
-                self._load_user_config(user_config_path)
-
-    def _get_default_config_path(self) -> Path:
-        """Get path to default configuration file."""
-        if getattr(sys, "frozen", False):
-            # Running as PyInstaller executable
-            app_dir = Path(sys.executable).parent
-            config_path = app_dir / "config" / "default_config.ini"
-        else:
-            # Running as Python script
-            config_path = Path(__file__).parent / "default_config.ini"
-
-        return config_path
-
-    def _load_default_config(self) -> None:
-        """Load default configuration."""
-        default_path = self._get_default_config_path()
-        if default_path.exists():
-            self.config.read(default_path)
-        else:
-            # Fallback to hardcoded defaults if file not found
-            self._set_hardcoded_defaults()
-
-    def _set_hardcoded_defaults(self) -> None:
-        """Set hardcoded default values."""
-        # Network settings
-        self.config["network"] = {
-            "timeout": "30",
-            "max_retries": "3",
-            "default_delay": "0.5",
-            "max_concurrent_requests": "10",
-            "user_agent_rotation": "true",
-            "google_delay": "2.0",
-            "github_delay": "1.5",
-            "youtube_delay": "2.0",
-            "linkedin_delay": "2.0",
-        }
-
-        # Processing settings
-        self.config["processing"] = {
-            "batch_size": "100",
-            "max_tags_per_bookmark": "5",
-            "target_unique_tags": "150",
-            "ai_model": "facebook/bart-large-cnn",
-            "max_description_length": "150",
-            "use_existing_content": "true",
-        }
-
-        # Checkpoint settings
-        self.config["checkpoint"] = {
-            "enabled": "true",
-            "save_interval": "50",
-            "checkpoint_dir": ".bookmark_checkpoints",
-            "auto_cleanup": "true",
-        }
-
-        # Output settings
-        self.config["output"] = {
-            "output_format": "raindrop_import",
-            "preserve_folder_structure": "true",
-            "include_timestamps": "true",
-            "error_log_detailed": "true",
-        }
-
-        # Logging settings
-        self.config["logging"] = {
-            "log_level": "INFO",
-            "log_file": "bookmark_processor.log",
-            "console_output": "true",
-            "performance_logging": "true",
-        }
-
-        # AI settings
-        self.config["ai"] = {
-            "default_engine": "local",
-            "claude_rpm": "50",
-            "openai_rpm": "60",
-            "claude_batch_size": "10",
-            "openai_batch_size": "20",
-            "show_running_costs": "true",
-            "cost_confirmation_interval": "10.0",
-        }
-
-        # Executable settings
-        self.config["executable"] = {
-            "model_cache_dir": "~/.cache/bookmark-processor/models",
-            "temp_dir": "/tmp/bookmark-processor",
-            "cleanup_on_exit": "true",
-        }
-
-    def _load_user_config(self, config_path: Path) -> None:
-        """Load user configuration file."""
-        if config_path.exists():
-            self.config.read(config_path)
+    @property
+    def config(self) -> BookmarkConfig:
+        """Get the underlying Pydantic configuration."""
+        return self._config
 
     def update_from_args(self, args: Dict[str, Any]) -> None:
         """
@@ -140,57 +45,141 @@ class Configuration:
         Args:
             args: Dictionary of validated arguments
         """
-        # Update processing settings
-        if "batch_size" in args:
-            self.config.set("processing", "batch_size", str(args["batch_size"]))
-
-        if "max_retries" in args:
-            self.config.set("network", "max_retries", str(args["max_retries"]))
-
-        # Update checkpoint settings
-        if args.get("clear_checkpoints"):
-            self.config.set("checkpoint", "enabled", "false")
-        elif args.get("resume"):
-            self.config.set("checkpoint", "enabled", "true")
-
-        # Update logging settings
-        if args.get("verbose"):
-            self.config.set("logging", "log_level", "DEBUG")
-            self.config.set("logging", "console_output", "true")
-
-        # Update AI engine setting
-        if "ai_engine" in args and args["ai_engine"]:
-            self.config.set("ai", "default_engine", args["ai_engine"])
+        self._manager.update_from_cli_args(args)
+        self._config = self._manager.config
 
     def get(self, section: str, option: str, fallback: Any = None) -> str:
-        """Get configuration value."""
-        return self.config.get(section, option, fallback=fallback)
+        """Get configuration value as string (for compatibility)."""
+        try:
+            if section == "network":
+                if option == "timeout":
+                    return str(self._config.network.timeout)
+                elif option == "max_retries":
+                    return str(self._config.network.max_retries)
+                elif option == "max_concurrent_requests":
+                    return str(self._config.network.concurrent_requests)
+                elif option == "default_delay":
+                    return "0.5"  # Fixed value in new system
+                elif option == "user_agent_rotation":
+                    return "true"  # Always enabled in new system
+                elif option.endswith("_delay"):
+                    return "1.5"  # Simplified delay handling
+
+            elif section == "processing":
+                if option == "batch_size":
+                    return str(self._config.processing.batch_size)
+                elif option == "max_description_length":
+                    return str(self._config.processing.max_description_length)
+                elif option == "ai_model":
+                    return "facebook/bart-large-cnn"  # Fixed in new system
+                elif option == "use_existing_content":
+                    return "true"  # Always true in new system
+                elif option == "max_tags_per_bookmark":
+                    return "5"  # Fixed value
+                elif option == "target_unique_tags":
+                    return "150"  # Fixed value
+
+            elif section == "checkpoint":
+                if option == "enabled":
+                    return str(self._config.checkpoint_enabled).lower()
+                elif option == "save_interval":
+                    return str(self._config.checkpoint_interval)
+                elif option == "checkpoint_dir":
+                    return str(self._config.checkpoint_dir)
+                elif option == "auto_cleanup":
+                    return "true"  # Always true in new system
+
+            elif section == "output":
+                if option == "output_format":
+                    return self._config.output.format
+                elif option == "error_log_detailed":
+                    return str(self._config.output.detailed_errors).lower()
+                elif option == "preserve_folder_structure":
+                    return "true"  # Always true in new system
+                elif option == "include_timestamps":
+                    return "true"  # Always true in new system
+
+            elif section == "logging":
+                if option == "log_level":
+                    return "INFO"  # Simplified logging
+                elif option == "log_file":
+                    return "bookmark_processor.log"
+                elif option == "console_output":
+                    return "true"
+                elif option == "performance_logging":
+                    return "true"
+
+            elif section == "ai":
+                if option == "default_engine":
+                    return self._config.processing.ai_engine
+                elif option == "claude_rpm":
+                    return str(self._config.ai.claude_rpm)
+                elif option == "openai_rpm":
+                    return str(self._config.ai.openai_rpm)
+                elif option == "claude_batch_size":
+                    return "10"  # Fixed value
+                elif option == "openai_batch_size":
+                    return "20"  # Fixed value
+                elif option == "show_running_costs":
+                    return "true"  # Always true
+                elif option == "cost_confirmation_interval":
+                    return str(self._config.ai.cost_confirmation_interval)
+                elif option == "max_cost_per_run":
+                    return "0.0"  # No limit by default
+                elif option == "pause_at_cost":
+                    return "true"
+
+            elif section == "executable":
+                if option == "model_cache_dir":
+                    return "~/.cache/bookmark-processor/models"
+                elif option == "temp_dir":
+                    return "/tmp/bookmark-processor"
+                elif option == "cleanup_on_exit":
+                    return "true"
+
+            return str(fallback) if fallback is not None else ""
+
+        except Exception:
+            return str(fallback) if fallback is not None else ""
 
     def getint(self, section: str, option: str, fallback: int = 0) -> int:
         """Get configuration value as integer."""
-        return self.config.getint(section, option, fallback=fallback)
+        try:
+            value = self.get(section, option, str(fallback))
+            return int(value)
+        except (ValueError, TypeError):
+            return fallback
 
     def getfloat(self, section: str, option: str, fallback: float = 0.0) -> float:
         """Get configuration value as float."""
-        return self.config.getfloat(section, option, fallback=fallback)
+        try:
+            value = self.get(section, option, str(fallback))
+            return float(value)
+        except (ValueError, TypeError):
+            return fallback
 
     def getboolean(self, section: str, option: str, fallback: bool = False) -> bool:
         """Get configuration value as boolean."""
-        return self.config.getboolean(section, option, fallback=fallback)
+        try:
+            value = self.get(section, option, str(fallback)).lower()
+            return value in ("true", "1", "yes", "on", "enabled")
+        except (ValueError, TypeError, AttributeError):
+            return fallback
 
     def get_model_cache_dir(self) -> Path:
         """Get AI model cache directory with environment variable expansion."""
-        cache_dir = self.get("executable", "model_cache_dir")
+        cache_dir = "~/.cache/bookmark-processor/models"
+        cache_dir = os.path.expanduser(cache_dir)
         cache_dir = os.path.expandvars(cache_dir)
         return Path(cache_dir)
 
     def get_checkpoint_dir(self) -> Path:
         """Get checkpoint directory."""
-        return Path(self.get("checkpoint", "checkpoint_dir", ".bookmark_checkpoints"))
+        return self._config.checkpoint_dir
 
     def get_ai_engine(self) -> str:
         """Get the configured AI engine."""
-        return self.get("ai", "default_engine", fallback="local")
+        return self._config.processing.ai_engine
 
     def get_api_key(self, provider: str) -> Optional[str]:
         """
@@ -202,39 +191,36 @@ class Configuration:
         Returns:
             API key string or None
         """
-        key_name = f"{provider}_api_key"
-        try:
-            key = self.get("ai", key_name)
-            # Don't return empty strings as valid keys
-            return key if key and key.strip() else None
-        except (configparser.NoSectionError, configparser.NoOptionError):
-            return None
+        return self._manager.get_api_key(provider)
 
     def has_api_key(self, provider: str) -> bool:
         """Check if API key is configured for a provider."""
-        return self.get_api_key(provider) is not None
+        return self._manager.has_api_key(provider)
 
     def get_rate_limit(self, provider: str) -> int:
         """Get rate limit (requests per minute) for a provider."""
-        return self.getint("ai", f"{provider}_rpm", fallback=60)
+        if provider == "claude":
+            return self._config.ai.claude_rpm
+        elif provider == "openai":
+            return self._config.ai.openai_rpm
+        return 60
 
     def get_batch_size(self, provider: str) -> int:
         """Get batch size for a provider."""
-        return self.getint("ai", f"{provider}_batch_size", fallback=10)
+        # Fixed batch sizes in new system
+        if provider == "claude":
+            return 10
+        elif provider == "openai":
+            return 20
+        return 10
 
     def get_cost_tracking_settings(self) -> Dict[str, Any]:
         """Get cost tracking configuration."""
         return {
-            "show_running_costs": self.getboolean(
-                "ai", "show_running_costs", fallback=True
-            ),
-            "cost_confirmation_interval": self.getfloat(
-                "ai", "cost_confirmation_interval", fallback=10.0
-            ),
-            "max_cost_per_run": self.getfloat(
-                "ai", "max_cost_per_run", fallback=0.0
-            ),  # 0 = no limit
-            "pause_at_cost": self.getboolean("ai", "pause_at_cost", fallback=True),
+            "show_running_costs": True,  # Always enabled
+            "cost_confirmation_interval": self._config.ai.cost_confirmation_interval,
+            "max_cost_per_run": 0.0,  # No limit by default
+            "pause_at_cost": True,
         }
 
     def validate_ai_configuration(self) -> Tuple[bool, Optional[str]]:
@@ -244,4 +230,22 @@ class Configuration:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        return APIKeyValidator.validate_configuration(self)
+        return self._manager.validate_ai_configuration()
+
+
+# Factory function for easy migration
+def create_configuration(config_path: Optional[Path] = None) -> Configuration:
+    """
+    Create a new Configuration instance.
+
+    Args:
+        config_path: Optional path to configuration file
+
+    Returns:
+        Configuration instance
+    """
+    return Configuration(config_path)
+
+
+# Alias for backward compatibility during migration
+AppConfig = Configuration

@@ -97,11 +97,14 @@ def create_pyinstaller_spec():
     project_root = Path(__file__).parent.parent
     
     spec_content = f'''# -*- mode: python ; coding: utf-8 -*-
+# Auto-generated PyInstaller spec file for Linux/WSL build
 
 import sys
+import os
 from pathlib import Path
 
-project_root = Path("{project_root}")
+# Use relative path to avoid hardcoded system paths
+project_root = Path(os.getcwd())
 
 a = Analysis(
     [str(project_root / "bookmark_processor" / "main.py")],
@@ -350,9 +353,26 @@ For more information, see README.md and CLAUDE.md
 
 def main():
     """Main build process"""
-    print("🚀 Starting Linux build process...")
+    print("🚀 Starting Linux/WSL build process...")
     print(f"Platform: {platform.system()} {platform.release()}")
     print(f"Python: {sys.version}")
+    
+    # Ensure we're on Linux/WSL
+    if platform.system() != "Linux":
+        print("❌ This build script is designed for Linux/WSL only")
+        print(f"   Current platform: {platform.system()}")
+        sys.exit(1)
+    
+    # Check if we're in WSL
+    try:
+        with open("/proc/version", "r") as f:
+            version_info = f.read().lower()
+            if "microsoft" in version_info:
+                print("📋 Detected WSL environment")
+            else:
+                print("📋 Detected native Linux environment")
+    except:
+        print("📋 Linux environment (version detection unavailable)")
     
     try:
         # Build steps

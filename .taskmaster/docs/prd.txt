@@ -1,13 +1,13 @@
 Bookmark Validation and Enhancement Tool - Product Requirements Document
 
 PRODUCT OVERVIEW:
-A Windows command-line executable tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. The tool is designed for users with large bookmark collections (3,500+ items) who want to clean, enhance, and better organize their digital bookmarks without manual effort.
+A Linux/WSL command-line executable tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. The tool is designed for users with large bookmark collections (3,500+ items) who want to clean, enhance, and better organize their digital bookmarks without manual effort.
 
 TARGET USERS:
 - Power users with 1,000+ bookmarks using raindrop.io
 - Digital researchers, academics, and information workers
 - Users comfortable with command-line tools
-- Windows 11 users
+- Linux/WSL users
 
 CORE REQUIREMENTS:
 
@@ -49,10 +49,10 @@ CORE REQUIREMENTS:
    - Secure checkpoint file management with automatic cleanup
    - Include validation status, descriptions, and processing state in checkpoints
 
-6. WINDOWS EXECUTABLE PACKAGING (Critical)
-   - Single .exe file with embedded dependencies
+6. LINUX/WSL EXECUTABLE PACKAGING (Critical)
+   - Single executable file with embedded dependencies
    - No Python installation required on target system
-   - Windows 11 compatibility
+   - Linux/WSL compatibility
    - Proper resource path handling for executable environment
    - Model caching and management for AI components
 
