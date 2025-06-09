@@ -83,13 +83,16 @@ class OpenAIAPIClient(BaseAPIClient):
             from urllib.parse import urlparse
 
             domain = urlparse(url).netloc or "unknown domain"
-        except:
+        except Exception:
             domain = "unknown domain"
 
         # Optimized system message for GPT-3.5-turbo
         system_message = {
             "role": "system",
-            "content": "Create concise bookmark descriptions (100-150 chars). Focus on value and purpose. Avoid generic phrases.",
+            "content": (
+                "Create concise bookmark descriptions (100-150 chars). "
+                "Focus on value and purpose. Avoid generic phrases."
+            ),
         }
 
         # Compact user message to save tokens
@@ -122,7 +125,10 @@ Description:"""
         # Optimized system message for batch processing
         system_message = {
             "role": "system",
-            "content": "Create bookmark descriptions (100-150 chars each). Focus on value/purpose. Format: numbered list only.",
+            "content": (
+                "Create bookmark descriptions (100-150 chars each). "
+                "Focus on value/purpose. Format: numbered list only."
+            ),
         }
 
         # Build compact user message
@@ -139,7 +145,7 @@ Description:"""
                 from urllib.parse import urlparse
 
                 domain = urlparse(url).netloc or "unknown"
-            except:
+            except Exception:
                 domain = "unknown"
 
             # Use provided content or fallback
@@ -430,7 +436,9 @@ Description:"""
             "choices": [
                 {
                     "message": {
-                        "content": "Mock OpenAI-generated description for testing purposes."
+                        "content": (
+                            "Mock OpenAI-generated description for testing purposes."
+                        )
                     }
                 }
             ],

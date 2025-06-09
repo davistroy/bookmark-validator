@@ -73,28 +73,28 @@ Output Formats:
   HTML files include timestamped filenames unless --html-output is specified.
 
 AI Folder Generation:
-  By default, AI-powered semantic folder structures are generated (max 20 bookmarks/folder).
+  By default, AI-powered semantic folder structures are generated
+  (max 20 bookmarks/folder).
   Use --no-folders to disable and preserve original folder structure.
   Use --max-bookmarks-per-folder to adjust folder size limits.
 
 Configuration System:
   The application uses a modern Pydantic-based configuration system.
   Configuration can be provided via TOML or JSON files:
-  
   • Create user_config.toml in the application directory
   • Or use --config to specify a custom configuration file path
   • Environment variables: CLAUDE_API_KEY, OPENAI_API_KEY
-  
+
   Example configuration (user_config.toml):
   [processing]
   ai_engine = "claude"
   batch_size = 100
-  
+
   [ai]
   claude_api_key = "your-actual-claude-api-key"
   claude_rpm = 50
   cost_confirmation_interval = 10.0
-  
+
   [network]
   timeout = 30
   concurrent_requests = 10
@@ -127,7 +127,9 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
         parser.add_argument(
             "--input",
             "-i",
-            help="Input file (raindrop.io CSV export or Chrome HTML bookmarks). If not specified, auto-detects all CSV and HTML files in current directory.",
+            help="Input file (raindrop.io CSV export or Chrome HTML bookmarks). "
+            "If not specified, auto-detects all CSV and HTML files in current "
+            "directory.",
         )
         parser.add_argument(
             "--output",
@@ -224,7 +226,8 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
         )
         parser.add_argument(
             "--html-output",
-            help="Custom path for Chrome HTML output (auto-generated with timestamp if not specified)",
+            help="Custom path for Chrome HTML output (auto-generated with "
+            "timestamp if not specified)",
         )
         parser.add_argument(
             "--html-title",
@@ -351,7 +354,8 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             # Check if output file already exists
             if output_path.exists():
                 response = input(
-                    f"⚠️  Configuration file '{output_path}' already exists. Overwrite? (y/N): "
+                    f"⚠️  Configuration file '{output_path}' already exists. "
+                    "Overwrite? (y/N): "
                 )
                 if response.lower() != "y":
                     print("❌ Configuration creation cancelled.")
@@ -365,11 +369,13 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             print()
             print("📝 Next steps:")
             print(
-                "1. Edit the configuration file to add your API keys (if using cloud AI)"
+                "1. Edit the configuration file to add your API keys "
+                "(if using cloud AI)"
             )
             print("2. Adjust settings to match your requirements")
             print(
-                "3. Use with: bookmark-processor --config user_config.toml --input bookmarks.csv --output enhanced.csv"
+                "3. Use with: bookmark-processor --config user_config.toml "
+                "--input bookmarks.csv --output enhanced.csv"
             )
             print()
 
@@ -382,7 +388,8 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             elif config_type == "openai":
                 print("🔧 OpenAI Configuration:")
                 print(
-                    "• Add your OpenAI API key from: https://platform.openai.com/api-keys"
+                    "• Add your OpenAI API key from: "
+                    "https://platform.openai.com/api-keys"
                 )
                 print("• Versatile and widely compatible")
                 print("• Check your usage tier for appropriate rate limits")
@@ -438,7 +445,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
 
                 # Handle input display based on mode
                 if validated_args["input_path"] is None:
-                    print(f"  Input: Auto-detection mode (current directory)")
+                    print("  Input: Auto-detection mode (current directory)")
                     # Show auto-detection details
                     try:
                         from bookmark_processor.core.multi_file_processor import (
@@ -448,19 +455,21 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                         processor = MultiFileProcessor()
                         report = processor.validate_directory_for_auto_detection()
                         print(f"  Detected files: {len(report['valid_files'])}")
-                        print(
-                            f"  Total estimated bookmarks: {report['total_estimated_bookmarks']}"
-                        )
+                        total_bookmarks = report['total_estimated_bookmarks']
+                        print(f"  Total estimated bookmarks: {total_bookmarks}")
                         for file_info in report["valid_files"][
                             :3
                         ]:  # Show first 3 files
+                            file_name = file_info['name']
+                            file_format = file_info['format']
+                            estimated = file_info['estimated_bookmarks']
                             print(
-                                f"    - {file_info['name']} ({file_info['format']}, ~{file_info['estimated_bookmarks']} bookmarks)"
+                                f"    - {file_name} ({file_format}, "
+                                f"~{estimated} bookmarks)"
                             )
                         if len(report["valid_files"]) > 3:
-                            print(
-                                f"    ... and {len(report['valid_files']) - 3} more files"
-                            )
+                            remaining_count = len(report['valid_files']) - 3
+                            print(f"    ... and {remaining_count} more files")
                     except Exception:
                         pass
                 else:
@@ -474,13 +483,11 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                         importer = MultiFormatImporter()
                         file_info = importer.get_file_info(validated_args["input_path"])
                         print(f"  Input format: {file_info['format']}")
-                        print(
-                            f"  File size: {file_info['size_bytes'] / 1024 / 1024:.2f} MB"
-                        )
+                        size_mb = file_info['size_bytes'] / 1024 / 1024
+                        print(f"  File size: {size_mb:.2f} MB")
                         if file_info["estimated_bookmarks"] > 0:
-                            print(
-                                f"  Estimated bookmarks: {file_info['estimated_bookmarks']}"
-                            )
+                            estimated = file_info['estimated_bookmarks']
+                            print(f"  Estimated bookmarks: {estimated}")
                     except Exception:
                         pass
 
@@ -499,33 +506,29 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                 elif ai_engine == "claude":
                     has_key = config.has_api_key("claude")
                     rate_limit = config.get_rate_limit("claude")
-                    print(
-                        f"    → Claude API {'✓ configured' if has_key else '✗ missing API key'}"
-                    )
+                    status = '✓ configured' if has_key else '✗ missing API key'
+                    print(f"    → Claude API {status}")
                     print(f"    → Rate limit: {rate_limit} requests/minute")
                     print(f"    → Batch size: {config.get_batch_size('claude')}")
                     if has_key:
                         cost_settings = config.get_cost_tracking_settings()
                         print("    → Cost tracking: enabled")
-                        print(
-                            f"    → Cost confirmation: every ${cost_settings['cost_confirmation_interval']:.1f}"
-                        )
+                        interval = cost_settings['cost_confirmation_interval']
+                        print(f"    → Cost confirmation: every ${interval:.1f}")
                     else:
                         print("    → Add API key to configuration to enable")
                 elif ai_engine == "openai":
                     has_key = config.has_api_key("openai")
                     rate_limit = config.get_rate_limit("openai")
-                    print(
-                        f"    → OpenAI API {'✓ configured' if has_key else '✗ missing API key'}"
-                    )
+                    status = '✓ configured' if has_key else '✗ missing API key'
+                    print(f"    → OpenAI API {status}")
                     print(f"    → Rate limit: {rate_limit} requests/minute")
                     print(f"    → Batch size: {config.get_batch_size('openai')}")
                     if has_key:
                         cost_settings = config.get_cost_tracking_settings()
                         print("    → Cost tracking: enabled")
-                        print(
-                            f"    → Cost confirmation: every ${cost_settings['cost_confirmation_interval']:.1f}"
-                        )
+                        interval = cost_settings['cost_confirmation_interval']
+                        print(f"    → Cost confirmation: every ${interval:.1f}")
                     else:
                         print("    → Add API key to configuration to enable")
 

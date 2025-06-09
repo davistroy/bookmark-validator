@@ -7,6 +7,7 @@ including CSV handling, URL validation, content analysis, and AI processing.
 
 import asyncio
 import tempfile
+import time
 from io import StringIO
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
@@ -17,6 +18,7 @@ import pytest
 from bookmark_processor.config.configuration import Configuration
 from bookmark_processor.core.bookmark_processor import BookmarkProcessor
 from bookmark_processor.core.csv_handler import RaindropCSVHandler
+from bookmark_processor.core.url_validator import ValidationResult
 
 
 class TestPipelineIntegration:
@@ -74,7 +76,7 @@ class TestPipelineIntegration:
     def test_bookmark_loading(self, temp_csv_file):
         """Test loading bookmarks from CSV."""
         csv_handler = RaindropCSVHandler()
-        bookmarks = csv_handler.load_bookmarks(temp_csv_file)
+        bookmarks = csv_handler.load_and_transform_csv(temp_csv_file)
 
         assert len(bookmarks) == 4
 
@@ -87,24 +89,37 @@ class TestPipelineIntegration:
         assert "python" in bookmark.tags
         assert "tutorial" in bookmark.tags
 
-    @pytest.mark.asyncio
     @patch("bookmark_processor.core.url_validator.URLValidator.validate_url")
-    async def test_url_validation_stage(
-        self, mock_validate, temp_csv_file, mock_config
-    ):
+    def test_url_validation_stage(self, mock_validate, temp_csv_file, mock_config):
         """Test URL validation stage of pipeline."""
+        from bookmark_processor.core.url_validator import ValidationResult
+
         # Mock URL validation responses
         mock_validate.side_effect = [
-            (
-                True,
-                {"status_code": 200, "final_url": "https://docs.python.org/tutorial"},
+            ValidationResult(
+                url="https://docs.python.org/tutorial",
+                is_valid=True,
+                status_code=200,
+                final_url="https://docs.python.org/tutorial"
             ),
-            (True, {"status_code": 200, "final_url": "https://arxiv.org/abs/12345"}),
-            (
-                True,
-                {"status_code": 200, "final_url": "https://developer.mozilla.org/js"},
+            ValidationResult(
+                url="https://arxiv.org/abs/12345",
+                is_valid=True,
+                status_code=200,
+                final_url="https://arxiv.org/abs/12345"
             ),
-            (False, {"status_code": 404, "error": "Not found"}),
+            ValidationResult(
+                url="https://developer.mozilla.org/js",
+                is_valid=True,
+                status_code=200,
+                final_url="https://developer.mozilla.org/js"
+            ),
+            ValidationResult(
+                url="http://example.com/broken",
+                is_valid=False,
+                status_code=404,
+                error_message="Not found"
+            ),
         ]
 
         # Create processor
@@ -112,22 +127,22 @@ class TestPipelineIntegration:
 
         # Load bookmarks
         csv_handler = RaindropCSVHandler()
-        bookmarks = csv_handler.load_bookmarks(temp_csv_file)
+        bookmarks = csv_handler.load_and_transform_csv(temp_csv_file)
 
         # Validate URLs
         valid_bookmarks = []
         invalid_bookmarks = []
 
         for bookmark in bookmarks:
-            is_valid, metadata = await mock_validate(bookmark.url)
-            if is_valid:
+            result = mock_validate(bookmark.url)
+            if result.is_valid:
                 valid_bookmarks.append(bookmark)
             else:
-                invalid_bookmarks.append((bookmark, metadata))
+                invalid_bookmarks.append((bookmark, result))
 
         assert len(valid_bookmarks) == 3
         assert len(invalid_bookmarks) == 1
-        assert invalid_bookmarks[0][1]["status_code"] == 404
+        assert invalid_bookmarks[0][1].status_code == 404
 
     @pytest.mark.asyncio
     async def test_content_analysis_stage(self, temp_csv_file):
@@ -173,7 +188,7 @@ class TestPipelineIntegration:
 
         # Load bookmarks
         csv_handler = RaindropCSVHandler()
-        bookmarks = csv_handler.load_bookmarks(temp_csv_file)
+        bookmarks = csv_handler.load_and_transform_csv(temp_csv_file)
 
         # Test description generation
         from bookmark_processor.core.ai_factory import AIManager
@@ -196,7 +211,7 @@ class TestPipelineIntegration:
 
         # Load bookmarks
         csv_handler = RaindropCSVHandler()
-        bookmarks = csv_handler.load_bookmarks(temp_csv_file)
+        bookmarks = csv_handler.load_and_transform_csv(temp_csv_file)
 
         # Mock tag generation
         tag_generator = TagGenerator()
@@ -352,7 +367,7 @@ class TestPipelineIntegration:
 
         # Process bookmarks (mock the full pipeline)
         csv_handler = RaindropCSVHandler()
-        bookmarks = csv_handler.load_bookmarks(temp_csv_file)
+        bookmarks = csv_handler.load_and_transform_csv(temp_csv_file)
 
         # Simulate processing
         processed_bookmarks = []

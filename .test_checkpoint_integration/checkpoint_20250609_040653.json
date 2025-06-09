@@ -1,0 +1,382 @@
+{
+  "input_file": "/tmp/tmpdatmedau.csv",
+  "output_file": "/tmp/tmpdatmedau_checkpoint_output.csv",
+  "total_bookmarks": 6,
+  "config_hash": "unknown",
+  "current_stage": "completed",
+  "stage_progress": 0,
+  "processed_urls": [
+    "https://reactjs.org/docs",
+    "https://arxiv.org/abs/12345",
+    "https://developer.mozilla.org/js",
+    "https://docs.python.org/tutorial"
+  ],
+  "validated_bookmarks": [
+    {
+      "bookmark": {
+        "id": "multi_resume_1",
+        "title": "Multi Resume Test 1",
+        "note": "Multi resume note 1",
+        "excerpt": "Multi resume excerpt 1",
+        "url": "https://docs.python.org/tutorial",
+        "folder": "MultiResume/Test",
+        "tags": [
+          "multi",
+          "resume"
+        ],
+        "created": "2024-01-01T00:00:00Z",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://docs.python.org/tutorial",
+        "folder_hierarchy": [
+          "MultiResume",
+          "Test"
+        ]
+      },
+      "validation": {
+        "url": "https://docs.python.org/tutorial",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-09T04:06:53.022929",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "multi_resume_2",
+        "title": "Multi Resume Test 2",
+        "note": "Multi resume note 2",
+        "excerpt": "Multi resume excerpt 2",
+        "url": "https://arxiv.org/abs/12345",
+        "folder": "MultiResume/Test",
+        "tags": [
+          "multi",
+          "resume"
+        ],
+        "created": "2024-01-01T00:00:00Z",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://arxiv.org/abs/12345",
+        "folder_hierarchy": [
+          "MultiResume",
+          "Test"
+        ]
+      },
+      "validation": {
+        "url": "https://arxiv.org/abs/12345",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-09T04:06:53.022995",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "3",
+        "title": "JavaScript Guide",
+        "note": "Web development",
+        "excerpt": "MDN JavaScript docs",
+        "url": "https://developer.mozilla.org/js",
+        "folder": "Programming/JavaScript",
+        "tags": [
+          "javascript",
+          "web"
+        ],
+        "created": "2024-01-03T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://developer.mozilla.org/js",
+        "folder_hierarchy": [
+          "Programming",
+          "JavaScript"
+        ]
+      },
+      "validation": {
+        "url": "https://developer.mozilla.org/js",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-09T04:06:53.047172",
+        "security_validation": null
+      }
+    },
+    {
+      "bookmark": {
+        "id": "4",
+        "title": "React Documentation",
+        "note": "React framework",
+        "excerpt": "React official docs",
+        "url": "https://reactjs.org/docs",
+        "folder": "Programming/Frontend",
+        "tags": [
+          "react",
+          "frontend"
+        ],
+        "created": "2024-01-04T00:00:00+00:00",
+        "cover": "",
+        "highlights": "",
+        "favorite": false,
+        "enhanced_description": "",
+        "optimized_tags": [],
+        "normalized_url": "https://reactjs.org/docs",
+        "folder_hierarchy": [
+          "Programming",
+          "Frontend"
+        ]
+      },
+      "validation": {
+        "url": "https://reactjs.org/docs",
+        "is_valid": true,
+        "status_code": 200,
+        "final_url": null,
+        "response_time": 0.0,
+        "error_message": null,
+        "error_type": null,
+        "content_type": null,
+        "content_length": null,
+        "timestamp": "2025-06-09T04:06:53.047182",
+        "security_validation": null
+      }
+    }
+  ],
+  "failed_validations": [],
+  "content_data": {
+    "https://docs.python.org/tutorial": {
+      "url": "https://docs.python.org/tutorial",
+      "title": "The Python Tutorial \u2014 Python 3.13.4 documentation",
+      "meta_description": "Python is an easy to learn, powerful programming language. It has efficient high-level data structures and a simple but effective approach to object-oriented programming. Python\u00e2\u0080\u0099s elegant syntax an...",
+      "meta_keywords": "",
+      "main_content": "User Note: Learn Python basics | The Python Tutorial \u00c2\u00b6 Tip This tutorial is designed for programmers that are new to the Python language, not beginners who are new to programming. Python is an easy to learn, powerful programming language. It has efficient high-level data structures and a simple but effective approach to object-oriented programming. Python\u00e2\u0080\u0099s elegant syntax and dynamic typing, together with its interpreted nature, make it an ideal language for scripting and rapid application development in many areas on most platforms. The Python interpreter and the extensive standard library are freely available in source or binary form for all major platforms from the Python web site, https://www.python.org/ , and may be freely distributed. The same site also contains distributions of and pointers to many free third party Python modules, programs and tools, and additional documentation. The Python interpreter is easily extended with new functions and data types implemented in C or C",
+      "headings": [
+        "The Python Tutorial\u00c2\u00b6",
+        "Navigation",
+        "This page",
+        "Navigation",
+        "Previous topic",
+        "Next topic"
+      ],
+      "content_type": "text/html",
+      "language": "en",
+      "word_count": 894,
+      "reading_time_minutes": 4,
+      "content_categories": [
+        "documentation",
+        "tool",
+        "repository"
+      ],
+      "quality_score": 1.0,
+      "extraction_time": 0.20627164840698242,
+      "timestamp": "2025-06-09T04:06:53.076702"
+    },
+    "https://arxiv.org/abs/12345": {
+      "url": "https://arxiv.org/abs/12345",
+      "title": "AI Research",
+      "meta_description": "Research paper on AI",
+      "meta_keywords": "",
+      "main_content": "User Note: Latest AI developments | Invalid article identifier Please request an article with the proper identifier format Identifiers for arXiv articles have the form YYMM.NNNNN, e.g. 1507.00123, YYMM.NNNN, e.g. 0704.0001, or arch-ive/YYMMNNN for older articles, e.g. hep-th/9901001. To access an article simply enter the identifier in the search box. The web address for access to the abstract is constructed by prepending https://arxiv.org/abs/ .",
+      "headings": [
+        "Invalid article identifier"
+      ],
+      "content_type": "text/html; charset=utf-8",
+      "language": "en",
+      "word_count": 58,
+      "reading_time_minutes": 1,
+      "content_categories": [
+        "academic"
+      ],
+      "quality_score": 0.5,
+      "extraction_time": 0.07818937301635742,
+      "timestamp": "2025-06-09T04:06:53.283228"
+    },
+    "https://developer.mozilla.org/js": {
+      "url": "https://developer.mozilla.org/js",
+      "title": "JavaScript Guide",
+      "meta_description": "MDN JavaScript docs",
+      "meta_keywords": "",
+      "main_content": "User Note: Web development",
+      "headings": [],
+      "content_type": "text/html",
+      "language": "",
+      "word_count": 0,
+      "reading_time_minutes": 0,
+      "content_categories": [
+        "documentation"
+      ],
+      "quality_score": 0.30000000000000004,
+      "extraction_time": 0.18889474868774414,
+      "timestamp": "2025-06-09T04:06:53.361470"
+    },
+    "https://reactjs.org/docs": {
+      "url": "https://reactjs.org/docs",
+      "title": "React Documentation",
+      "meta_description": "React official docs",
+      "meta_keywords": "",
+      "main_content": "User Note: React framework",
+      "headings": [],
+      "content_type": "text/html; charset=utf-8",
+      "language": "",
+      "word_count": 0,
+      "reading_time_minutes": 0,
+      "content_categories": [
+        "documentation"
+      ],
+      "quality_score": 0.30000000000000004,
+      "extraction_time": 0.2610819339752197,
+      "timestamp": "2025-06-09T04:06:53.552231"
+    }
+  },
+  "ai_results": {
+    "https://docs.python.org/tutorial": {
+      "id": "1",
+      "title": "Python Tutorial",
+      "note": "Learn Python basics",
+      "excerpt": "Official Python tutorial",
+      "url": "https://docs.python.org/tutorial",
+      "folder": "Programming/Python",
+      "tags": [
+        "python",
+        "tutorial"
+      ],
+      "created": "2024-01-01T00:00:00+00:00",
+      "cover": "",
+      "highlights": "",
+      "favorite": false,
+      "enhanced_description": "Mock AI-generated summary for testing.",
+      "optimized_tags": [],
+      "normalized_url": "https://docs.python.org/tutorial",
+      "folder_hierarchy": [
+        "Programming",
+        "Python"
+      ]
+    },
+    "https://arxiv.org/abs/12345": {
+      "id": "2",
+      "title": "AI Research",
+      "note": "Latest AI developments",
+      "excerpt": "Research paper on AI",
+      "url": "https://arxiv.org/abs/12345",
+      "folder": "Research/AI",
+      "tags": [
+        "ai",
+        "research"
+      ],
+      "created": "2024-01-02T00:00:00+00:00",
+      "cover": "",
+      "highlights": "",
+      "favorite": false,
+      "enhanced_description": "Mock AI-generated summary for testing.",
+      "optimized_tags": [],
+      "normalized_url": "https://arxiv.org/abs/12345",
+      "folder_hierarchy": [
+        "Research",
+        "AI"
+      ]
+    },
+    "https://developer.mozilla.org/js": {
+      "id": "3",
+      "title": "JavaScript Guide",
+      "note": "Web development",
+      "excerpt": "MDN JavaScript docs",
+      "url": "https://developer.mozilla.org/js",
+      "folder": "Programming/JavaScript",
+      "tags": [
+        "javascript",
+        "web"
+      ],
+      "created": "2024-01-03T00:00:00+00:00",
+      "cover": "",
+      "highlights": "",
+      "favorite": false,
+      "enhanced_description": "Mock AI-generated summary for testing.",
+      "optimized_tags": [],
+      "normalized_url": "https://developer.mozilla.org/js",
+      "folder_hierarchy": [
+        "Programming",
+        "JavaScript"
+      ]
+    },
+    "https://reactjs.org/docs": {
+      "id": "4",
+      "title": "React Documentation",
+      "note": "React framework",
+      "excerpt": "React official docs",
+      "url": "https://reactjs.org/docs",
+      "folder": "Programming/Frontend",
+      "tags": [
+        "react",
+        "frontend"
+      ],
+      "created": "2024-01-04T00:00:00+00:00",
+      "cover": "",
+      "highlights": "",
+      "favorite": false,
+      "enhanced_description": "Mock AI-generated summary for testing.",
+      "optimized_tags": [],
+      "normalized_url": "https://reactjs.org/docs",
+      "folder_hierarchy": [
+        "Programming",
+        "Frontend"
+      ]
+    }
+  },
+  "tag_assignments": {
+    "https://docs.python.org/tutorial": [
+      "tutorial",
+      "documentation",
+      "docs",
+      "ai",
+      "mock"
+    ],
+    "https://arxiv.org/abs/12345": [
+      "ai",
+      "mock",
+      "generated",
+      "testing",
+      "summary"
+    ],
+    "https://developer.mozilla.org/js": [
+      "documentation",
+      "web",
+      "ai",
+      "mock",
+      "backend"
+    ],
+    "https://reactjs.org/docs": [
+      "documentation",
+      "docs",
+      "ai",
+      "mock",
+      "generated"
+    ]
+  },
+  "start_time": "2025-06-09T04:06:53.022866",
+  "last_checkpoint_time": "2025-06-09T04:06:53.904445",
+  "stage_start_time": "2025-06-09T04:06:53.865608",
+  "processing_stats": {}
+}

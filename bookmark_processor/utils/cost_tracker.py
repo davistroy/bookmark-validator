@@ -10,11 +10,9 @@ import json
 import logging
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-from bookmark_processor.config.configuration import Configuration
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -175,14 +173,14 @@ class CostTracker:
         """
         cost_since_last = self.session_cost - self.last_confirmation
 
-        prompt = f"\\n💰 Cost Update - Session Analysis:\\n"
+        prompt = "\\n💰 Cost Update - Session Analysis:\\n"
         prompt += f"  💵 Current session: ${self.session_cost:.2f}\\n"
         prompt += f"  📈 Since last confirmation: ${cost_since_last:.2f}\\n"
         prompt += f"  📊 Total historical: ${self.total_cost:.2f}\\n"
 
         # Provider breakdown for current session
         if self.provider_costs:
-            prompt += f"\\n  📋 Session breakdown by provider:\\n"
+            prompt += "\\n  📋 Session breakdown by provider:\\n"
             session_provider_costs = self._get_session_provider_costs()
             for provider, cost in session_provider_costs.items():
                 prompt += f"    • {provider}: ${cost:.2f}\\n"
@@ -190,9 +188,12 @@ class CostTracker:
         # Recent usage statistics
         recent_stats = self._get_recent_usage_stats()
         if recent_stats:
-            prompt += f"\\n  ⚡ Recent activity (last 10 min):\\n"
+            prompt += "\\n  ⚡ Recent activity (last 10 min):\\n"
             prompt += f"    • Requests: {recent_stats['request_count']}\\n"
-            prompt += f"    • Avg cost/request: ${recent_stats['avg_cost_per_request']:.4f}\\n"
+            prompt += (
+                f"    • Avg cost/request: "
+                f"${recent_stats['avg_cost_per_request']:.4f}\\n"
+            )
             prompt += f"    • Success rate: {recent_stats['success_rate']:.1f}%\\n"
 
         # Cost projection
@@ -200,7 +201,7 @@ class CostTracker:
             projection = self._estimate_hourly_cost()
             prompt += f"\\n  🔮 Estimated hourly rate: ${projection:.2f}/hour\\n"
 
-        prompt += f"\\n❓ Continue processing? (y/n): "
+        prompt += "\\n❓ Continue processing? (y/n): "
         return prompt
 
     async def confirm_continuation(self) -> bool:
@@ -468,7 +469,8 @@ class CostTracker:
                 self.provider_costs[record.provider] += record.cost_usd
 
             self.logger.info(
-                f"Loaded {len(self.cost_records)} cost records, total: ${self.total_cost:.4f}"
+                f"Loaded {len(self.cost_records)} cost records, "
+                f"total: ${self.total_cost:.4f}"
             )
 
         except Exception as e:

@@ -7,11 +7,10 @@ validation and type safety.
 """
 
 import os
-import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from .pydantic_config import BookmarkConfig, ConfigurationManager, format_config_error
+from .pydantic_config import BookmarkConfig, ConfigurationManager
 
 
 class Configuration:

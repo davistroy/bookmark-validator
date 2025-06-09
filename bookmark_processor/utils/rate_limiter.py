@@ -235,7 +235,8 @@ class ServiceRateLimiters:
         """
         if service not in self.limiters:
             raise ValueError(
-                f"Unsupported service: {service}. Available: {list(self.limiters.keys())}"
+                f"Unsupported service: {service}. "
+                f"Available: {list(self.limiters.keys())}"
             )
 
         return self.limiters[service]

@@ -1,8 +1,9 @@
 """
 Chrome HTML Bookmark Generator
 
-This module generates Chrome-compatible HTML bookmark files from processed bookmark data.
-Follows the Netscape-Bookmark-file-1 format specification as defined in CHROME_SPEC.md.
+This module generates Chrome-compatible HTML bookmark files from processed
+bookmark data. Follows the Netscape-Bookmark-file-1 format specification
+as defined in CHROME_SPEC.md.
 """
 
 import logging

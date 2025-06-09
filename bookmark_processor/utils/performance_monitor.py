@@ -10,13 +10,12 @@ import json
 import os
 import resource
 import threading
-import time
 import tracemalloc
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -153,7 +152,7 @@ class PerformanceMonitor:
                         memory_usage.ru_maxrss / 1024 / 1024
                     )  # On Windows, it's in bytes
                 self.memory_peak = max(self.memory_peak, memory_mb)
-            except:
+            except Exception:
                 memory_mb = 0.0
 
             # CPU metrics (simplified)
@@ -201,12 +200,6 @@ class PerformanceMonitor:
                 self.end_current_stage()
 
             # Start new stage
-            try:
-                memory_usage = resource.getrusage(resource.RUSAGE_SELF)
-                memory_mb = memory_usage.ru_maxrss / 1024  # KB to MB
-            except:
-                memory_mb = 0.0
-
             self.current_stage = ProcessingStageMetrics(
                 stage_name=stage_name,
                 start_time=datetime.now(),
@@ -232,7 +225,7 @@ class PerformanceMonitor:
                 memory_usage = resource.getrusage(resource.RUSAGE_SELF)
                 current_memory = memory_usage.ru_maxrss / 1024  # KB to MB
                 start_memory = self.memory_peak - current_memory  # Approximation
-            except:
+            except Exception:
                 current_memory = 0.0
                 start_memory = 0.0
 
@@ -273,7 +266,7 @@ class PerformanceMonitor:
             try:
                 memory_usage = resource.getrusage(resource.RUSAGE_SELF)
                 memory_mb = memory_usage.ru_maxrss / 1024  # KB to MB
-            except:
+            except Exception:
                 memory_mb = 0.0
 
             rate_per_hour = (

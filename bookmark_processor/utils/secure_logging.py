@@ -11,7 +11,7 @@ import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Pattern
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -43,7 +43,8 @@ class SecureLogger:
         # API Keys and tokens
         (
             re.compile(
-                r'(?i)(api[_-]?key|token|secret|password|auth)["\s]*[:=]["\s]*([a-zA-Z0-9+/=_-]{10,})',
+                r'(?i)(api[_-]?key|token|secret|password|auth)'
+                r'["\s]*[:=]["\s]*([a-zA-Z0-9+/=_-]{10,})',
                 re.IGNORECASE,
             ),
             r"\1=***REDACTED***",
@@ -209,7 +210,8 @@ class SecureLogger:
         log_level = getattr(logging, severity.upper(), logging.WARNING)
         self.logger.log(
             log_level,
-            f"Security Event [{event_id}] {event_type}: {json.dumps(event.sanitized_details)}",
+            f"Security Event [{event_id}] {event_type}: "
+            f"{json.dumps(event.sanitized_details)}",
         )
 
         return event_id

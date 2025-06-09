@@ -58,7 +58,7 @@ def validate_input_file(file_path: Union[str, Path, None]) -> Union[Path, None]:
         importer = MultiFormatImporter()
         file_info = importer.get_file_info(path)
         if not file_info["is_supported"]:
-            raise ValidationError(f"Unsupported file format or invalid file content")
+            raise ValidationError("Unsupported file format or invalid file content")
     except ImportError:
         # If import fails, just check extension
         pass
@@ -407,16 +407,19 @@ def sanitize_input(input_data) -> str:
     # Remove HTML tags
     sanitized = re.sub(r"<[^>]*>", "", input_data)
 
-    # Replace newlines and carriage returns with spaces, but preserve the fact they were there
+    # Replace newlines and carriage returns with spaces,
+    # but preserve the fact they were there
     has_trailing_newlines = re.search(r"[\r\n]\s*$", sanitized)
 
-    # Normalize whitespace (replace newlines, tabs, carriage returns with spaces)
+    # Normalize whitespace
+    # (replace newlines, tabs, carriage returns with spaces)
     sanitized = re.sub(r"[\r\n\t]+", " ", sanitized)
 
     # Collapse multiple spaces into single spaces
     sanitized = re.sub(r" +", " ", sanitized)
 
-    # Trim leading and trailing, but preserve trailing space if original had trailing newlines
+    # Trim leading and trailing,
+    # but preserve trailing space if original had trailing newlines
     sanitized = sanitized.strip()
     if has_trailing_newlines:
         sanitized += " "

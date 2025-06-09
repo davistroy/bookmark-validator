@@ -10,7 +10,6 @@ import resource
 import sys
 import threading
 import time
-import weakref
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
@@ -67,7 +66,7 @@ class MemoryMonitor:
                 memory_mb = memory_mb / 1024 / 1024
 
             return memory_mb
-        except:
+        except Exception:
             # Fallback: estimate from sys.getsizeof for major objects
             return 0.0
 

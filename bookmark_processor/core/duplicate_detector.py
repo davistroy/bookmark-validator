@@ -9,7 +9,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from .data_models import Bookmark
@@ -211,7 +211,8 @@ class DuplicateDetector:
 
         Args:
             duplicate_groups: Dictionary of duplicate groups
-            strategy: Resolution strategy ('newest', 'oldest', 'most_complete', 'highest_quality')
+            strategy: Resolution strategy ('newest', 'oldest', 'most_complete',
+                'highest_quality')
 
         Returns:
             Updated duplicate groups with keep_index set

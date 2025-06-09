@@ -5,14 +5,12 @@ This module provides comprehensive progress tracking, real-time status updates,
 and performance monitoring for the bookmark processing pipeline.
 """
 
-import asyncio
 import logging
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 try:
     from tqdm import tqdm
@@ -144,6 +142,9 @@ class ProgressTracker:
         self.start_time = time.time()
         self.items_processed = 0
         self.items_failed = 0
+        
+        # Backward compatibility attribute
+        self.completed_items = 0
 
         # Stage tracking
         self.stage_metrics: Dict[ProcessingStage, StageMetrics] = {}
@@ -284,6 +285,22 @@ class ProgressTracker:
             # Update status display
             self._update_status_display()
 
+    def update(self, completed_items: int) -> None:
+        """
+        Set absolute progress (for backward compatibility).
+        
+        Args:
+            completed_items: Absolute number of completed items
+        """
+        if completed_items < self.items_processed:
+            # If the new value is less than current, reset and set
+            self.items_processed = 0
+            
+        # Calculate delta and call update_progress
+        delta = completed_items - self.items_processed
+        if delta > 0:
+            self.update_progress(items_delta=delta)
+
     def _update_status_display(self) -> None:
         """Update the status display with current information."""
         if not self.verbose:
@@ -300,11 +317,13 @@ class ProgressTracker:
 
         # Format status lines
         status_lines = [
-            f"\n📊 Processing Status Update:",
+            "\n📊 Processing Status Update:",
             f"  📍 Stage: {self.current_stage.value.replace('_', ' ').title()}",
-            f"  📈 Overall: {snapshot.overall_progress:.1f}% ({self.items_processed}/{self.total_items})",
+            f"  📈 Overall: {snapshot.overall_progress:.1f}% "
+            f"({self.items_processed}/{self.total_items})",
             f"  ⏱️  Elapsed: {self._format_duration(snapshot.elapsed_time)}",
-            f"  ⏳ Remaining: {self._format_duration(snapshot.estimated_time_remaining)}",
+            f"  ⏳ Remaining: "
+            f"{self._format_duration(snapshot.estimated_time_remaining)}",
             f"  🚀 Rate: {snapshot.current_rate:.1f} items/s",
             f"  💾 Memory: {snapshot.memory_usage_mb:.1f} MB",
         ]
@@ -597,7 +616,10 @@ class ProgressTracker:
         print("📊 PROCESSING COMPLETE - FINAL REPORT")
         print("=" * 60)
 
-        print(f"\n⏱️  Total Duration: {self._format_duration(report['total_duration'])}")
+        print(
+            f"\n⏱️  Total Duration: "
+            f"{self._format_duration(report['total_duration'])}"
+        )
         print(f"✅ Items Processed: {report['total_items_processed']}")
         print(f"❌ Items Failed: {report['total_items_failed']}")
         print(f"📈 Success Rate: {report['overall_success_rate']:.1f}%")

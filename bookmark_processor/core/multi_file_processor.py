@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from .data_models import Bookmark
-from .import_module import ImportError, MultiFormatImporter, UnsupportedFormatError
+from .import_module import BookmarkImportError, MultiFormatImporter, UnsupportedFormatError
 
 
 class MultiFileProcessor:
@@ -75,7 +75,8 @@ class MultiFileProcessor:
                     valid_files.append(Path(file_path))
                     self.logger.info(
                         f"Detected valid bookmark file: {file_path} "
-                        f"({file_info['format']}, ~{file_info['estimated_bookmarks']} bookmarks)"
+                        f"({file_info['format']}, "
+                        f"~{file_info['estimated_bookmarks']} bookmarks)"
                     )
                 else:
                     self.logger.debug(f"Skipping unsupported file: {file_path}")
@@ -99,7 +100,7 @@ class MultiFileProcessor:
             Tuple of (combined bookmarks, processing statistics)
 
         Raises:
-            ImportError: If any critical errors occur during processing
+            BookmarkImportError: If any critical errors occur during processing
         """
         if not file_paths:
             raise ValueError("No files provided for processing")
@@ -141,10 +142,11 @@ class MultiFileProcessor:
                 }
 
                 self.logger.info(
-                    f"Successfully processed {len(bookmarks)} bookmarks from {file_path}"
+                    f"Successfully processed {len(bookmarks)} bookmarks "
+                    f"from {file_path}"
                 )
 
-            except (ImportError, UnsupportedFormatError) as e:
+            except (BookmarkImportError, UnsupportedFormatError) as e:
                 error_msg = f"Failed to process {file_path}: {str(e)}"
                 self.logger.error(error_msg)
 
@@ -177,11 +179,12 @@ class MultiFileProcessor:
         processing_stats["total_bookmarks"] = len(all_bookmarks)
 
         if processing_stats["successful_files"] == 0:
-            raise ImportError("Failed to process any files successfully")
+            raise BookmarkImportError("Failed to process any files successfully")
 
         self.logger.info(
             f"Multi-file processing completed: "
-            f"{processing_stats['successful_files']}/{processing_stats['total_files']} files successful, "
+            f"{processing_stats['successful_files']}/"
+            f"{processing_stats['total_files']} files successful, "
             f"{processing_stats['total_bookmarks']} total bookmarks"
         )
 
@@ -219,7 +222,7 @@ class MultiFileProcessor:
             Formatted summary string
         """
         summary_lines = [
-            f"Multi-file Processing Summary:",
+            "Multi-file Processing Summary:",
             f"  Files processed: {stats['successful_files']}/{stats['total_files']}",
             f"  Total bookmarks: {stats['total_bookmarks']}",
         ]
@@ -232,7 +235,9 @@ class MultiFileProcessor:
             status_icon = "✓" if result["status"] == "success" else "✗"
             if result["status"] == "success":
                 summary_lines.append(
-                    f"  {status_icon} {Path(file_path).name}: {result['bookmark_count']} bookmarks ({result['file_format']})"
+                    f"  {status_icon} {Path(file_path).name}: "
+                    f"{result['bookmark_count']} bookmarks "
+                    f"({result['file_format']})"
                 )
             else:
                 summary_lines.append(

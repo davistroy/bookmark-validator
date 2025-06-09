@@ -12,13 +12,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
-from bookmark_processor.utils.security_validator import (
-    SecurityValidationResult,
-    SecurityValidator,
-)
+from bookmark_processor.utils.security_validator import SecurityValidator
 
 
 class ValidationSeverity(Enum):
@@ -313,7 +310,7 @@ class StringValidator(Validator):
 
         # Check pattern
         if self.pattern and not self.pattern.match(value):
-            result.add_error(f"String does not match required pattern", self.field_name)
+            result.add_error("String does not match required pattern", self.field_name)
 
         # Check allowed values
         if self.allowed_values and value not in self.allowed_values:
@@ -589,7 +586,8 @@ class URLValidator(Validator):
 
         if parsed.scheme.lower() not in self.allowed_schemes:
             result.add_error(
-                f"URL scheme '{parsed.scheme}' not allowed. Allowed: {list(self.allowed_schemes)}",
+                f"URL scheme '{parsed.scheme}' not allowed. "
+                f"Allowed: {list(self.allowed_schemes)}",
                 self.field_name,
             )
 

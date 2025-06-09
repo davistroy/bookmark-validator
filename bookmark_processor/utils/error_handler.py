@@ -10,7 +10,7 @@ import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple
 
 from bookmark_processor.core.data_models import Bookmark
 
@@ -361,14 +361,16 @@ class ErrorHandler:
                 # Check if we should retry
                 if not retry_strategy.should_retry(attempt, error_details):
                     self.logger.error(
-                        f"Operation failed after {attempt} attempts: {error_details.message}"
+                        f"Operation failed after {attempt} attempts: "
+                        f"{error_details.message}"
                     )
                     break
 
                 # Calculate delay and wait
                 delay = retry_strategy.get_delay(attempt - 1)
                 self.logger.warning(
-                    f"Attempt {attempt} failed ({error_details.category.value}): {error_details.message}. "
+                    f"Attempt {attempt} failed "
+                    f"({error_details.category.value}): {error_details.message}. "
                     f"Retrying in {delay:.1f}s..."
                 )
 
@@ -389,7 +391,8 @@ class ErrorHandler:
         self._track_error(error_details)
 
         self.logger.error(
-            f"Bookmark processing error ({error_details.category.value}): {error_details.message}"
+            f"Bookmark processing error "
+            f"({error_details.category.value}): {error_details.message}"
         )
 
         if not self.enable_fallback:

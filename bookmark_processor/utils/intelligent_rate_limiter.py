@@ -69,7 +69,8 @@ class IntelligentRateLimiter:
         self.domain_delays = self.MAJOR_SITE_DELAYS.copy()
 
         logging.info(
-            f"Initialized rate limiter with {len(self.MAJOR_SITE_DELAYS)} special domain rules"
+            f"Initialized rate limiter with "
+            f"{len(self.MAJOR_SITE_DELAYS)} special domain rules"
         )
 
     def wait_if_needed(self, url: str) -> float:

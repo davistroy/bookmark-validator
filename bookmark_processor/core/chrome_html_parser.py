@@ -10,7 +10,7 @@ import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import unquote
 
 from bs4 import BeautifulSoup
@@ -115,7 +115,8 @@ class ChromeHTMLParser:
                         continue
                 else:
                     raise ChromeHTMLStructureError(
-                        "File does not appear to be a Chrome bookmark export (missing DOCTYPE)"
+                        "File does not appear to be a Chrome bookmark export "
+                        "(missing DOCTYPE)"
                     )
 
             return content
@@ -286,7 +287,8 @@ class ChromeHTMLParser:
 
             # Extract timestamps
             add_date = self._parse_timestamp(a_tag.get("add_date"))
-            last_modified = self._parse_timestamp(a_tag.get("last_modified"))
+            # Note: last_modified parsed but not currently used
+            # last_modified = self._parse_timestamp(a_tag.get("last_modified"))
 
             # Use add_date as created time, fallback to current time
             created = add_date if add_date else datetime.now(timezone.utc)

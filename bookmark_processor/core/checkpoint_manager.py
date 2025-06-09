@@ -1,18 +1,15 @@
 """
 Checkpoint Manager Module
 
-Provides progress persistence and resume functionality for long-running bookmark processing.
-Handles secure checkpoint files with automatic cleanup and recovery mechanisms.
+Provides progress persistence and resume functionality for long-running
+bookmark processing. Handles secure checkpoint files with automatic cleanup
+and recovery mechanisms.
 """
 
 import hashlib
 import json
 import logging
-import os
-import pickle
-import tempfile
 import threading
-import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum

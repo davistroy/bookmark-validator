@@ -16,13 +16,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .data_models import Bookmark
+
 # Suppress warnings from transformers
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 try:
     # Try importing transformers but catch all errors
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+    from transformers import pipeline
 
     TRANSFORMERS_AVAILABLE = True
     logging.info("Transformers library available for AI processing")
@@ -31,9 +33,6 @@ except Exception as e:
     logging.info(
         f"Transformers not available ({e}). Using intelligent fallback methods."
     )
-
-from .content_analyzer import ContentData
-from .data_models import Bookmark
 
 # Import cloud clients for module-level access (needed for test patching)
 try:
@@ -84,7 +83,8 @@ class ModelManager:
         Initialize model manager.
 
         Args:
-            cache_dir: Directory to cache models (defaults to ~/.cache/bookmark_processor)
+            cache_dir: Directory to cache models (defaults to
+                ~/.cache/bookmark_processor)
         """
         if cache_dir is None:
             # Use user's cache directory
@@ -234,7 +234,8 @@ class EnhancedAIProcessor:
         }
 
         logging.info(
-            f"AI processor initialized (engine={self.engine}, max_length={max_description_length})"
+            f"AI processor initialized (engine={self.engine}, "
+            f"max_length={max_description_length})"
         )
 
     @property
@@ -418,6 +419,25 @@ class EnhancedAIProcessor:
 
         return results
 
+    def batch_process(
+        self,
+        bookmarks: List[Bookmark],
+        content_data_map: Dict = None,
+        progress_callback=None,
+    ) -> List[Bookmark]:
+        """
+        Alias for process_batch to maintain backward compatibility.
+        
+        Args:
+            bookmarks: List of bookmarks to process
+            content_data_map: Optional mapping of URLs to content data
+            progress_callback: Optional callback for progress updates
+
+        Returns:
+            List of processed Bookmark objects
+        """
+        return self.process_batch(bookmarks, content_data_map, progress_callback)
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get processing statistics."""
         stats = {
@@ -484,7 +504,7 @@ class EnhancedAIProcessor:
                 domain = domain[4:]
 
             return domain
-        except:
+        except Exception:
             return "unknown"
 
     def clear_cache(self):

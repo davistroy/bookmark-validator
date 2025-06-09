@@ -8,18 +8,19 @@ command-line validation, and configuration validation.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from .cli_validators import validate_cli_arguments
 
-# NOTE: config_validators was removed during Pydantic migration - validation moved to Configuration class
+# NOTE: config_validators was removed during Pydantic migration
+# validation moved to Configuration class
 from .csv_field_validators import validate_bookmark_record, validate_csv_row
 from .data_recovery import (
     DataRecoveryManager,
     MalformedDataDetector,
     create_error_report,
 )
-from .input_validator import ValidationResult, ValidationSeverity
+from .input_validator import ValidationResult
 
 
 class IntegratedValidator:
@@ -61,7 +62,8 @@ class IntegratedValidator:
             errors.append(f"CLI Argument Error: {cli_error}")
             return False, errors
 
-        # Configuration validation now handled by Configuration class during Pydantic migration
+        # Configuration validation now handled by Configuration class
+        # during Pydantic migration
         # The Configuration class validates itself during initialization
         if config_path:
             try:
@@ -69,7 +71,7 @@ class IntegratedValidator:
                 from bookmark_processor.config.configuration import Configuration
 
                 # Test loading the configuration - it will validate itself
-                config = Configuration(config_file=config_path)
+                _ = Configuration(config_file=config_path)  # Just test loading
                 self.logger.info(
                     f"Configuration loaded successfully from {config_path}"
                 )
@@ -129,7 +131,8 @@ class IntegratedValidator:
                     )
                     if corruption_issues:
                         self.logger.warning(
-                            f"Row {row_number} corruption detected: {', '.join(corruption_issues)}"
+                            f"Row {row_number} corruption detected: "
+                            f"{', '.join(corruption_issues)}"
                         )
 
                     # Attempt recovery
@@ -214,7 +217,7 @@ class IntegratedValidator:
 
         except Exception as e:
             self.validation_stats["failed_validations"] += 1
-            error_message = f"Unexpected error validating bookmark"
+            error_message = "Unexpected error validating bookmark"
             if record_id:
                 error_message += f" {record_id}"
             error_message += f": {e}"
@@ -369,11 +372,13 @@ class IntegratedValidator:
             "📊 BOOKMARK VALIDATION REPORT",
             "=" * 50,
             "",
-            f"📈 SUMMARY:",
+            "📈 SUMMARY:",
             f"  Total records processed: {validation_summary['total_processed']:,}",
-            f"  Valid bookmarks: {validation_summary['valid_bookmarks']:,} ({validation_summary['success_rate']:.1f}%)",
+            f"  Valid bookmarks: {validation_summary['valid_bookmarks']:,} "
+            f"({validation_summary['success_rate']:.1f}%)",
             f"  Failed bookmarks: {validation_summary['failed_bookmarks']:,}",
-            f"  Recovered bookmarks: {validation_summary['recovered_bookmarks']:,} ({validation_summary['recovery_rate']:.1f}%)",
+            f"  Recovered bookmarks: {validation_summary['recovered_bookmarks']:,} "
+            f"({validation_summary['recovery_rate']:.1f}%)",
             "",
         ]
 
@@ -382,7 +387,8 @@ class IntegratedValidator:
             report_parts.extend(
                 [
                     "🔧 DATA RECOVERY:",
-                    f"  Successfully recovered {validation_summary['recovered_bookmarks']} records",
+                    f"  Successfully recovered "
+                    f"{validation_summary['recovered_bookmarks']} records",
                     f"  Recovery rate: {validation_summary['recovery_rate']:.1f}%",
                     "",
                 ]
@@ -393,7 +399,8 @@ class IntegratedValidator:
             report_parts.extend(
                 [
                     "❌ FAILED RECORDS:",
-                    f"  {validation_summary['failed_bookmarks']} records could not be processed",
+                    f"  {validation_summary['failed_bookmarks']} records "
+                    f"could not be processed",
                     "",
                 ]
             )
@@ -437,7 +444,8 @@ class IntegratedValidator:
 
         if validation_summary["recovery_rate"] > 10:
             report_parts.append(
-                "  • Review data source quality - high recovery rate indicates input issues"
+                "  • Review data source quality - "
+                "high recovery rate indicates input issues"
             )
 
         if validation_summary["success_rate"] < 90:

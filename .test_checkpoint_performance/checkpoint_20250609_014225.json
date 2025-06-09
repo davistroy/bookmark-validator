@@ -1,0 +1,18 @@
+{
+  "input_file": "/tmp/tmpyk0swulr.csv",
+  "output_file": "/tmp/tmpyk0swulr_perf_output.csv",
+  "total_bookmarks": 10,
+  "config_hash": "unknown",
+  "current_stage": "url_validation",
+  "stage_progress": 0,
+  "processed_urls": [],
+  "validated_bookmarks": [],
+  "failed_validations": [],
+  "content_data": {},
+  "ai_results": {},
+  "tag_assignments": {},
+  "start_time": "2025-06-09T01:42:25.121413",
+  "last_checkpoint_time": "2025-06-09T01:42:25.121467",
+  "stage_start_time": "2025-06-09T01:42:25.121459",
+  "processing_stats": {}
+}

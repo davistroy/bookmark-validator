@@ -23,8 +23,8 @@ class UnsupportedFormatError(Exception):
     pass
 
 
-class ImportError(Exception):
-    """Base exception for import-related errors."""
+class BookmarkImportError(Exception):
+    """Base exception for bookmark import-related errors."""
 
     pass
 
@@ -55,13 +55,13 @@ class MultiFormatImporter:
             List of Bookmark objects
 
         Raises:
-            ImportError: If import fails
+            BookmarkImportError: If import fails
             UnsupportedFormatError: If file format is not supported
         """
         file_path = Path(file_path)
 
         if not file_path.exists():
-            raise ImportError(f"File not found: {file_path}")
+            raise BookmarkImportError(f"File not found: {file_path}")
 
         # Detect file format and use appropriate parser
         file_format = self.detect_format(file_path)
@@ -76,7 +76,7 @@ class MultiFormatImporter:
 
         except Exception as e:
             self.logger.error(f"Failed to import bookmarks from {file_path}: {str(e)}")
-            raise ImportError(f"Failed to import bookmarks: {str(e)}") from e
+            raise BookmarkImportError(f"Failed to import bookmarks: {str(e)}") from e
 
     def detect_format(self, file_path: Path) -> str:
         """
@@ -205,7 +205,7 @@ class MultiFormatImporter:
             return bookmarks
 
         except Exception as e:
-            raise ImportError(f"Failed to import CSV file: {str(e)}") from e
+            raise BookmarkImportError(f"Failed to import CSV file: {str(e)}") from e
 
     def _import_html(self, file_path: Path) -> List[Bookmark]:
         """
@@ -227,7 +227,7 @@ class MultiFormatImporter:
             return bookmarks
 
         except ChromeHTMLError as e:
-            raise ImportError(f"Failed to import Chrome HTML file: {str(e)}") from e
+            raise BookmarkImportError(f"Failed to import Chrome HTML file: {str(e)}") from e
 
     def get_file_info(self, file_path: Union[str, Path]) -> dict:
         """

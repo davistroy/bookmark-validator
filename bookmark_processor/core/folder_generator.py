@@ -6,11 +6,9 @@ with support for hierarchical organization and folder size limits.
 """
 
 import logging
-import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from .ai_processor import AIProcessingResult
 from .content_analyzer import ContentData
@@ -106,7 +104,8 @@ class AIFolderGenerator:
         """
         self.max_bookmarks_per_folder = max_bookmarks_per_folder
 
-        # For now, we'll just use local AI processor since folder generation doesn't need cloud AI
+        # For now, we'll just use local AI processor since folder generation
+        # doesn't need cloud AI
         # This can be enhanced later to use AIFactory properly
         from .ai_processor import EnhancedAIProcessor
 
@@ -344,7 +343,8 @@ class AIFolderGenerator:
         )
 
         logging.info(
-            f"Generated {result.total_folders} folders with max depth {result.max_depth}"
+            f"Generated {result.total_folders} folders with max depth "
+            f"{result.max_depth}"
         )
 
         return result
@@ -484,7 +484,7 @@ class AIFolderGenerator:
             if domain.startswith("www."):
                 domain = domain[4:]
             return domain
-        except:
+        except Exception:
             return ""
 
     def _fallback_category(self, bookmark: Bookmark, original_folder: str) -> str:
@@ -567,7 +567,8 @@ class AIFolderGenerator:
             # Group bookmarks by similarity
             groups = self._group_similar_bookmarks(folder.bookmarks)
 
-            # If we can't create meaningful groups (all still too large), do simple numeric splitting
+            # If we can't create meaningful groups (all still too large),
+            # do simple numeric splitting
             if all(
                 len(bookmarks) > self.max_bookmarks_per_folder
                 for bookmarks in groups.values()

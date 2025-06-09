@@ -194,7 +194,8 @@ class BookmarkProcessor:
                 return 1
 
             print(
-                f"\n✓ Combined {len(all_bookmarks)} bookmarks from {len(detected_files)} files"
+                f"\n✓ Combined {len(all_bookmarks)} bookmarks from "
+                f"{len(detected_files)} files"
             )
 
             # Generate output filename with timestamp for combined processing
@@ -258,7 +259,8 @@ class BookmarkProcessor:
                     if results.statistics.get("folder_generation"):
                         folder_stats = results.statistics["folder_generation"]
                         print(
-                            f"  AI-generated folders: {folder_stats.get('total_folders', 0)}"
+                            f"  AI-generated folders: "
+                            f"{folder_stats.get('total_folders', 0)}"
                         )
                         print(f"  Max folder depth: {folder_stats.get('max_depth', 0)}")
                     else:
@@ -269,7 +271,8 @@ class BookmarkProcessor:
 
                 if processing_stats.get("file_errors"):
                     print(
-                        f"  File processing errors: {len(processing_stats['file_errors'])}"
+                        f"  File processing errors: "
+                        f"{len(processing_stats['file_errors'])}"
                     )
                     for file_path, error in processing_stats["file_errors"].items():
                         print(f"    {file_path}: {error}")

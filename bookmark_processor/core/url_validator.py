@@ -1,21 +1,19 @@
 """
 URL Validation Module
 
-Validates bookmark URLs with intelligent retry logic, rate limiting, and browser simulation.
-Handles large datasets efficiently with concurrent processing and comprehensive error reporting.
+Validates bookmark URLs with intelligent retry logic, rate limiting, and
+browser simulation. Handles large datasets efficiently with concurrent
+processing and comprehensive error reporting.
 """
 
 import logging
-import socket
-import ssl
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from urllib.parse import quote, urljoin, urlparse
+from typing import Any, Callable, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 from queue import Queue, Empty
 from abc import ABC, abstractmethod
 import asyncio
@@ -23,20 +21,18 @@ import aiohttp
 from asyncio import Semaphore
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 from ..utils.browser_simulator import BrowserSimulator
 from ..utils.intelligent_rate_limiter import IntelligentRateLimiter
-from ..utils.retry_handler import ErrorType, RetryHandler
+from ..utils.retry_handler import RetryHandler
 from ..utils.secure_logging import secure_logger
 from ..utils.security_validator import SecurityValidationResult, SecurityValidator
-from ..utils.cost_tracker import CostTracker, CostEstimate
 from ..utils.progress_tracker import ProgressTracker, ProcessingStage
 
 
 class ValidationError(Exception):
-    """Exception raised when URL validation fails due to configuration or system errors."""
+    """Exception raised when URL validation fails due to configuration or
+    system errors."""
 
     pass
 
@@ -299,7 +295,8 @@ class BatchProcessorInterface(ABC):
 
 
 class EnhancedBatchProcessor:
-    """Enhanced batch processor with configurable batch sizes and intelligent optimization"""
+    """Enhanced batch processor with configurable batch sizes and intelligent
+    optimization"""
 
     def __init__(
         self,
@@ -307,7 +304,6 @@ class EnhancedBatchProcessor:
         config: Optional[BatchConfig] = None,
         progress_callback: Optional[Callable[[str], None]] = None,
         progress_update_callback: Optional[Callable[[ProgressUpdate], None]] = None,
-        cost_tracker: Optional[CostTracker] = None,
     ):
         """
         Initialize enhanced batch processor.
@@ -317,13 +313,11 @@ class EnhancedBatchProcessor:
             config: Batch processing configuration
             progress_callback: Optional simple progress callback function (legacy)
             progress_update_callback: Optional detailed progress update callback
-            cost_tracker: Optional cost tracker instance for cost monitoring
         """
         self.processor = processor
         self.config = config or BatchConfig()
         self.progress_callback = progress_callback
         self.progress_update_callback = progress_update_callback
-        self.cost_tracker = cost_tracker
 
         # Processing state
         self.processing_queue = Queue()
@@ -367,7 +361,8 @@ class EnhancedBatchProcessor:
 
         if self.config.enable_cost_tracking:
             logging.info(
-                f"Cost tracking enabled: cost_per_validation=${self.config.cost_per_url_validation:.6f}, "
+                f"Cost tracking enabled: "
+                f"cost_per_validation=${self.config.cost_per_url_validation:.6f}, "
                 f"threshold=${self.config.cost_confirmation_threshold:.2f}, "
                 f"budget_limit=${self.config.budget_limit}"
             )
@@ -449,7 +444,8 @@ class EnhancedBatchProcessor:
             projected_total = self.total_session_cost + estimated_cost
             if projected_total > self.config.budget_limit:
                 logging.warning(
-                    f"Budget limit exceeded: ${projected_total:.4f} > ${self.config.budget_limit:.2f}"
+                    f"Budget limit exceeded: ${projected_total:.4f} > "
+                    f"${self.config.budget_limit:.2f}"
                 )
 
                 # Use cost tracker for detailed confirmation if available
@@ -649,7 +645,8 @@ class EnhancedBatchProcessor:
             projected_total = self.total_session_cost + estimated_cost
             if projected_total > self.config.budget_limit:
                 logging.warning(
-                    f"Budget limit exceeded: ${projected_total:.4f} > ${self.config.budget_limit:.2f}"
+                    f"Budget limit exceeded: ${projected_total:.4f} > "
+                    f"${self.config.budget_limit:.2f}"
                 )
 
                 # Use cost tracker for detailed confirmation if available
@@ -747,7 +744,8 @@ class EnhancedBatchProcessor:
                     len(items), "url_validation_batch"
                 )
                 logging.info(
-                    f"Cost estimation for {len(items)} items: ${cost_breakdown.total_estimated_cost:.6f}"
+                    f"Cost estimation for {len(items)} items: "
+                    f"${cost_breakdown.total_estimated_cost:.6f}"
                 )
 
                 # Store cost estimate
@@ -785,7 +783,8 @@ class EnhancedBatchProcessor:
                 self.processing_queue.put((batch_id, batch_items))
 
             logging.info(
-                f"Added {len(items)} items in {len(batches)} batches to processing queue"
+                f"Added {len(items)} items in {len(batches)} batches to "
+                f"processing queue"
             )
 
             # Send initial progress update
@@ -938,7 +937,8 @@ class EnhancedBatchProcessor:
                     if self.progress_callback:
                         self.progress_callback(
                             f"Completed batch {processed_batches}/{total_batches}: "
-                            f"{batch_result.items_successful}/{batch_result.items_processed} successful"
+                            f"{batch_result.items_successful}/"
+                            f"{batch_result.items_processed} successful"
                         )
 
                 except Exception as e:
@@ -968,7 +968,8 @@ class EnhancedBatchProcessor:
 
         logging.info(
             f"Sync batch processing completed in {total_time:.2f}s: "
-            f"{len(all_results)} items processed across {len(self.completed_batches)} batches"
+            f"{len(all_results)} items processed across "
+            f"{len(self.completed_batches)} batches"
         )
 
         return all_results
@@ -1065,8 +1066,9 @@ class EnhancedBatchProcessor:
 
                     if self.progress_callback:
                         self.progress_callback(
-                            f"Completed async batch {successful_batches}/{len(batches)}: "
-                            f"{result.items_successful}/{result.items_processed} successful"
+                            f"Completed async batch {successful_batches}/"
+                            f"{len(batches)}: {result.items_successful}/"
+                            f"{result.items_processed} successful"
                         )
 
             # Handle retries for failed batches
@@ -1088,12 +1090,14 @@ class EnhancedBatchProcessor:
 
         # Emit final progress update for async processing completion
         self._emit_progress_update(
-            "async_processing_completed", "final", len(all_results), len(all_results)
+            "async_processing_completed", "final", len(all_results),
+            len(all_results)
         )
 
         logging.info(
             f"Async batch processing completed in {total_time:.2f}s: "
-            f"{len(all_results)} items processed across {len(self.completed_batches)} batches"
+            f"{len(all_results)} items processed across "
+            f"{len(self.completed_batches)} batches"
         )
 
         return all_results
@@ -1134,13 +1138,15 @@ class EnhancedBatchProcessor:
                 if batch_id in self.cost_estimates:
                     cost_breakdown = self.cost_estimates[batch_id]
                     # For URL validation, actual cost is typically the same as estimated
-                    # In real implementations, this could be based on actual resource usage
+                    # In real implementations, this could be based on actual
+                    # resource usage
                     actual_cost = cost_breakdown.total_estimated_cost
 
                     # Apply success rate adjustment to actual cost
                     if result.items_processed > 0:
                         success_rate = result.items_successful / result.items_processed
-                        # Reduce cost based on success rate (failed operations might cost less)
+                        # Reduce cost based on success rate (failed operations
+                        # might cost less)
                         actual_cost = actual_cost * (0.5 + 0.5 * success_rate)
 
                     result.actual_cost = actual_cost
@@ -1160,8 +1166,8 @@ class EnhancedBatchProcessor:
             )
 
             logging.debug(
-                f"Batch {batch_id} completed: {result.items_successful}/{result.items_processed} "
-                f"successful in {processing_time:.2f}s"
+                f"Batch {batch_id} completed: {result.items_successful}/"
+                f"{result.items_processed} successful in {processing_time:.2f}s"
                 + (f", cost: ${result.actual_cost:.6f}" if result.actual_cost else "")
             )
 
@@ -1378,7 +1384,8 @@ class EnhancedBatchProcessor:
             )
 
         logging.debug(
-            f"Initialized async components with concurrency limit: {self.current_concurrency_limit}"
+            f"Initialized async components with concurrency limit: "
+            f"{self.current_concurrency_limit}"
         )
 
     async def _cleanup_async_components(self) -> None:
@@ -1440,7 +1447,8 @@ class EnhancedBatchProcessor:
                 )
 
                 logging.debug(
-                    f"Async batch {batch_id} completed: {results.items_successful}/{results.items_processed} "
+                    f"Async batch {batch_id} completed: "
+                    f"{results.items_successful}/{results.items_processed} "
                     f"successful in {processing_time:.2f}s"
                 )
 
@@ -1540,13 +1548,15 @@ class EnhancedBatchProcessor:
 
         if new_limit != self.current_concurrency_limit:
             logging.info(
-                f"Adapting concurrency limit from {self.current_concurrency_limit} to {new_limit}"
+                f"Adapting concurrency limit from "
+                f"{self.current_concurrency_limit} to {new_limit}"
             )
             self.current_concurrency_limit = new_limit
 
             # Update semaphore if it exists
             if self.async_semaphore:
-                # Note: Can't directly change semaphore limit, will be updated on next initialization
+                # Note: Can't directly change semaphore limit,
+                # will be updated on next initialization
                 pass
 
     async def _apply_domain_rate_limiting(self, url: str) -> None:
@@ -1730,7 +1740,8 @@ class URLValidator(BatchProcessorInterface):
         progress_tracker: Optional[ProgressTracker] = None,
     ) -> List[ValidationResult]:
         """
-        Optimized batch validation with memory-efficient processing and progress tracking
+        Optimized batch validation with memory-efficient processing and progress
+        tracking
 
         Args:
             urls: List of URLs to validate
@@ -1743,7 +1754,8 @@ class URLValidator(BatchProcessorInterface):
             List of ValidationResult objects
         """
         logging.info(
-            f"Starting optimized batch validation of {len(urls)} URLs in batches of {batch_size}"
+            f"Starting optimized batch validation of {len(urls)} URLs "
+            f"in batches of {batch_size}"
         )
         start_time = time.time()
 
@@ -1838,7 +1850,8 @@ class URLValidator(BatchProcessorInterface):
                     (len(batch_results) - batch_failed) / len(batch_results)
                 ) * 100
                 logging.info(
-                    f"Batch {batch_number} completed: {len(batch_results) - batch_failed}/{len(batch_results)} valid "
+                    f"Batch {batch_number} completed: "
+                    f"{len(batch_results) - batch_failed}/{len(batch_results)} valid "
                     f"({batch_success_rate:.1f}% success rate)"
                 )
 
@@ -1857,13 +1870,15 @@ class URLValidator(BatchProcessorInterface):
 
         # Log comprehensive completion statistics
         logging.info(
-            f"Optimized batch validation completed: {valid_count}/{len(all_results)} valid URLs "
+            f"Optimized batch validation completed: "
+            f"{valid_count}/{len(all_results)} valid URLs "
             f"({overall_success_rate:.1f}% success rate) in {total_time:.2f}s"
         )
 
         if progress_tracker:
             logging.info(
-                f"Progress tracker final state: {processed_count} processed, {failed_count} failed"
+                f"Progress tracker final state: {processed_count} processed, "
+                f"{failed_count} failed"
             )
 
         return all_results
@@ -2068,7 +2083,7 @@ class URLValidator(BatchProcessorInterface):
                 security_validation=security_result,
             )
 
-        except requests.exceptions.Timeout as e:
+        except requests.exceptions.Timeout:
             self.rate_limiter.record_error(url)
             return ValidationResult(
                 url=url,
@@ -2123,7 +2138,8 @@ class URLValidator(BatchProcessorInterface):
             urls: List of URLs to validate
             progress_callback: Optional progress callback function
             enable_retries: Whether to enable retry logic for failed URLs
-            progress_tracker: Optional progress tracker for detailed per-batch monitoring
+            progress_tracker: Optional progress tracker for detailed per-batch
+                monitoring
 
         Returns:
             List of ValidationResult objects
@@ -2406,7 +2422,8 @@ class URLValidator(BatchProcessorInterface):
         # Use existing batch validation method
         validation_results = self.batch_validate_optimized(
             items,
-            progress_callback=None,  # Batch-level progress handled by EnhancedBatchProcessor
+            progress_callback=None,  # Batch-level progress handled by
+            # EnhancedBatchProcessor
             batch_size=len(items),  # Process all items in this batch at once
             max_workers=min(self.max_concurrent, len(items)),
         )
@@ -2697,8 +2714,9 @@ class URLValidator(BatchProcessorInterface):
         )
 
         logging.info(
-            f"Async batch {batch_id} completed: {successful_count}/{len(urls)} URLs valid "
-            f"in {processing_time:.2f}s (avg {average_time_per_item:.3f}s per URL)"
+            f"Async batch {batch_id} completed: {successful_count}/{len(urls)} URLs "
+            f"valid in {processing_time:.2f}s "
+            f"(avg {average_time_per_item:.3f}s per URL)"
         )
 
         return batch_result
@@ -2757,7 +2775,6 @@ class URLValidator(BatchProcessorInterface):
         config: Optional[BatchConfig] = None,
         progress_callback: Optional[Callable[[str], None]] = None,
         progress_update_callback: Optional[Callable[[ProgressUpdate], None]] = None,
-        cost_tracker: Optional[CostTracker] = None,
         enable_cost_tracking: bool = False,
         cost_per_url_validation: float = 0.0001,
         cost_confirmation_threshold: float = 1.0,
@@ -2770,7 +2787,6 @@ class URLValidator(BatchProcessorInterface):
             config: Optional batch processing configuration
             progress_callback: Optional progress callback function
             progress_update_callback: Optional detailed progress update callback
-            cost_tracker: Optional cost tracker instance
             enable_cost_tracking: Whether to enable cost tracking
             cost_per_url_validation: Cost per URL validation operation
             cost_confirmation_threshold: USD threshold for user confirmation
@@ -2809,5 +2825,4 @@ class URLValidator(BatchProcessorInterface):
             config=config,
             progress_callback=progress_callback,
             progress_update_callback=progress_update_callback,
-            cost_tracker=cost_tracker,
         )

@@ -11,16 +11,12 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, Optional, Union
 
 from .input_validator import (
-    NumberValidator,
-    StringValidator,
     ValidationResult,
     ValidationSeverity,
     Validator,
-    create_optional_string,
-    create_required_string,
 )
 
 
@@ -230,7 +226,7 @@ class ConfigValueValidator(Validator):
                 return result
             else:
                 result.add_error(
-                    f"Required option is missing or empty", self.field_name
+                    "Required option is missing or empty", self.field_name
                 )
                 return result
 
@@ -557,14 +553,16 @@ class ConfigurationFileValidator(Validator):
                 api_key_option = f"{default_engine}_api_key"
                 if not config.has_option("ai", api_key_option):
                     result.add_warning(
-                        f"AI engine '{default_engine}' selected but no API key configured",
+                        f"AI engine '{default_engine}' selected but no API key "
+                        "configured",
                         self.field_name,
                     )
                 else:
                     api_key = config.get("ai", api_key_option)
                     if not api_key or not api_key.strip():
                         result.add_warning(
-                            f"AI engine '{default_engine}' selected but API key is empty",
+                            f"AI engine '{default_engine}' selected but API key "
+                            "is empty",
                             self.field_name,
                         )
 
@@ -574,14 +572,14 @@ class ConfigurationFileValidator(Validator):
             default_engine = config.get("ai", "default_engine", fallback="local")
 
             if default_engine in ["claude", "openai"]:
-                rpm = config.getint("ai", f"{default_engine}_rpm", fallback=60)
                 ai_batch_size = config.getint(
                     "ai", f"{default_engine}_batch_size", fallback=10
                 )
 
                 if batch_size > ai_batch_size * 5:
                     result.add_warning(
-                        f"Processing batch size ({batch_size}) is much larger than AI batch size ({ai_batch_size})",
+                        f"Processing batch size ({batch_size}) is much larger than "
+                        f"AI batch size ({ai_batch_size})",
                         self.field_name,
                     )
 
@@ -594,7 +592,9 @@ class ConfigurationFileValidator(Validator):
                 "executable", "temp_dir", fallback="/tmp/bookmark-processor"
             )
 
-            checkpoint_path = os.path.expanduser(os.path.expandvars(checkpoint_dir))
+            checkpoint_path = os.path.expanduser(
+                os.path.expandvars(checkpoint_dir)
+            )
             temp_path = os.path.expanduser(os.path.expandvars(temp_dir))
 
             if checkpoint_path == temp_path:

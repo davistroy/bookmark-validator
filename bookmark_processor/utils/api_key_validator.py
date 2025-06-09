@@ -103,7 +103,8 @@ class APIKeyValidator:
         if not config.has_api_key(ai_engine):
             return (
                 False,
-                f"No API key configured for {ai_engine}. Please add {ai_engine}_api_key to your configuration.",
+                f"No API key configured for {ai_engine}. "
+                f"Please add {ai_engine}_api_key to your configuration.",
             )
 
         # Validate key format

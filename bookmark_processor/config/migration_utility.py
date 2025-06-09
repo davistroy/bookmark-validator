@@ -254,7 +254,8 @@ class ConfigurationMigrator:
 
                 if new_key is None:
                     report.append(
-                        f"  ❌ {option} = {config.get(section, option)} (REMOVED - no longer needed)"
+                        f"  ❌ {option} = {config.get(section, option)} "
+                        f"(REMOVED - no longer needed)"
                     )
                     removed_count += 1
                 else:
@@ -270,7 +271,8 @@ class ConfigurationMigrator:
                 f"  ✓ {migrated_count} options will be migrated",
                 f"  ❌ {removed_count} options will be removed (no longer needed)",
                 "",
-                "Note: Removed options are part of the simplification to 15 essential options.",
+                "Note: Removed options are part of the simplification to "
+                "15 essential options.",
             ]
         )
 
@@ -322,7 +324,7 @@ def main():
         else:
             migrator.migrate_to_json(ini_path, output_path)
 
-        print(f"\n✓ Migration completed successfully!")
+        print("\n✓ Migration completed successfully!")
         print(f"Please review {output_path} and add your API keys as needed.")
 
     except Exception as e:

@@ -9,15 +9,13 @@ help messages for invalid arguments.
 import argparse
 import logging
 import os
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from .input_validator import (
     NumberValidator,
     StringValidator,
     ValidationResult,
-    ValidationSeverity,
     Validator,
 )
 
@@ -89,7 +87,8 @@ class PathValidator(Validator):
             and path.suffix.lower() not in self.allowed_extensions
         ):
             result.add_error(
-                f"File extension '{path.suffix}' not allowed. Allowed: {list(self.allowed_extensions)}",
+                f"File extension '{path.suffix}' not allowed. "
+                f"Allowed: {list(self.allowed_extensions)}",
                 self.field_name,
             )
 
@@ -410,7 +409,8 @@ class ArgumentCombinationValidator(Validator):
         # Check conflicting flags
         if args_dict.get("resume") and args_dict.get("clear_checkpoints"):
             result.add_error(
-                "Cannot use --resume and --clear-checkpoints together. Choose one or the other.",
+                "Cannot use --resume and --clear-checkpoints together. "
+                "Choose one or the other.",
                 self.field_name,
             )
 
@@ -431,7 +431,8 @@ class ArgumentCombinationValidator(Validator):
         detect_duplicates = args_dict.get("detect_duplicates", True)
         if ai_engine != "local" and not detect_duplicates:
             result.add_warning(
-                "Using cloud AI without duplicate detection may process the same URLs multiple times",
+                "Using cloud AI without duplicate detection may process "
+                "the same URLs multiple times",
                 self.field_name,
             )
 
@@ -588,23 +589,25 @@ def create_enhanced_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         prog="bookmark-processor",
-        description="Bookmark Validation and Enhancement Tool - Process raindrop.io bookmark exports",
+        description=(
+            "Bookmark Validation and Enhancement Tool - "
+            "Process raindrop.io bookmark exports"
+        ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Basic processing
   bookmark-processor --input bookmarks.csv --output enhanced.csv
-  
+
   # Resume from checkpoint
   bookmark-processor --input bookmarks.csv --output enhanced.csv --resume
-  
+
   # Use cloud AI with custom batch size
   bookmark-processor --input bookmarks.csv --output enhanced.csv \\
     --ai-engine claude --batch-size 50 --verbose
-  
+
   # Disable duplicate detection
   bookmark-processor --input bookmarks.csv --output enhanced.csv --no-duplicates
-  
   # Custom duplicate strategy
   bookmark-processor --input bookmarks.csv --output enhanced.csv \\
     --duplicate-strategy newest
@@ -639,7 +642,10 @@ For more information: https://github.com/davistroy/bookmark-validator
         "-i",
         required=True,
         metavar="FILE",
-        help="Input CSV file (raindrop.io export format). Must exist and be readable.",
+        help=(
+            "Input CSV file (raindrop.io export format). "
+            "Must exist and be readable."
+        ),
     )
 
     parser.add_argument(
@@ -647,7 +653,10 @@ For more information: https://github.com/davistroy/bookmark-validator
         "-o",
         required=True,
         metavar="FILE",
-        help="Output CSV file (raindrop.io import format). Parent directory must be writable.",
+        help=(
+            "Output CSV file (raindrop.io import format). "
+            "Parent directory must be writable."
+        ),
     )
 
     # Optional file arguments
@@ -674,7 +683,9 @@ For more information: https://github.com/davistroy/bookmark-validator
         type=int,
         default=3,
         metavar="N",
-        help="Maximum retry attempts for failed URLs (0-10, default: 3).",
+        help=(
+            "Maximum retry attempts for failed URLs (0-10, default: 3)."
+        ),
     )
 
     # AI engine selection
@@ -682,7 +693,10 @@ For more information: https://github.com/davistroy/bookmark-validator
         "--ai-engine",
         choices=["local", "claude", "openai"],
         default="local",
-        help="AI engine for description generation (default: local). Cloud engines require API keys.",
+        help=(
+            "AI engine for description generation (default: local). "
+            "Cloud engines require API keys."
+        ),
     )
 
     # Duplicate handling

@@ -9,15 +9,12 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from ..utils.intelligent_rate_limiter import IntelligentRateLimiter
 from ..utils.memory_optimizer import (
     BatchProcessor,
     MemoryMonitor,
-    memory_context,
-    optimize_for_large_dataset,
 )
 from ..utils.progress_tracker import (
     AdvancedProgressTracker,
@@ -32,10 +29,10 @@ from .chrome_html_generator import ChromeHTMLGenerator, ChromeHTMLGeneratorError
 from .content_analyzer import ContentAnalyzer, ContentData
 from .csv_handler import RaindropCSVHandler
 from .data_models import Bookmark
-from .duplicate_detector import DuplicateDetectionResult, DuplicateDetector
+from .duplicate_detector import DuplicateDetector
 from .folder_generator import AIFolderGenerator, FolderGenerationResult
 from .import_module import MultiFormatImporter
-from .tag_generator import CorpusAwareTagGenerator, TagOptimizationResult
+from .tag_generator import CorpusAwareTagGenerator
 from .url_validator import URLValidator, ValidationResult
 
 
@@ -246,7 +243,8 @@ class BookmarkProcessingPipeline:
         )
 
         if progress_callback:
-            # Store progress callback for manual calls since add_progress_callback doesn't exist
+            # Store progress callback for manual calls since
+            # add_progress_callback doesn't exist
             self._progress_callback = progress_callback
         else:
             self._progress_callback = None
@@ -273,7 +271,7 @@ class BookmarkProcessingPipeline:
 
             return self._create_results()
 
-        except Exception as e:
+        except Exception:
             self.checkpoint_manager.update_stage(ProcessingStage.ERROR)
             raise
 
@@ -306,7 +304,8 @@ class BookmarkProcessingPipeline:
         self.progress_tracker.update_progress(items_delta=len(state.processed_urls))
 
         if progress_callback:
-            # Store progress callback for manual calls since add_progress_callback doesn't exist
+            # Store progress callback for manual calls since
+            # add_progress_callback doesn't exist
             self._progress_callback = progress_callback
         else:
             self._progress_callback = None
@@ -337,7 +336,7 @@ class BookmarkProcessingPipeline:
 
             return self._create_results()
 
-        except Exception as e:
+        except Exception:
             self.checkpoint_manager.update_stage(ProcessingStage.ERROR)
             raise
 
@@ -390,7 +389,8 @@ class BookmarkProcessingPipeline:
                 self.bookmarks = deduplicated_bookmarks
 
                 logging.info(
-                    f"Duplicate detection complete: {initial_count} → {len(self.bookmarks)} bookmarks "
+                    f"Duplicate detection complete: {initial_count} → "
+                    f"{len(self.bookmarks)} bookmarks "
                     f"({duplicate_result.removed_count} duplicates removed)"
                 )
             else:
@@ -404,7 +404,8 @@ class BookmarkProcessingPipeline:
 
                 if len(self.bookmarks) < initial_count:
                     logging.info(
-                        f"Simple duplicate removal: {initial_count} → {len(self.bookmarks)} bookmarks"
+                        f"Simple duplicate removal: {initial_count} → "
+                        f"{len(self.bookmarks)} bookmarks"
                     )
 
             logging.info(f"Loaded {len(self.bookmarks)} unique bookmarks")
@@ -460,7 +461,8 @@ class BookmarkProcessingPipeline:
 
         valid_count = sum(1 for r in self.validation_results.values() if r.is_valid)
         logging.info(
-            f"URL validation complete: {valid_count}/{len(self.validation_results)} valid"
+            f"URL validation complete: "
+            f"{valid_count}/{len(self.validation_results)} valid"
         )
 
     def _stage_analyze_content(self, resume: bool = False) -> None:
@@ -793,7 +795,6 @@ class BookmarkProcessingPipeline:
 
     def _generate_html_output_path(self) -> str:
         """Generate timestamped HTML output path based on CSV output path."""
-        from datetime import datetime
         from pathlib import Path
 
         csv_path = Path(self.config.output_file)

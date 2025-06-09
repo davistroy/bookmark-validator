@@ -1,0 +1,18 @@
+{
+  "input_file": "/tmp/tmp5cbki4dk.csv",
+  "output_file": "/tmp/tmp5cbki4dk_error_output.csv",
+  "total_bookmarks": 8,
+  "config_hash": "unknown",
+  "current_stage": "error",
+  "stage_progress": 0,
+  "processed_urls": [],
+  "validated_bookmarks": [],
+  "failed_validations": [],
+  "content_data": {},
+  "ai_results": {},
+  "tag_assignments": {},
+  "start_time": "2025-06-09T04:07:18.882739",
+  "last_checkpoint_time": "2025-06-09T04:07:18.925907",
+  "stage_start_time": "2025-06-09T04:07:18.925776",
+  "processing_stats": {}
+}

@@ -7,18 +7,15 @@ and other CSV fields with appropriate validation logic.
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from urllib.parse import urlparse
 
 from .input_validator import (
     CompositeValidator,
     DateTimeValidator,
-    ListValidator,
-    NumberValidator,
     StringValidator,
     URLValidator,
     ValidationResult,
-    ValidationSeverity,
     Validator,
 )
 
@@ -233,7 +230,8 @@ class BookmarkURLValidator(URLValidator):
                     ]
                     if tracking_params:
                         result.add_info(
-                            f"URL contains tracking parameters: {', '.join(tracking_params)}",
+                            f"URL contains tracking parameters: "
+                            f"{', '.join(tracking_params)}",
                             self.field_name,
                         )
 
@@ -406,7 +404,8 @@ class BookmarkTagsValidator(Validator):
         # Check total number of tags
         if len(cleaned_tags) > self.max_tags:
             result.add_warning(
-                f"Too many tags ({len(cleaned_tags)} > {self.max_tags}), keeping first {self.max_tags}",
+                f"Too many tags ({len(cleaned_tags)} > {self.max_tags}), "
+                f"keeping first {self.max_tags}",
                 self.field_name,
             )
             cleaned_tags = cleaned_tags[: self.max_tags]
@@ -589,7 +588,8 @@ class BookmarkFavoriteValidator(Validator):
                 result.sanitized_value = False
         else:
             result.add_warning(
-                f"Cannot convert {type(value).__name__} to boolean, defaulting to False",
+                f"Cannot convert {type(value).__name__} to boolean, "
+                f"defaulting to False",
                 self.field_name,
             )
             result.sanitized_value = False
@@ -680,7 +680,8 @@ class BookmarkCompositeValidator(CompositeValidator):
                 # Check if title is just the domain (might need better title)
                 if domain and (domain in title_lower or title_lower in domain):
                     result.add_info(
-                        "Title appears to be domain name - might benefit from content extraction",
+                        "Title appears to be domain name - might benefit "
+                        "from content extraction",
                         self.field_name,
                     )
 
@@ -786,9 +787,7 @@ class CSVFieldValidator:
     ) -> ValidationResult:
         """Internal method to validate row data against expected columns."""
         from bookmark_processor.utils.input_validator import (
-            ValidationIssue,
             ValidationResult,
-            ValidationSeverity,
         )
 
         result = ValidationResult()
@@ -796,23 +795,19 @@ class CSVFieldValidator:
         # Check if all expected columns are present
         missing_columns = [col for col in expected_columns if col not in row_data]
         if missing_columns:
-            result.add_issue(
-                ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    message=f"Missing required columns: {', '.join(missing_columns)}",
-                    field="columns",
-                )
+            result.add_error(
+                f"Missing required columns: {', '.join(missing_columns)}",
+                "columns"
             )
 
         # Check for extra columns
-        extra_columns = [col for col in row_data.keys() if col not in expected_columns]
+        extra_columns = [
+            col for col in row_data.keys() if col not in expected_columns
+        ]
         if extra_columns:
-            result.add_issue(
-                ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    message=f"Unexpected columns found: {', '.join(extra_columns)}",
-                    field="columns",
-                )
+            result.add_warning(
+                f"Unexpected columns found: {', '.join(extra_columns)}",
+                "columns"
             )
 
         # Validate individual fields
@@ -831,9 +826,7 @@ class CSVFieldValidator:
     def validate_csv_structure(self, df) -> ValidationResult:
         """Validate CSV structure and columns."""
         from bookmark_processor.utils.input_validator import (
-            ValidationIssue,
             ValidationResult,
-            ValidationSeverity,
         )
 
         result = ValidationResult()

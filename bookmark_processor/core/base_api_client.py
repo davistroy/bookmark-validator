@@ -7,7 +7,6 @@ for HTTP requests, error handling, rate limiting, and resource management.
 
 import asyncio
 import logging
-import time
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -292,8 +291,9 @@ class BaseAPIClient(ABC):
                     delay = self._calculate_retry_delay(attempt)
                     sanitized_msg = self._sanitize_error_message(str(e))
                     self.logger.warning(
-                        f"Request failed (attempt {attempt + 1}/{self.max_retries + 1}): "
-                        f"{sanitized_msg}. Retrying in {delay:.1f}s"
+                        f"Request failed (attempt {attempt + 1}/"
+                        f"{self.max_retries + 1}): {sanitized_msg}. "
+                        f"Retrying in {delay:.1f}s"
                     )
                     await asyncio.sleep(delay)
                     attempt += 1

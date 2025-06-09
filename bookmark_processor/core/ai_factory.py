@@ -5,6 +5,7 @@ This module provides a factory pattern for creating appropriate AI clients
 based on configuration and handles fallback logic between different engines.
 """
 
+import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
@@ -269,7 +270,8 @@ class AIManager:
 
             except Exception as e:
                 self.logger.error(
-                    f"Failed to initialize fallback AI client ({self.fallback_provider}): {e}"
+                    f"Failed to initialize fallback AI client "
+                    f"({self.fallback_provider}): {e}"
                 )
                 self.fallback_client = None
 
@@ -297,7 +299,8 @@ class AIManager:
         self, bookmark, existing_content: Optional[str] = None
     ) -> tuple[str, Dict[str, Any]]:
         """
-        Generate description using the available AI client with comprehensive error handling.
+        Generate description using the available AI client with comprehensive
+        error handling.
 
         Args:
             bookmark: Bookmark object to process
@@ -332,7 +335,8 @@ class AIManager:
 
             except Exception as e:
                 self.logger.warning(
-                    f"Primary AI client ({self.current_provider}) failed after retries: {e}"
+                    f"Primary AI client ({self.current_provider}) failed after "
+                    f"retries: {e}"
                 )
 
                 # If fallback is enabled, continue to fallback logic
@@ -363,7 +367,8 @@ class AIManager:
 
             except Exception as e:
                 self.logger.warning(
-                    f"Fallback AI client ({self.fallback_provider}) failed after retries: {e}"
+                    f"Fallback AI client ({self.fallback_provider}) failed after "
+                    f"retries: {e}"
                 )
 
                 # Use error handler's fallback strategy as last resort

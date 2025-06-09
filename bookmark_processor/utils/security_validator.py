@@ -10,7 +10,7 @@ import logging
 import re
 import socket
 from dataclasses import dataclass
-from typing import List, Optional, Set, Tuple, Union
+from typing import List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 logger = logging.getLogger(__name__)
@@ -236,7 +236,7 @@ class SecurityValidator:
                 is_safe=False,
                 risk_level="high",
                 issues=[f"Unsupported scheme: {scheme}"],
-                blocked_reason=f"Only HTTP/HTTPS schemes are allowed",
+                blocked_reason="Only HTTP/HTTPS schemes are allowed",
             )
 
         return SecurityValidationResult(is_safe=True, risk_level="safe", issues=[])
@@ -363,7 +363,9 @@ class SecurityValidator:
                     is_safe=False,
                     risk_level="medium",
                     issues=[f"Too many query parameters: {len(params)}"],
-                    blocked_reason=f"Maximum {self.MAX_QUERY_PARAMS} query parameters allowed",
+                    blocked_reason=(
+                        f"Maximum {self.MAX_QUERY_PARAMS} query parameters allowed"
+                    ),
                 )
 
             # Check for suspicious parameter values
@@ -435,7 +437,10 @@ class SecurityValidator:
                                 is_safe=False,
                                 risk_level="critical",
                                 issues=[f"Hostname resolves to private IP: {ip_str}"],
-                                blocked_reason=f'Hostname "{hostname}" resolves to private/internal IP',
+                                blocked_reason=(
+                                    f'Hostname "{hostname}" resolves to '
+                                    f"private/internal IP"
+                                ),
                             )
 
                 except ValueError:
@@ -467,7 +472,8 @@ class SecurityValidator:
         # Allow common domain patterns including example.com
         # More permissive pattern that allows standard domain names
         hostname_pattern = re.compile(
-            r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
+            r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+            r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
         )
 
         return bool(hostname_pattern.match(hostname))

@@ -1,8 +1,9 @@
 """
 Batch Processing Module for Bookmark Processing
 
-This module provides efficient batch processing capabilities for large bookmark datasets,
-optimizing API usage through appropriate batch sizes and concurrent processing within rate limits.
+This module provides efficient batch processing capabilities for large bookmark
+datasets, optimizing API usage through appropriate batch sizes and concurrent
+processing within rate limits.
 """
 
 import asyncio
@@ -26,7 +27,8 @@ class BatchProcessingError(Exception):
 
 class BatchProcessor:
     """
-    Batch processor for efficient bookmark processing with rate limiting and cost tracking.
+    Batch processor for efficient bookmark processing with rate limiting and
+    cost tracking.
     """
 
     # Default batch sizes by provider
@@ -104,14 +106,14 @@ class BatchProcessor:
             cost_estimate = self.cost_tracker.get_cost_estimate(
                 len(bookmarks), provider
             )
-            print(f"\n💰 Cost Estimation:")
+            print("\n💰 Cost Estimation:")
             print(f"  📊 Estimated cost: ${cost_estimate['estimated_cost_usd']:.2f}")
             print(f"  📈 Cost per bookmark: ${cost_estimate['cost_per_bookmark']:.4f}")
             print(f"  🎯 Confidence: {cost_estimate['confidence']}")
             print(f"  📝 Method: {cost_estimate['method']}")
 
         if self.verbose:
-            print(f"\n🚀 Starting batch processing:")
+            print("\n🚀 Starting batch processing:")
             print(f"  Provider: {provider}")
             print(f"  Total bookmarks: {len(bookmarks)}")
             print(f"  Batch size: {batch_size}")
@@ -277,9 +279,10 @@ class BatchProcessor:
         Args:
             statistics: Statistics dictionary
         """
-        print(f"\n📊 Processing Complete!")
+        print("\n📊 Processing Complete!")
         print(
-            f"  ✅ Processed: {statistics['processed_count']}/{statistics['total_bookmarks']}"
+            f"  ✅ Processed: {statistics['processed_count']}/"
+            f"{statistics['total_bookmarks']}"
         )
         print(f"  ❌ Failed: {statistics['failed_count']}")
         print(f"  📈 Success Rate: {statistics['success_rate']:.1f}%")
@@ -293,24 +296,28 @@ class BatchProcessor:
         session_cost = session_info.get("total_cost_usd", 0.0)
 
         if session_cost > 0:
-            print(f"\n💰 Cost Analysis:")
+            print("\n💰 Cost Analysis:")
             print(f"  💵 Session Cost: ${session_cost:.4f}")
-            print(f"  📊 Cost/Hour: ${session_info.get('cost_per_hour', 0.0):.4f}")
             print(
-                f"  📈 Success Rate: {session_info.get('success_rate_percent', 0.0):.1f}%"
+                f"  📊 Cost/Hour: "
+                f"${session_info.get('cost_per_hour', 0.0):.4f}"
+            )
+            print(
+                f"  📈 Success Rate: "
+                f"{session_info.get('success_rate_percent', 0.0):.1f}%"
             )
 
             # Provider breakdown
             providers = cost_info.get("providers", {})
             if providers:
-                print(f"  📋 Provider Breakdown:")
+                print("  📋 Provider Breakdown:")
                 for provider, provider_stats in providers.items():
                     print(
-                        f"     {provider}: ${provider_stats['cost_usd']:.4f} ({provider_stats['requests']} requests)"
+                        f"     {provider}: ${provider_stats['cost_usd']:.4f} "
+                        f"({provider_stats['requests']} requests)"
                     )
 
         # Error handling information
-        error_info = statistics.get("error_handling", {})
         health_status = statistics.get("ai_usage", {}).get("health_status", {})
 
         if health_status:
@@ -322,7 +329,7 @@ class BatchProcessor:
         # Token usage for cloud AI
         tokens_info = cost_info.get("tokens", {})
         if tokens_info.get("total_tokens", 0) > 0:
-            print(f"\n🔤 Token Usage:")
+            print("\n🔤 Token Usage:")
             print(f"  📥 Input: {tokens_info['total_input_tokens']:,}")
             print(f"  📤 Output: {tokens_info['total_output_tokens']:,}")
             print(f"  📊 Total: {tokens_info['total_tokens']:,}")

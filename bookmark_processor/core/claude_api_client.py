@@ -87,21 +87,21 @@ class ClaudeAPIClient(BaseAPIClient):
             from urllib.parse import urlparse
 
             domain = urlparse(url).netloc or "unknown domain"
-        except:
+        except Exception:
             domain = "unknown domain"
 
         # Create optimized prompt for Claude
-        prompt = f"""Create a concise bookmark description (100-150 chars) that captures the key value.
-
-Title: {title}
-Domain: {domain}
-Content: {content_to_enhance or 'None'}
-
-Focus on: What problem does this solve? What can users learn/do?
-Avoid: Generic phrases, "This is a website about..."
-Style: Direct, actionable, specific
-
-Description:"""
+        prompt = (
+            f"Create a concise bookmark description (100-150 chars) that captures "
+            f"the key value.\n\n"
+            f"Title: {title}\n"
+            f"Domain: {domain}\n"
+            f"Content: {content_to_enhance or 'None'}\n\n"
+            f"Focus on: What problem does this solve? What can users learn/do?\n"
+            f"Avoid: Generic phrases, \"This is a website about...\"\n"
+            f"Style: Direct, actionable, specific\n\n"
+            f"Description:"
+        )
 
         return prompt
 
@@ -120,13 +120,13 @@ Description:"""
         Returns:
             Formatted batch prompt
         """
-        prompt = """Create bookmark descriptions (100-150 chars each) that capture key value and purpose.
-
-Focus on: What problem solved? What can users learn/do?
-Format: Just numbered descriptions, no extra text.
-
-Bookmarks:
-"""
+        prompt = (
+            "Create bookmark descriptions (100-150 chars each) that capture key "
+            "value and purpose.\n\n"
+            "Focus on: What problem solved? What can users learn/do?\n"
+            "Format: Just numbered descriptions, no extra text.\n\n"
+            "Bookmarks:\n"
+        )
 
         for i, bookmark in enumerate(bookmarks):
             title = getattr(bookmark, "title", "") or "Untitled"
@@ -139,7 +139,7 @@ Bookmarks:
                 from urllib.parse import urlparse
 
                 domain = urlparse(url).netloc or "unknown"
-            except:
+            except Exception:
                 domain = "unknown"
 
             # Use provided content or fallback
@@ -152,8 +152,10 @@ Bookmarks:
             # Truncate content to save tokens
             content_short = content[:100] + ("..." if len(content) > 100 else "")
 
-            prompt += f"""{i + 1}. Title: {title} | Domain: {domain} | Content: {content_short}
-"""
+            prompt += (
+                f"{i + 1}. Title: {title} | Domain: {domain} | "
+                f"Content: {content_short}\n"
+            )
 
         prompt += """
 Descriptions:"""
