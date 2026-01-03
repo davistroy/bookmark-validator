@@ -1,14 +1,28 @@
 """
 Command-line interface for the Bookmark Validation and Enhancement Tool.
 
-This module provides the CLI for processing raindrop.io bookmark exports,
-validating URLs, generating AI-enhanced descriptions, and creating
-optimized tagging systems.
+This module provides a modern CLI using Typer and Rich for processing
+raindrop.io bookmark exports, validating URLs, generating AI-enhanced
+descriptions, and creating optimized tagging systems.
 """
 
-import argparse
 import logging
 import sys
+from enum import Enum
+from pathlib import Path
+from typing import Optional
+
+try:
+    import typer
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+    # Fallback for environments without typer/rich
+    typer = None
 
 from bookmark_processor.config.configuration import Configuration
 from bookmark_processor.core.bookmark_processor import BookmarkProcessor
@@ -26,308 +40,325 @@ from bookmark_processor.utils.validation import (
 )
 
 
-class CLIInterface:
-    """Enhanced command line interface for Windows executable."""
+# Create console for rich output
+console = Console() if RICH_AVAILABLE else None
 
-    def __init__(self):
-        self.parser = self._create_parser()
 
-    def _create_parser(self) -> argparse.ArgumentParser:
-        """Create comprehensive argument parser."""
-        parser = argparse.ArgumentParser(
-            prog="bookmark-processor",
-            description=(
-                "Bookmark Validation and Enhancement Tool - "
-                "Process raindrop.io bookmark exports"
-            ),
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog="""
-Examples:
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv
-  bookmark-processor.exe --input chrome_bookmarks.html --output enhanced.csv
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv --resume
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --batch-size 50 --verbose
-  bookmark-processor.exe --input chrome_bookmarks.html --output enhanced.csv \\
-    --ai-engine claude --verbose
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --duplicate-strategy newest --verbose
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --no-duplicates
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --chrome-html --html-title "My Bookmarks"
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --chrome-html --html-output custom_bookmarks.html
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --no-folders --ai-engine openai
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --max-bookmarks-per-folder 15 --verbose
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --config my_config.toml --ai-engine claude --verbose
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv \\
-    --ai-engine local --batch-size 200 --verbose
+class AIEngine(str, Enum):
+    """Available AI engines for description generation."""
 
-Output Formats:
-  By default, only CSV output (raindrop.io import format) is generated.
-  Use --chrome-html to also generate Chrome-compatible HTML bookmark files.
-  HTML files include timestamped filenames unless --html-output is specified.
+    local = "local"
+    claude = "claude"
+    openai = "openai"
 
-AI Folder Generation:
-  By default, AI-powered semantic folder structures are generated
-  (max 20 bookmarks/folder).
-  Use --no-folders to disable and preserve original folder structure.
-  Use --max-bookmarks-per-folder to adjust folder size limits.
 
-Configuration System:
-  The application uses a modern Pydantic-based configuration system.
-  Configuration can be provided via TOML or JSON files:
-  • Create user_config.toml in the application directory
-  • Or use --config to specify a custom configuration file path
-  • Environment variables: CLAUDE_API_KEY, OPENAI_API_KEY
+class DuplicateStrategy(str, Enum):
+    """Strategy for resolving duplicate bookmarks."""
 
-  Example configuration (user_config.toml):
-  [processing]
-  ai_engine = "claude"
-  batch_size = 100
+    newest = "newest"
+    oldest = "oldest"
+    most_complete = "most_complete"
+    highest_quality = "highest_quality"
 
-  [ai]
-  claude_api_key = "your-actual-claude-api-key"
-  claude_rpm = 50
-  cost_confirmation_interval = 10.0
 
-  [network]
-  timeout = 30
-  concurrent_requests = 10
+class ConfigTemplate(str, Enum):
+    """Available configuration templates."""
 
-Duplicate Detection:
-  By default, duplicate URLs are detected and removed using the 'highest_quality'
-  strategy. Use --no-duplicates to disable or --duplicate-strategy to change.
+    basic = "basic"
+    claude = "claude"
+    openai = "openai"
+    performance = "performance"
+    large_dataset = "large-dataset"
 
-For more information, visit: https://github.com/davistroy/bookmark-validator
-            """,
+
+# Create Typer app if available
+if RICH_AVAILABLE:
+    app = typer.Typer(
+        name="bookmark-processor",
+        help="Bookmark Validation and Enhancement Tool - Process raindrop.io exports",
+        add_completion=True,
+        rich_markup_mode="rich",
+    )
+
+
+def version_callback(value: bool):
+    """Show version and exit."""
+    if value:
+        console.print("[bold]bookmark-processor[/bold] version 2.0.0")
+        raise typer.Exit()
+
+
+def print_config_details(validated_args: dict, config: Configuration):
+    """Print detailed configuration information using Rich."""
+    if not RICH_AVAILABLE:
+        return
+
+    table = Table(title="Configuration Details", show_header=False)
+    table.add_column("Setting", style="cyan")
+    table.add_column("Value", style="green")
+
+    # Input/Output
+    if validated_args["input_path"]:
+        table.add_row("Input", str(validated_args["input_path"]))
+    else:
+        table.add_row("Input", "Auto-detection mode")
+    table.add_row("Output", str(validated_args["output_path"]))
+
+    if validated_args["config_path"]:
+        table.add_row("Config", str(validated_args["config_path"]))
+
+    # AI Engine
+    ai_engine = validated_args["ai_engine"]
+    if ai_engine == "local":
+        table.add_row("AI Engine", "local (facebook/bart-large-cnn)")
+    elif ai_engine == "claude":
+        has_key = config.has_api_key("claude")
+        status = "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
+        table.add_row("AI Engine", f"claude-3-5-haiku ({status})")
+    elif ai_engine == "openai":
+        has_key = config.has_api_key("openai")
+        status = "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
+        table.add_row("AI Engine", f"gpt-4o-mini ({status})")
+
+    # Processing options
+    table.add_row("Batch Size", str(validated_args["batch_size"]))
+    table.add_row("Max Retries", str(validated_args["max_retries"]))
+    table.add_row("Resume", str(validated_args["resume"]))
+
+    # Duplicate detection
+    if validated_args["detect_duplicates"]:
+        table.add_row(
+            "Duplicates", f"detect ({validated_args['duplicate_strategy']})"
         )
+    else:
+        table.add_row("Duplicates", "disabled")
 
-        # Add version argument
-        parser.add_argument(
-            "--version", "-V", action="version", version="%(prog)s 1.0.0"
-        )
+    console.print(table)
 
-        # Configuration template generation
-        parser.add_argument(
-            "--create-config",
-            choices=["basic", "claude", "openai", "performance", "large-dataset"],
-            help="Create a configuration template file. "
-            "Options: 'basic' (general purpose), 'claude' (Claude AI optimized), "
-            "'openai' (OpenAI optimized), 'performance' (high-speed local), "
-            "'large-dataset' (conservative for 3000+ bookmarks). "
-            "Creates user_config.toml in current directory.",
-        )
 
-        # Input arguments
-        parser.add_argument(
+if RICH_AVAILABLE:
+
+    @app.command()
+    def process(
+        input_file: Optional[Path] = typer.Option(
+            None,
             "--input",
             "-i",
-            help="Input file (raindrop.io CSV export or Chrome HTML bookmarks). "
-            "If not specified, auto-detects all CSV and HTML files in current "
-            "directory.",
-        )
-        parser.add_argument(
+            help="Input file (raindrop.io CSV or Chrome HTML). Auto-detects if not specified.",
+        ),
+        output_file: Path = typer.Option(
+            ...,
             "--output",
             "-o",
             help="Output CSV file (raindrop.io import format)",
-        )
-
-        # Optional arguments
-        parser.add_argument(
+        ),
+        config_file: Optional[Path] = typer.Option(
+            None,
             "--config",
             "-c",
-            help="Custom configuration file path (TOML or JSON format). "
-            "If not specified, looks for user_config.toml/user_config.json "
-            "in the application directory.",
-        )
-        parser.add_argument(
+            help="Custom configuration file path (TOML or JSON)",
+        ),
+        resume: bool = typer.Option(
+            False,
             "--resume",
             "-r",
-            action="store_true",
             help="Resume from existing checkpoint",
-        )
-        parser.add_argument(
+        ),
+        verbose: bool = typer.Option(
+            False,
             "--verbose",
             "-v",
-            action="store_true",
-            help="Enable verbose output with detailed configuration information, "
-            "AI engine status, rate limiting details, and processing statistics.",
-        )
-        parser.add_argument(
+            help="Enable verbose output with detailed information",
+        ),
+        batch_size: int = typer.Option(
+            100,
             "--batch-size",
             "-b",
-            type=int,
-            default=100,
-            help="Processing batch size (default: 100)",
-        )
-        parser.add_argument(
+            min=10,
+            max=1000,
+            help="Processing batch size",
+        ),
+        max_retries: int = typer.Option(
+            3,
             "--max-retries",
             "-m",
-            type=int,
-            default=3,
-            help="Maximum retry attempts (default: 3)",
-        )
-        parser.add_argument(
+            min=0,
+            max=10,
+            help="Maximum retry attempts",
+        ),
+        clear_checkpoints: bool = typer.Option(
+            False,
             "--clear-checkpoints",
-            action="store_true",
             help="Clear existing checkpoints and start fresh",
-        )
-        parser.add_argument(
+        ),
+        ai_engine: AIEngine = typer.Option(
+            AIEngine.local,
             "--ai-engine",
-            choices=["local", "claude", "openai"],
-            default="local",
-            help="Select AI engine for enhanced descriptions and tagging. "
-            "Options: 'local' (free, uses facebook/bart-large-cnn), "
-            "'claude' (requires API key, high quality), "
-            "'openai' (requires API key, versatile). "
-            "Use --verbose to see detailed engine configuration.",
-        )
-        parser.add_argument(
+            help="AI engine: local (free), claude (claude-3-5-haiku), openai (gpt-4o-mini)",
+        ),
+        no_duplicates: bool = typer.Option(
+            False,
             "--no-duplicates",
-            action="store_true",
-            help="Disable duplicate URL detection and removal",
-        )
-        parser.add_argument(
+            help="Disable duplicate URL detection",
+        ),
+        duplicate_strategy: DuplicateStrategy = typer.Option(
+            DuplicateStrategy.highest_quality,
             "--duplicate-strategy",
-            choices=["newest", "oldest", "most_complete", "highest_quality"],
-            default="highest_quality",
-            help="Strategy for resolving duplicates (default: highest_quality)",
-        )
-
-        # Folder generation options
-        parser.add_argument(
-            "--generate-folders",
-            action="store_true",
-            default=True,
-            help="Generate AI-powered semantic folder structure (default: enabled)",
-        )
-        parser.add_argument(
-            "--no-folders",
-            action="store_true",
-            help="Disable AI folder generation and use original folder structure",
-        )
-        parser.add_argument(
+            help="Strategy for resolving duplicates",
+        ),
+        generate_folders: bool = typer.Option(
+            True,
+            "--generate-folders/--no-folders",
+            help="Generate AI-powered semantic folder structure",
+        ),
+        max_bookmarks_per_folder: int = typer.Option(
+            20,
             "--max-bookmarks-per-folder",
-            type=int,
-            default=20,
-            help="Maximum bookmarks per folder (default: 20)",
-        )
-
-        # Output format options
-        parser.add_argument(
+            help="Maximum bookmarks per folder",
+        ),
+        chrome_html: bool = typer.Option(
+            False,
             "--chrome-html",
-            action="store_true",
             help="Generate Chrome HTML bookmark file in addition to CSV",
-        )
-        parser.add_argument(
+        ),
+        html_output: Optional[Path] = typer.Option(
+            None,
             "--html-output",
-            help="Custom path for Chrome HTML output (auto-generated with "
-            "timestamp if not specified)",
-        )
-        parser.add_argument(
+            help="Custom path for Chrome HTML output",
+        ),
+        html_title: str = typer.Option(
+            "Enhanced Bookmarks",
             "--html-title",
-            default="Enhanced Bookmarks",
-            help="Title for Chrome HTML bookmark file (default: Enhanced Bookmarks)",
-        )
-
-        return parser
-
-    def parse_args(self, args=None) -> argparse.Namespace:
-        """Parse command line arguments."""
-        return self.parser.parse_args(args)
-
-    def validate_args(self, args: argparse.Namespace) -> dict:
+            help="Title for Chrome HTML bookmark file",
+        ),
+        version: bool = typer.Option(
+            False,
+            "--version",
+            "-V",
+            callback=version_callback,
+            is_eager=True,
+            help="Show version and exit",
+        ),
+    ):
         """
-        Validate all arguments and return processed values.
+        Process bookmark files with URL validation, AI descriptions, and smart tagging.
 
-        Args:
-            args: Parsed arguments from argparse
+        [bold]Examples:[/bold]
 
-        Returns:
-            Dictionary of validated and processed arguments
+            bookmark-processor -i bookmarks.csv -o enhanced.csv
 
-        Raises:
-            ValidationError: If any validation fails
+            bookmark-processor -i chrome.html -o enhanced.csv --ai-engine claude
+
+            bookmark-processor -i bookmarks.csv -o enhanced.csv --resume --verbose
         """
-        # Validate file paths
-        input_path = validate_input_file(args.input)
+        try:
+            # Validate arguments
+            with console.status("[bold green]Validating arguments..."):
+                input_path = validate_input_file(str(input_file) if input_file else None)
+                if input_path is None:
+                    validate_auto_detection_mode()
+                output_path = validate_output_file(str(output_file))
+                config_path = validate_config_file(
+                    str(config_file) if config_file else None
+                )
+                validated_batch_size = validate_batch_size(batch_size)
+                validated_max_retries = validate_max_retries(max_retries)
+                validate_conflicting_arguments(resume, clear_checkpoints)
 
-        # If no input file specified, validate auto-detection mode
-        if input_path is None:
-            validate_auto_detection_mode()
+            validated_args = {
+                "input_path": input_path,
+                "output_path": output_path,
+                "config_path": config_path,
+                "resume": resume,
+                "verbose": verbose,
+                "batch_size": validated_batch_size,
+                "max_retries": validated_max_retries,
+                "clear_checkpoints": clear_checkpoints,
+                "ai_engine": ai_engine.value,
+                "detect_duplicates": not no_duplicates,
+                "duplicate_strategy": duplicate_strategy.value,
+                "generate_folders": generate_folders,
+                "max_bookmarks_per_folder": max_bookmarks_per_folder,
+                "generate_chrome_html": chrome_html,
+                "chrome_html_output": str(html_output) if html_output else None,
+                "html_title": html_title,
+            }
 
-        # Require output file for normal processing
-        if not args.output:
-            raise ValidationError("Output file is required (use --output/-o)")
-        output_path = validate_output_file(args.output)
-        config_path = validate_config_file(args.config)
+            # Initialize configuration
+            config = Configuration(validated_args["config_path"])
+            config.update_from_args(validated_args)
 
-        # Validate numeric arguments
-        batch_size = validate_batch_size(args.batch_size)
-        max_retries = validate_max_retries(args.max_retries)
+            # Validate AI engine
+            validated_args["ai_engine"] = validate_ai_engine(
+                validated_args["ai_engine"], config
+            )
 
-        # Validate conflicting arguments
-        validate_conflicting_arguments(args.resume, args.clear_checkpoints)
+            # Set up logging
+            setup_logging(config)
 
-        return {
-            "input_path": input_path,
-            "output_path": output_path,
-            "config_path": config_path,
-            "resume": args.resume,
-            "verbose": args.verbose,
-            "batch_size": batch_size,
-            "max_retries": max_retries,
-            "clear_checkpoints": args.clear_checkpoints,
-            "ai_engine": args.ai_engine,
-            "detect_duplicates": not args.no_duplicates,
-            "duplicate_strategy": args.duplicate_strategy,
-            "generate_folders": args.generate_folders and not args.no_folders,
-            "max_bookmarks_per_folder": args.max_bookmarks_per_folder,
-            "generate_chrome_html": args.chrome_html,
-            "chrome_html_output": args.html_output,
-            "html_title": args.html_title,
-        }
+            if verbose:
+                console.print(
+                    Panel.fit(
+                        "[green]Arguments validated successfully![/green]",
+                        title="Status",
+                    )
+                )
+                print_config_details(validated_args, config)
 
-    def process_arguments(self, validated_args: dict) -> Configuration:
+            # Run processor
+            logger = logging.getLogger(__name__)
+            logger.info("Bookmark Processor CLI starting")
+            logger.info(f"Input: {validated_args['input_path']}")
+            logger.info(f"Output: {validated_args['output_path']}")
+            logger.info(f"AI engine: {validated_args['ai_engine']}")
+
+            processor = BookmarkProcessor(config)
+            result = processor.run_cli(validated_args)
+
+            if result == 0:
+                console.print(
+                    Panel.fit(
+                        "[bold green]Processing completed successfully![/bold green]",
+                        title="Done",
+                    )
+                )
+            return result
+
+        except ValidationError as e:
+            console.print(f"[red]Validation Error:[/red] {e}")
+            raise typer.Exit(1)
+        except Exception as e:
+            console.print(f"[red]Error:[/red] {e}")
+            logger = logging.getLogger(__name__)
+            logger.exception("Unexpected error in CLI")
+            raise typer.Exit(1)
+
+    @app.command()
+    def create_config(
+        template: ConfigTemplate = typer.Argument(
+            ...,
+            help="Configuration template type",
+        ),
+        output: Path = typer.Option(
+            Path("user_config.toml"),
+            "--output",
+            "-o",
+            help="Output configuration file path",
+        ),
+    ):
         """
-        Process validated arguments and set up configuration.
+        Create a configuration template file.
 
-        Args:
-            validated_args: Dictionary of validated arguments
+        [bold]Templates:[/bold]
 
-        Returns:
-            Configured Configuration object
-
-        Raises:
-            ValidationError: If AI engine validation fails
+            basic         - General purpose, balanced settings
+            claude        - Optimized for Claude AI
+            openai        - Optimized for OpenAI
+            performance   - High-speed local processing
+            large-dataset - Conservative for 3000+ bookmarks
         """
-        # Initialize configuration
-        config = Configuration(validated_args["config_path"])
-
-        # Update configuration with command-line arguments
-        config.update_from_args(validated_args)
-
-        # Validate AI engine with configuration (after loading config)
-        validated_args["ai_engine"] = validate_ai_engine(
-            validated_args["ai_engine"], config
-        )
-
-        # Set up logging
-        setup_logging(config)
-
-        return config
-
-    def _handle_create_config(self, config_type: str) -> int:
-        """Handle creation of configuration template files."""
-        from pathlib import Path
         import shutil
 
-        # Template file mappings
         template_files = {
             "basic": "user_config.toml.template",
             "claude": "claude_config.toml.template",
@@ -336,213 +367,164 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "large-dataset": "large_dataset.toml.template",
         }
 
-        if config_type not in template_files:
-            print(f"❌ Unknown configuration type: {config_type}")
-            print(f"Available types: {', '.join(template_files.keys())}")
-            return 1
+        template_name = template.value.replace("_", "-")
+        template_file = template_files.get(template_name)
+
+        if not template_file:
+            console.print(f"[red]Unknown template: {template_name}[/red]")
+            raise typer.Exit(1)
 
         try:
-            # Get the template file path
             config_dir = Path(__file__).parent / "config"
-            template_path = config_dir / template_files[config_type]
-            output_path = Path("user_config.toml")
+            template_path = config_dir / template_file
 
             if not template_path.exists():
-                print(f"❌ Template file not found: {template_path}")
-                return 1
+                console.print(f"[red]Template not found: {template_path}[/red]")
+                raise typer.Exit(1)
 
-            # Check if output file already exists
-            if output_path.exists():
-                response = input(
-                    f"⚠️  Configuration file '{output_path}' already exists. "
-                    "Overwrite? (y/N): "
+            if output.exists():
+                if not typer.confirm(
+                    f"Configuration file '{output}' exists. Overwrite?"
+                ):
+                    console.print("[yellow]Cancelled[/yellow]")
+                    raise typer.Exit(0)
+
+            shutil.copy2(template_path, output)
+
+            console.print(
+                Panel.fit(
+                    f"[green]Created configuration file:[/green] {output}\n"
+                    f"[dim]Template:[/dim] {template_name}",
+                    title="Success",
                 )
-                if response.lower() != "y":
-                    print("❌ Configuration creation cancelled.")
-                    return 1
-
-            # Copy template to user_config.toml
-            shutil.copy2(template_path, output_path)
-
-            print(f"✅ Created configuration file: {output_path}")
-            print(f"📁 Template type: {config_type}")
-            print()
-            print("📝 Next steps:")
-            print(
-                "1. Edit the configuration file to add your API keys "
-                "(if using cloud AI)"
             )
-            print("2. Adjust settings to match your requirements")
-            print(
-                "3. Use with: bookmark-processor --config user_config.toml "
-                "--input bookmarks.csv --output enhanced.csv"
-            )
-            print()
 
-            # Show specific guidance based on template type
-            if config_type == "claude":
-                print("🔧 Claude AI Configuration:")
-                print("• Add your Claude API key from: https://console.anthropic.com/")
-                print("• Recommended for high-quality descriptions")
-                print("• Lower rate limits help control costs")
-            elif config_type == "openai":
-                print("🔧 OpenAI Configuration:")
-                print(
-                    "• Add your OpenAI API key from: "
-                    "https://platform.openai.com/api-keys"
-                )
-                print("• Versatile and widely compatible")
-                print("• Check your usage tier for appropriate rate limits")
-            elif config_type == "performance":
-                print("🔧 Performance Configuration:")
-                print("• Optimized for maximum speed using local AI")
-                print("• No API keys required - completely free")
-                print("• Higher concurrent requests may trigger rate limiting")
-            elif config_type == "large-dataset":
-                print("🔧 Large Dataset Configuration:")
-                print("• Conservative settings for 3000+ bookmarks")
-                print("• Smaller batch sizes to prevent memory issues")
-                print("• More frequent checkpoints for safety")
-            elif config_type == "basic":
-                print("🔧 Basic Configuration:")
-                print("• Balanced settings for general use")
-                print("• Local AI by default (no API costs)")
-                print("• Ready to use out of the box")
+            # Template-specific guidance
+            guidance = {
+                "basic": "Ready to use out of the box with local AI",
+                "claude": "Add your Claude API key from console.anthropic.com",
+                "openai": "Add your OpenAI API key from platform.openai.com",
+                "performance": "Optimized for maximum speed with local AI",
+                "large-dataset": "Conservative settings for 3000+ bookmarks",
+            }
 
-            return 0
+            console.print(f"\n[bold]Next steps:[/bold] {guidance.get(template_name, '')}")
 
         except Exception as e:
-            print(f"❌ Error creating configuration file: {e}")
-            return 1
+            console.print(f"[red]Error creating config: {e}[/red]")
+            raise typer.Exit(1)
+
+
+# Fallback CLI class for environments without Typer
+class CLIInterface:
+    """Legacy command line interface for backward compatibility."""
+
+    def __init__(self):
+        if RICH_AVAILABLE:
+            # Use Typer app
+            self.use_typer = True
+        else:
+            # Fallback to argparse
+            self.use_typer = False
+            self._setup_argparse()
+
+    def _setup_argparse(self):
+        """Set up argparse fallback."""
+        import argparse
+
+        self.parser = argparse.ArgumentParser(
+            prog="bookmark-processor",
+            description="Bookmark Validation and Enhancement Tool",
+        )
+        self.parser.add_argument("--version", "-V", action="version", version="2.0.0")
+        self.parser.add_argument("--input", "-i", help="Input file")
+        self.parser.add_argument("--output", "-o", required=True, help="Output file")
+        self.parser.add_argument("--config", "-c", help="Config file")
+        self.parser.add_argument("--resume", "-r", action="store_true")
+        self.parser.add_argument("--verbose", "-v", action="store_true")
+        self.parser.add_argument("--batch-size", "-b", type=int, default=100)
+        self.parser.add_argument("--max-retries", "-m", type=int, default=3)
+        self.parser.add_argument("--clear-checkpoints", action="store_true")
+        self.parser.add_argument(
+            "--ai-engine", choices=["local", "claude", "openai"], default="local"
+        )
+        self.parser.add_argument("--no-duplicates", action="store_true")
+        self.parser.add_argument(
+            "--duplicate-strategy",
+            choices=["newest", "oldest", "most_complete", "highest_quality"],
+            default="highest_quality",
+        )
+        self.parser.add_argument(
+            "--generate-folders", action="store_true", default=True
+        )
+        self.parser.add_argument("--no-folders", action="store_true")
+        self.parser.add_argument("--max-bookmarks-per-folder", type=int, default=20)
+        self.parser.add_argument("--chrome-html", action="store_true")
+        self.parser.add_argument("--html-output", help="Chrome HTML output path")
+        self.parser.add_argument(
+            "--html-title", default="Enhanced Bookmarks"
+        )
+        self.parser.add_argument(
+            "--create-config",
+            choices=["basic", "claude", "openai", "performance", "large-dataset"],
+        )
 
     def run(self, args=None) -> int:
-        """Execute CLI interface."""
+        """Run the CLI."""
+        if self.use_typer:
+            try:
+                app()
+                return 0
+            except SystemExit as e:
+                return e.code if e.code else 0
+        else:
+            return self._run_argparse(args)
+
+    def _run_argparse(self, args=None) -> int:
+        """Run with argparse fallback."""
         try:
-            # Parse and validate arguments
-            parsed_args = self.parse_args(args)
+            parsed = self.parser.parse_args(args)
 
-            # Handle configuration template creation
-            if parsed_args.create_config:
-                return self._handle_create_config(parsed_args.create_config)
+            # Handle create-config
+            if parsed.create_config:
+                return self._handle_create_config(parsed.create_config)
 
-            validated_args = self.validate_args(parsed_args)
+            # Validate
+            input_path = validate_input_file(parsed.input)
+            if input_path is None:
+                validate_auto_detection_mode()
+            output_path = validate_output_file(parsed.output)
+            config_path = validate_config_file(parsed.config)
+            batch_size = validate_batch_size(parsed.batch_size)
+            max_retries_val = validate_max_retries(parsed.max_retries)
+            validate_conflicting_arguments(parsed.resume, parsed.clear_checkpoints)
 
-            # Process arguments and set up configuration
-            config = self.process_arguments(validated_args)
+            validated_args = {
+                "input_path": input_path,
+                "output_path": output_path,
+                "config_path": config_path,
+                "resume": parsed.resume,
+                "verbose": parsed.verbose,
+                "batch_size": batch_size,
+                "max_retries": max_retries_val,
+                "clear_checkpoints": parsed.clear_checkpoints,
+                "ai_engine": parsed.ai_engine,
+                "detect_duplicates": not parsed.no_duplicates,
+                "duplicate_strategy": parsed.duplicate_strategy,
+                "generate_folders": parsed.generate_folders and not parsed.no_folders,
+                "max_bookmarks_per_folder": parsed.max_bookmarks_per_folder,
+                "generate_chrome_html": parsed.chrome_html,
+                "chrome_html_output": parsed.html_output,
+                "html_title": parsed.html_title,
+            }
 
-            # Set up logger
-            logger = logging.getLogger(__name__)
-            logger.info("Bookmark Processor CLI starting")
-            logger.info(f"Input file: {validated_args['input_path']}")
-            logger.info(f"Output file: {validated_args['output_path']}")
-            logger.info(f"AI engine: {validated_args['ai_engine']}")
-            logger.info(f"Batch size: {validated_args['batch_size']}")
-            logger.info(f"Max retries: {validated_args['max_retries']}")
+            config = Configuration(validated_args["config_path"])
+            config.update_from_args(validated_args)
+            validated_args["ai_engine"] = validate_ai_engine(
+                validated_args["ai_engine"], config
+            )
+            setup_logging(config)
 
-            if validated_args["verbose"]:
-                print("✓ Arguments validated and configuration loaded successfully!")
-                print("📋 Configuration Details:")
-
-                # Handle input display based on mode
-                if validated_args["input_path"] is None:
-                    print("  Input: Auto-detection mode (current directory)")
-                    # Show auto-detection details
-                    try:
-                        from bookmark_processor.core.multi_file_processor import (
-                            MultiFileProcessor,
-                        )
-
-                        processor = MultiFileProcessor()
-                        report = processor.validate_directory_for_auto_detection()
-                        print(f"  Detected files: {len(report['valid_files'])}")
-                        total_bookmarks = report['total_estimated_bookmarks']
-                        print(f"  Total estimated bookmarks: {total_bookmarks}")
-                        for file_info in report["valid_files"][
-                            :3
-                        ]:  # Show first 3 files
-                            file_name = file_info['name']
-                            file_format = file_info['format']
-                            estimated = file_info['estimated_bookmarks']
-                            print(
-                                f"    - {file_name} ({file_format}, "
-                                f"~{estimated} bookmarks)"
-                            )
-                        if len(report["valid_files"]) > 3:
-                            remaining_count = len(report['valid_files']) - 3
-                            print(f"    ... and {remaining_count} more files")
-                    except Exception:
-                        pass
-                else:
-                    print(f"  Input: {validated_args['input_path']}")
-                    # Show single file format information
-                    try:
-                        from bookmark_processor.core.import_module import (
-                            MultiFormatImporter,
-                        )
-
-                        importer = MultiFormatImporter()
-                        file_info = importer.get_file_info(validated_args["input_path"])
-                        print(f"  Input format: {file_info['format']}")
-                        size_mb = file_info['size_bytes'] / 1024 / 1024
-                        print(f"  File size: {size_mb:.2f} MB")
-                        if file_info["estimated_bookmarks"] > 0:
-                            estimated = file_info['estimated_bookmarks']
-                            print(f"  Estimated bookmarks: {estimated}")
-                    except Exception:
-                        pass
-
-                print(f"  Output: {validated_args['output_path']}")
-                if validated_args["config_path"]:
-                    print(f"  Config: {validated_args['config_path']}")
-                # Enhanced AI engine display with configuration details
-                ai_engine = validated_args["ai_engine"]
-                print(f"  AI engine: {ai_engine}")
-
-                # Show engine-specific configuration
-                if ai_engine == "local":
-                    print("    → Using local AI model (no API costs)")
-                    print("    → Model: facebook/bart-large-cnn")
-                    print("    → Processing: GPU-accelerated if available")
-                elif ai_engine == "claude":
-                    has_key = config.has_api_key("claude")
-                    rate_limit = config.get_rate_limit("claude")
-                    status = '✓ configured' if has_key else '✗ missing API key'
-                    print(f"    → Claude API {status}")
-                    print(f"    → Rate limit: {rate_limit} requests/minute")
-                    print(f"    → Batch size: {config.get_batch_size('claude')}")
-                    if has_key:
-                        cost_settings = config.get_cost_tracking_settings()
-                        print("    → Cost tracking: enabled")
-                        interval = cost_settings['cost_confirmation_interval']
-                        print(f"    → Cost confirmation: every ${interval:.1f}")
-                    else:
-                        print("    → Add API key to configuration to enable")
-                elif ai_engine == "openai":
-                    has_key = config.has_api_key("openai")
-                    rate_limit = config.get_rate_limit("openai")
-                    status = '✓ configured' if has_key else '✗ missing API key'
-                    print(f"    → OpenAI API {status}")
-                    print(f"    → Rate limit: {rate_limit} requests/minute")
-                    print(f"    → Batch size: {config.get_batch_size('openai')}")
-                    if has_key:
-                        cost_settings = config.get_cost_tracking_settings()
-                        print("    → Cost tracking: enabled")
-                        interval = cost_settings['cost_confirmation_interval']
-                        print(f"    → Cost confirmation: every ${interval:.1f}")
-                    else:
-                        print("    → Add API key to configuration to enable")
-
-                print(f"  Batch size: {validated_args['batch_size']}")
-                print(f"  Max retries: {validated_args['max_retries']}")
-                print(f"  Resume: {validated_args['resume']}")
-                print(f"  Clear checkpoints: {validated_args['clear_checkpoints']}")
-                print(f"  Duplicate detection: {validated_args['detect_duplicates']}")
-                if validated_args["detect_duplicates"]:
-                    print(
-                        f"  Duplicate strategy: {validated_args['duplicate_strategy']}"
-                    )
-
-            # Initialize and run the bookmark processor
             processor = BookmarkProcessor(config)
             return processor.run_cli(validated_args)
 
@@ -551,12 +533,46 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             return 1
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
-            # Log the full exception if logger is available
-            try:
-                logger = logging.getLogger(__name__)
-                logger.exception("Unexpected error in CLI")
-            except Exception:
-                pass
+            return 1
+
+    def _handle_create_config(self, config_type: str) -> int:
+        """Handle config template creation."""
+        import shutil
+
+        template_files = {
+            "basic": "user_config.toml.template",
+            "claude": "claude_config.toml.template",
+            "openai": "openai_config.toml.template",
+            "performance": "local_performance.toml.template",
+            "large-dataset": "large_dataset.toml.template",
+        }
+
+        template_file = template_files.get(config_type)
+        if not template_file:
+            print(f"Unknown template: {config_type}")
+            return 1
+
+        try:
+            config_dir = Path(__file__).parent / "config"
+            template_path = config_dir / template_file
+            output_path = Path("user_config.toml")
+
+            if not template_path.exists():
+                print(f"Template not found: {template_path}")
+                return 1
+
+            if output_path.exists():
+                response = input(f"'{output_path}' exists. Overwrite? (y/N): ")
+                if response.lower() != "y":
+                    print("Cancelled")
+                    return 0
+
+            shutil.copy2(template_path, output_path)
+            print(f"Created: {output_path}")
+            return 0
+
+        except Exception as e:
+            print(f"Error: {e}")
             return 1
 
 

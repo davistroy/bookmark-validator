@@ -2,14 +2,21 @@
 OpenAI API Client Implementation
 
 This module provides a client for the OpenAI API with bookmark-specific
-functionality for generating enhanced descriptions using GPT models.
+functionality for generating enhanced descriptions using GPT models with
+structured output support.
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from bookmark_processor.core.base_api_client import BaseAPIClient
 from bookmark_processor.core.data_models import Bookmark
+from bookmark_processor.core.structured_output import (
+    BookmarkEnhancement,
+    create_enhancement_prompt,
+    parse_enhancement_response,
+)
 from bookmark_processor.utils.rate_limiter import get_rate_limiter
 
 
@@ -17,16 +24,17 @@ class OpenAIAPIClient(BaseAPIClient):
     """
     OpenAI API client for generating bookmark descriptions.
 
-    Uses GPT-3.5-turbo for cost-effective description generation.
+    Uses GPT-4o-mini for cost-effective, high-quality description generation.
     """
 
     # OpenAI API configuration
     BASE_URL = "https://api.openai.com/v1/chat/completions"
-    MODEL = "gpt-3.5-turbo"  # Cost-effective model
+    MODEL = "gpt-4o-mini"  # Latest cost-effective model with superior quality
 
-    # Pricing (as of 2024) - in USD per 1K tokens
-    COST_PER_1K_INPUT_TOKENS = 0.0015  # $1.50 per million input tokens
-    COST_PER_1K_OUTPUT_TOKENS = 0.002  # $2.00 per million output tokens
+    # Pricing (as of 2025) - in USD per 1K tokens
+    # GPT-4o-mini is 10x cheaper than GPT-3.5-turbo with better quality
+    COST_PER_1K_INPUT_TOKENS = 0.00015  # $0.15 per million input tokens
+    COST_PER_1K_OUTPUT_TOKENS = 0.0006  # $0.60 per million output tokens
 
     def __init__(self, api_key: str, timeout: int = 30):
         """
@@ -58,6 +66,7 @@ class OpenAIAPIClient(BaseAPIClient):
         self,
         bookmark: Bookmark,
         existing_content: Optional[str] = None,
+        structured: bool = True,
     ) -> List[Dict[str, str]]:
         """
         Create optimized messages for bookmark description generation.
@@ -65,6 +74,7 @@ class OpenAIAPIClient(BaseAPIClient):
         Args:
             bookmark: Bookmark object to process
             existing_content: Existing content to enhance
+            structured: Whether to request structured JSON output
 
         Returns:
             List of message dictionaries for OpenAI chat completion
@@ -78,30 +88,33 @@ class OpenAIAPIClient(BaseAPIClient):
         # Use provided content or fallback to bookmark content
         content_to_enhance = existing_content or existing_note or existing_excerpt
 
-        # Extract domain for context
-        try:
-            from urllib.parse import urlparse
+        # Use structured prompt creator
+        user_content = create_enhancement_prompt(
+            title=title,
+            url=url,
+            existing_content=content_to_enhance,
+            structured=structured,
+        )
 
-            domain = urlparse(url).netloc or "unknown domain"
-        except Exception:
-            domain = "unknown domain"
-
-        # Optimized system message for GPT-3.5-turbo
-        system_message = {
-            "role": "system",
-            "content": (
-                "Create concise bookmark descriptions (100-150 chars). "
-                "Focus on value and purpose. Avoid generic phrases."
-            ),
-        }
-
-        # Compact user message to save tokens
-        user_content = f"""Title: {title}
-Domain: {domain}
-Content: {content_to_enhance or 'None'}
-
-What problem does this solve? What can users learn/do?
-Description:"""
+        # Optimized system message for GPT-4o-mini with JSON output
+        if structured:
+            system_message = {
+                "role": "system",
+                "content": (
+                    "You are a bookmark enhancement assistant. Analyze bookmarks and "
+                    "provide structured JSON responses with description, tags, category, "
+                    "and confidence score. Focus on value and purpose. "
+                    "Avoid generic phrases."
+                ),
+            }
+        else:
+            system_message = {
+                "role": "system",
+                "content": (
+                    "Create concise bookmark descriptions (100-150 chars). "
+                    "Focus on value and purpose. Avoid generic phrases."
+                ),
+            }
 
         user_message = {"role": "user", "content": user_content}
 
@@ -170,13 +183,18 @@ Description:"""
         self,
         bookmark: Bookmark,
         existing_content: Optional[str] = None,
+        use_structured_output: bool = True,
     ) -> Tuple[str, Dict[str, Any]]:
         """
         Generate an enhanced description for a bookmark.
 
+        Uses OpenAI's JSON mode for structured output when enabled,
+        providing reliable responses with description, tags, and category.
+
         Args:
             bookmark: Bookmark object to process
             existing_content: Existing content to enhance
+            use_structured_output: Whether to use JSON mode for structured output
 
         Returns:
             Tuple of (enhanced_description, metadata)
@@ -187,18 +205,21 @@ Description:"""
 
         try:
             # Create the messages
-            messages = self._create_bookmark_prompt(bookmark, existing_content)
+            messages = self._create_bookmark_prompt(
+                bookmark, existing_content, structured=use_structured_output
+            )
 
             # Prepare request data
             request_data = {
                 "model": self.MODEL,
                 "messages": messages,
-                "max_tokens": 200,  # Allow some buffer for response
+                "max_tokens": 500,  # Allow buffer for structured response
                 "temperature": 0.3,  # Slightly creative but focused
-                "top_p": 0.9,
-                "frequency_penalty": 0.0,
-                "presence_penalty": 0.0,
             }
+
+            # Add JSON response format for structured output
+            if use_structured_output:
+                request_data["response_format"] = {"type": "json_object"}
 
             # Make the API request
             response = await self._make_request(
@@ -213,7 +234,22 @@ Description:"""
                 raise ValueError("Empty response from OpenAI API")
 
             message = choices[0].get("message", {})
-            description = message.get("content", "").strip()
+            content = message.get("content", "").strip()
+
+            # Parse structured output
+            enhancement = None
+            if use_structured_output:
+                try:
+                    data = json.loads(content)
+                    enhancement = BookmarkEnhancement(**data)
+                except (json.JSONDecodeError, ValueError) as e:
+                    self.logger.warning(f"Failed to parse JSON response: {e}")
+
+            # Fallback to text parsing
+            if enhancement is None:
+                enhancement = parse_enhancement_response(content)
+
+            description = enhancement.description
 
             # Track token usage
             usage = response.get("usage", {})
@@ -229,7 +265,7 @@ Description:"""
             output_cost = (output_tokens / 1000) * self.COST_PER_1K_OUTPUT_TOKENS
             total_cost = input_cost + output_cost
 
-            # Create metadata
+            # Create metadata with structured output info
             metadata = {
                 "provider": "openai",
                 "model": self.MODEL,
@@ -237,6 +273,10 @@ Description:"""
                 "output_tokens": output_tokens,
                 "cost_usd": total_cost,
                 "success": True,
+                "structured_output": use_structured_output,
+                "tags": enhancement.tags,
+                "category": enhancement.category,
+                "confidence": enhancement.confidence,
             }
 
             return description, metadata

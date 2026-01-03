@@ -2,7 +2,7 @@
 Claude API Client Implementation
 
 This module provides a client for the Anthropic Claude API with bookmark-specific
-functionality for generating enhanced descriptions.
+functionality for generating enhanced descriptions using structured output.
 """
 
 import logging
@@ -10,6 +10,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from bookmark_processor.core.base_api_client import BaseAPIClient
 from bookmark_processor.core.data_models import Bookmark
+from bookmark_processor.core.structured_output import (
+    CLAUDE_BOOKMARK_TOOL,
+    BookmarkEnhancement,
+    create_enhancement_prompt,
+    parse_enhancement_response,
+)
 from bookmark_processor.utils.rate_limiter import get_rate_limiter
 
 
@@ -17,17 +23,18 @@ class ClaudeAPIClient(BaseAPIClient):
     """
     Claude API client for generating bookmark descriptions.
 
-    Uses Claude 3 Haiku for cost-effective description generation.
+    Uses Claude 3.5 Haiku for cost-effective, high-quality description generation.
     """
 
     # Claude API configuration
     BASE_URL = "https://api.anthropic.com/v1/messages"
     API_VERSION = "2023-06-01"
-    MODEL = "claude-3-haiku-20240307"  # Cost-effective model
+    MODEL = "claude-3-5-haiku-20241022"  # Latest cost-effective model
 
-    # Pricing (as of 2024) - in USD per 1K tokens
-    COST_PER_1K_INPUT_TOKENS = 0.00025  # $0.25 per million input tokens
-    COST_PER_1K_OUTPUT_TOKENS = 0.00125  # $1.25 per million output tokens
+    # Pricing (as of 2025) - in USD per 1K tokens
+    # Claude 3.5 Haiku is ~60% cheaper than Claude 3 Haiku with better quality
+    COST_PER_1K_INPUT_TOKENS = 0.0001  # $0.10 per million input tokens
+    COST_PER_1K_OUTPUT_TOKENS = 0.0005  # $0.50 per million output tokens
 
     def __init__(self, api_key: str, timeout: int = 30):
         """
@@ -82,28 +89,13 @@ class ClaudeAPIClient(BaseAPIClient):
         # Use provided content or fallback to bookmark content
         content_to_enhance = existing_content or existing_note or existing_excerpt
 
-        # Extract domain for context
-        try:
-            from urllib.parse import urlparse
-
-            domain = urlparse(url).netloc or "unknown domain"
-        except Exception:
-            domain = "unknown domain"
-
-        # Create optimized prompt for Claude
-        prompt = (
-            f"Create a concise bookmark description (100-150 chars) that captures "
-            f"the key value.\n\n"
-            f"Title: {title}\n"
-            f"Domain: {domain}\n"
-            f"Content: {content_to_enhance or 'None'}\n\n"
-            f"Focus on: What problem does this solve? What can users learn/do?\n"
-            f"Avoid: Generic phrases, \"This is a website about...\"\n"
-            f"Style: Direct, actionable, specific\n\n"
-            f"Description:"
+        # Use the structured prompt creator
+        return create_enhancement_prompt(
+            title=title,
+            url=url,
+            existing_content=content_to_enhance,
+            structured=True,
         )
-
-        return prompt
 
     def _create_batch_prompt(
         self,
@@ -166,13 +158,18 @@ Descriptions:"""
         self,
         bookmark: Bookmark,
         existing_content: Optional[str] = None,
+        use_structured_output: bool = True,
     ) -> Tuple[str, Dict[str, Any]]:
         """
         Generate an enhanced description for a bookmark.
 
+        Uses Claude's tool use feature for structured output when enabled,
+        providing reliable JSON responses with description, tags, and category.
+
         Args:
             bookmark: Bookmark object to process
             existing_content: Existing content to enhance
+            use_structured_output: Whether to use tool use for structured output
 
         Returns:
             Tuple of (enhanced_description, metadata)
@@ -188,10 +185,18 @@ Descriptions:"""
             # Prepare request data
             request_data = {
                 "model": self.MODEL,
-                "max_tokens": 200,  # Allow some buffer for response
+                "max_tokens": 500,  # Allow buffer for structured response
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.3,  # Slightly creative but focused
             }
+
+            # Add tool use for structured output
+            if use_structured_output:
+                request_data["tools"] = [CLAUDE_BOOKMARK_TOOL]
+                request_data["tool_choice"] = {
+                    "type": "tool",
+                    "name": "enhance_bookmark",
+                }
 
             # Make the API request
             response = await self._make_request(
@@ -205,7 +210,31 @@ Descriptions:"""
             if not content:
                 raise ValueError("Empty response from Claude API")
 
-            description = content[0].get("text", "").strip()
+            # Parse response based on whether structured output was used
+            enhancement = None
+            if use_structured_output:
+                # Look for tool use response
+                for block in content:
+                    if block.get("type") == "tool_use":
+                        tool_input = block.get("input", {})
+                        try:
+                            enhancement = BookmarkEnhancement(**tool_input)
+                        except Exception as e:
+                            self.logger.warning(
+                                f"Failed to parse tool response: {e}"
+                            )
+                        break
+
+            # Fallback to text response parsing
+            if enhancement is None:
+                text_content = ""
+                for block in content:
+                    if block.get("type") == "text":
+                        text_content = block.get("text", "")
+                        break
+                enhancement = parse_enhancement_response(text_content)
+
+            description = enhancement.description
 
             # Track token usage
             usage = response.get("usage", {})
@@ -221,7 +250,7 @@ Descriptions:"""
             output_cost = (output_tokens / 1000) * self.COST_PER_1K_OUTPUT_TOKENS
             total_cost = input_cost + output_cost
 
-            # Create metadata
+            # Create metadata with structured output info
             metadata = {
                 "provider": "claude",
                 "model": self.MODEL,
@@ -229,6 +258,10 @@ Descriptions:"""
                 "output_tokens": output_tokens,
                 "cost_usd": total_cost,
                 "success": True,
+                "structured_output": use_structured_output,
+                "tags": enhancement.tags,
+                "category": enhancement.category,
+                "confidence": enhancement.confidence,
             }
 
             return description, metadata
