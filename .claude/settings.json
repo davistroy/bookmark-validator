@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "davistroy": {
+      "source": {
+        "source": "github",
+        "repo": "davistroy/claude-marketplace"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "personal-plugin@davistroy": true
+  }
+}
