@@ -257,6 +257,9 @@ class ProgressTracker:
         self.items_processed += items_delta
         self.items_failed += failed_delta
 
+        # Update backward compatibility attribute
+        self.completed_items = self.items_processed
+
         # Update stage counters
         if stage_specific and self.current_stage in self.stage_metrics:
             metrics = self.stage_metrics[self.current_stage]

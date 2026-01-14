@@ -103,7 +103,7 @@ class BrowserSimulator:
             f"Initialized browser simulator with {len(self.USER_AGENTS)} user agents"
         )
 
-    def get_headers(self, url: str = None) -> Dict[str, str]:
+    def get_headers(self, url: Optional[str] = None) -> Dict[str, str]:
         """
         Get realistic browser headers.
 
@@ -263,7 +263,7 @@ class BrowserSimulator:
 
 
 # Convenience function for getting headers
-def get_random_headers(url: str = None) -> Dict[str, str]:
+def get_random_headers(url: Optional[str] = None) -> Dict[str, str]:
     """Get random browser headers - convenience function"""
     simulator = BrowserSimulator(rotate_agents=True, session_persistence=False)
     return simulator.get_headers(url)

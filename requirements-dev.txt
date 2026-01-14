@@ -1,3 +1,7 @@
+# Development dependencies
+# Install with: pip install -r requirements-dev.txt
+-r requirements.txt
+
 # Development and Testing Dependencies
 pytest>=7.3.0
 pytest-cov>=4.0.0
@@ -44,3 +48,8 @@ build>=0.10.0
 # CI/CD Tools
 codecov>=2.1.13
 coverage[toml]>=7.2.0
+
+# Type Stubs
+types-requests>=2.31.0
+types-beautifulsoup4>=4.12.0
+types-tqdm>=4.65.0

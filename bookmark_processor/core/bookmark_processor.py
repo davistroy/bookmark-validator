@@ -8,7 +8,7 @@ comprehensive pipeline architecture.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from bookmark_processor.config.configuration import Configuration
 
@@ -21,7 +21,7 @@ from .pipeline import BookmarkProcessingPipeline, PipelineConfig, PipelineResult
 class ProcessingResults:
     """Container for processing results and statistics."""
 
-    def __init__(self, pipeline_results: PipelineResults = None):
+    def __init__(self, pipeline_results: Optional[PipelineResults] = None):
         if pipeline_results:
             self.total_bookmarks = pipeline_results.total_bookmarks
             self.processed_bookmarks = pipeline_results.valid_bookmarks

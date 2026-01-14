@@ -158,7 +158,7 @@ class TestBookmarkProcessorIntegration:
         # Mock AI processor to avoid loading actual models
         with (
             patch(
-                "bookmark_processor.core.ai_factory.AIFactory.create_processor"
+                "bookmark_processor.core.ai_factory.AIFactory.create_client"
             ) as mock_ai_factory,
             patch(
                 "bookmark_processor.core.url_validator.requests.Session.get"

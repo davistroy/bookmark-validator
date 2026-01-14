@@ -10,7 +10,7 @@ import threading
 import time
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, Set
+from typing import Dict, Optional, Set
 from urllib.parse import urlparse
 
 
@@ -191,7 +191,7 @@ class IntelligentRateLimiter:
 
         return True
 
-    def reset_domain_stats(self, domain: str = None) -> None:
+    def reset_domain_stats(self, domain: Optional[str] = None) -> None:
         """Reset statistics for a domain or all domains"""
         with self.lock:
             if domain:

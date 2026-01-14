@@ -11,20 +11,20 @@ from pathlib import Path
 from typing import Optional
 
 
-def setup_logging(config, log_file: Optional[str] = None) -> None:
+def setup_logging(config=None, log_file: Optional[str] = None) -> None:
     """
     Set up logging configuration.
 
     Args:
-        config: Configuration object
+        config: Configuration object (unused, kept for backward compatibility)
         log_file: Optional log file path override
     """
-    # Get logging settings from config
-    log_level = config.get("logging", "log_level", "INFO")
-    console_output = config.getboolean("logging", "console_output", True)
+    # Logging settings are now fixed values (simplified in new config system)
+    log_level = "INFO"
+    console_output = True
 
     if log_file is None:
-        log_file = config.get("logging", "log_file", "bookmark_processor.log")
+        log_file = "bookmark_processor.log"
 
     # Create logs directory if needed
     if getattr(sys, "frozen", False):

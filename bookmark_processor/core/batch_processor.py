@@ -17,12 +17,7 @@ from bookmark_processor.core.ai_factory import AIManager
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.utils.cost_tracker import CostTracker
 from bookmark_processor.utils.rate_limiter import get_rate_limiter
-
-
-class BatchProcessingError(Exception):
-    """Raised when batch processing encounters an error."""
-
-    pass
+from bookmark_processor.utils.error_handler import BatchProcessingError
 
 
 class BatchProcessor:

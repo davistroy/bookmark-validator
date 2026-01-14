@@ -211,8 +211,8 @@ class ContentAnalyzer:
         timeout: float = 30.0,
         max_content_length: int = 50000,
         user_agent_rotation: bool = True,
-        user_agent: str = None,
-        max_content_size: int = None,
+        user_agent: Optional[str] = None,
+        max_content_size: Optional[int] = None,
     ):
         """
         Initialize content analyzer.

@@ -406,7 +406,7 @@ class Bookmark:
             "tags": self.tags,
             "created": (
                 self.created.isoformat()
-                if hasattr(self.created, "isoformat")
+                if self.created and hasattr(self.created, "isoformat")
                 else (self.created or "")
             ),
             "cover": self.cover,

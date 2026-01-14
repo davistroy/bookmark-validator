@@ -9,10 +9,11 @@ import glob
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .data_models import Bookmark
-from .import_module import BookmarkImportError, MultiFormatImporter, UnsupportedFormatError
+from .import_module import MultiFormatImporter
+from ..utils.error_handler import BookmarkImportError, UnsupportedFormatError
 
 
 class MultiFileProcessor:
@@ -28,7 +29,7 @@ class MultiFileProcessor:
         self.logger = logging.getLogger(__name__)
         self.importer = MultiFormatImporter()
 
-    def auto_detect_files(self, directory: Union[str, Path] = None) -> List[Path]:
+    def auto_detect_files(self, directory: Optional[Union[str, Path]] = None) -> List[Path]:
         """
         Auto-detect bookmark files in a directory.
 
@@ -88,7 +89,7 @@ class MultiFileProcessor:
 
     def process_multiple_files(
         self, file_paths: List[Union[str, Path]], merge_strategy: str = "combine"
-    ) -> Tuple[List[Bookmark], Dict[str, any]]:
+    ) -> Tuple[List[Bookmark], Dict[str, Any]]:
         """
         Process multiple bookmark files.
 
@@ -211,7 +212,7 @@ class MultiFileProcessor:
             "html": Path(f"{base_name}_{timestamp}.html"),
         }
 
-    def get_processing_summary(self, stats: Dict[str, any]) -> str:
+    def get_processing_summary(self, stats: Dict[str, Any]) -> str:
         """
         Generate a human-readable processing summary.
 
@@ -247,8 +248,8 @@ class MultiFileProcessor:
         return "\n".join(summary_lines)
 
     def validate_directory_for_auto_detection(
-        self, directory: Union[str, Path] = None
-    ) -> Dict[str, any]:
+        self, directory: Optional[Union[str, Path]] = None
+    ) -> Dict[str, Any]:
         """
         Validate a directory for auto-detection capabilities.
 

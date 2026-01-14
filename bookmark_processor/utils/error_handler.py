@@ -15,28 +15,229 @@ from typing import Any, Dict, Optional, Tuple
 from bookmark_processor.core.data_models import Bookmark
 
 
-class BookmarkProcessingError(Exception):
-    """Base exception for bookmark processing errors."""
+# ============================================================================
+# Unified Exception Hierarchy for Bookmark Processor
+# ============================================================================
+# All custom exceptions for the bookmark processor project are defined here.
+# Import these exceptions from bookmark_processor.utils.error_handler
+# ============================================================================
+
+
+class BookmarkProcessorError(Exception):
+    """Base exception for all bookmark processor errors."""
 
     pass
 
 
-class ValidationError(BookmarkProcessingError):
-    """Exception for data validation errors."""
+# ============================================================================
+# Validation Errors
+# ============================================================================
+
+
+class ValidationError(BookmarkProcessorError):
+    """General validation errors."""
 
     pass
 
 
-class NetworkError(BookmarkProcessingError):
-    """Exception for network-related errors."""
+class URLValidationError(ValidationError):
+    """URL-specific validation errors."""
 
     pass
 
 
-class AIProcessingError(BookmarkProcessingError):
-    """Exception for AI processing errors."""
+# ============================================================================
+# Configuration Errors
+# ============================================================================
+
+
+class ConfigurationError(BookmarkProcessorError):
+    """Configuration-related errors."""
 
     pass
+
+
+# ============================================================================
+# Network Errors
+# ============================================================================
+
+
+class NetworkError(BookmarkProcessorError):
+    """Network/HTTP related errors."""
+
+    pass
+
+
+# ============================================================================
+# API Errors
+# ============================================================================
+
+
+class APIError(BookmarkProcessorError):
+    """Base class for API-related errors."""
+
+    pass
+
+
+class APIClientError(APIError):
+    """API client errors."""
+
+    pass
+
+
+class RateLimitError(APIClientError):
+    """Rate limit exceeded errors."""
+
+    pass
+
+
+class AuthenticationError(APIClientError):
+    """Authentication/authorization errors."""
+
+    pass
+
+
+class ServiceUnavailableError(APIClientError):
+    """Service unavailable errors."""
+
+    pass
+
+
+# ============================================================================
+# AI Processing Errors
+# ============================================================================
+
+
+class AIProcessingError(BookmarkProcessorError):
+    """AI processing errors."""
+
+    pass
+
+
+class AISelectionError(AIProcessingError):
+    """AI engine selection errors."""
+
+    pass
+
+
+# ============================================================================
+# Data Errors
+# ============================================================================
+
+
+class DataError(BookmarkProcessorError):
+    """Base class for data-related errors."""
+
+    pass
+
+
+class CSVError(DataError):
+    """CSV file handling errors."""
+
+    pass
+
+
+class CSVStructureError(CSVError):
+    """CSV structure errors."""
+
+    pass
+
+
+class CSVParsingError(CSVError):
+    """CSV parsing errors."""
+
+    pass
+
+
+class CSVValidationError(CSVError):
+    """CSV validation errors."""
+
+    pass
+
+
+class CSVEncodingError(CSVError):
+    """CSV encoding errors."""
+
+    pass
+
+
+class CSVFormatError(CSVError):
+    """CSV format errors."""
+
+    pass
+
+
+# ============================================================================
+# Import/Export Errors
+# ============================================================================
+
+
+class ImportError(DataError):
+    """Import-related errors (renamed to avoid conflict with builtin)."""
+
+    pass
+
+
+class UnsupportedFormatError(ImportError):
+    """Unsupported format errors."""
+
+    pass
+
+
+class BookmarkImportError(ImportError):
+    """Bookmark import errors."""
+
+    pass
+
+
+# ============================================================================
+# HTML/Chrome Errors
+# ============================================================================
+
+
+class HTMLError(DataError):
+    """HTML processing errors."""
+
+    pass
+
+
+class ChromeHTMLError(HTMLError):
+    """Chrome HTML errors."""
+
+    pass
+
+
+class ChromeHTMLStructureError(ChromeHTMLError):
+    """Chrome HTML structure errors."""
+
+    pass
+
+
+class ChromeHTMLGeneratorError(HTMLError):
+    """Chrome HTML generator errors."""
+
+    pass
+
+
+# ============================================================================
+# Processing Errors
+# ============================================================================
+
+
+class ProcessingError(BookmarkProcessorError):
+    """General processing errors."""
+
+    pass
+
+
+class BatchProcessingError(ProcessingError):
+    """Batch processing errors."""
+
+    pass
+
+
+# Legacy alias for backwards compatibility
+BookmarkProcessingError = BookmarkProcessorError
 
 
 class ErrorSeverity(Enum):

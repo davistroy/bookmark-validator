@@ -85,10 +85,11 @@ markers = [
 
 [tool.mypy]
 python_version = "3.9"
-ignore_errors = true
-follow_imports = "skip"
-warn_unused_configs = false
-show_error_codes = false
+ignore_errors = false
+follow_imports = "normal"
+warn_unused_configs = true
+show_error_codes = true
+strict_optional = true
 pretty = false
 
 [[tool.mypy.overrides]]
@@ -117,6 +118,22 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "numpy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pydantic.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "chardet.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "httpx.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "aiohttp.*"
 ignore_missing_imports = true
 
 [tool.coverage.run]

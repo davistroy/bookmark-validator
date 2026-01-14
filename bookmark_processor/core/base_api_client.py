@@ -14,30 +14,12 @@ import httpx
 
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.utils.api_key_validator import APIKeyValidator
-
-
-class APIClientError(Exception):
-    """Base exception for API client errors."""
-
-    pass
-
-
-class RateLimitError(APIClientError):
-    """Raised when API rate limits are exceeded."""
-
-    pass
-
-
-class AuthenticationError(APIClientError):
-    """Raised when API authentication fails."""
-
-    pass
-
-
-class ServiceUnavailableError(APIClientError):
-    """Raised when API service is temporarily unavailable."""
-
-    pass
+from bookmark_processor.utils.error_handler import (
+    APIClientError,
+    RateLimitError,
+    AuthenticationError,
+    ServiceUnavailableError,
+)
 
 
 class BaseAPIClient(ABC):

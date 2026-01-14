@@ -521,7 +521,7 @@ class MalformedDataDetector:
 
         return issues
 
-    def detect_truncation(self, text: str, expected_patterns: List[str] = None) -> bool:
+    def detect_truncation(self, text: str, expected_patterns: Optional[List[str]] = None) -> bool:
         """Detect if text appears to be truncated"""
         if not text:
             return False

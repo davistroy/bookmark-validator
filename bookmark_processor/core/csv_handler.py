@@ -15,42 +15,14 @@ import chardet
 import pandas as pd
 
 from .data_models import Bookmark
-
-
-class CSVError(Exception):
-    """Base exception for CSV-related errors."""
-
-    pass
-
-
-class CSVStructureError(CSVError):
-    """Raised when CSV structure doesn't match expected format."""
-
-    pass
-
-
-class CSVParsingError(CSVError):
-    """Raised when CSV file cannot be parsed due to malformation."""
-
-    pass
-
-
-class CSVValidationError(CSVError):
-    """Raised when CSV data fails validation rules."""
-
-    pass
-
-
-class CSVEncodingError(CSVError):
-    """Raised when CSV file cannot be read due to encoding issues."""
-
-    pass
-
-
-class CSVFormatError(CSVError):
-    """Raised when CSV file format is incorrect or incompatible."""
-
-    pass
+from ..utils.error_handler import (
+    CSVError,
+    CSVStructureError,
+    CSVParsingError,
+    CSVValidationError,
+    CSVEncodingError,
+    CSVFormatError,
+)
 
 
 class RaindropCSVHandler:
