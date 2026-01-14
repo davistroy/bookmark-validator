@@ -40,6 +40,7 @@ __pycache__/
 .Python
 venv/
 env/
+test_env/
 *.egg-info/
 dist/
 build/
@@ -78,6 +79,7 @@ Thumbs.db
 *.tmp
 *.bak
 *~
+tmpclaude-*
 
 # Scripts directory (keep tracked but ignore any temp files)
 !scripts/
