@@ -24,17 +24,17 @@ class OpenAIAPIClient(BaseAPIClient):
     """
     OpenAI API client for generating bookmark descriptions.
 
-    Uses GPT-4o-mini for cost-effective, high-quality description generation.
+    Uses GPT-5-mini for cost-effective, high-quality description generation.
     """
 
     # OpenAI API configuration
     BASE_URL = "https://api.openai.com/v1/chat/completions"
-    MODEL = "gpt-4o-mini"  # Latest cost-effective model with superior quality
+    MODEL = "gpt-5-mini"  # Latest cost-effective model - successor to gpt-4o-mini
 
     # Pricing (as of 2025) - in USD per 1K tokens
-    # GPT-4o-mini is 10x cheaper than GPT-3.5-turbo with better quality
-    COST_PER_1K_INPUT_TOKENS = 0.00015  # $0.15 per million input tokens
-    COST_PER_1K_OUTPUT_TOKENS = 0.0006  # $0.60 per million output tokens
+    # GPT-5-mini offers excellent quality at competitive pricing
+    COST_PER_1K_INPUT_TOKENS = 0.00025  # $0.25 per million input tokens
+    COST_PER_1K_OUTPUT_TOKENS = 0.002  # $2.00 per million output tokens
 
     def __init__(self, api_key: str, timeout: int = 30):
         """

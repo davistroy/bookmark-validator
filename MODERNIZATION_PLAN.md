@@ -5,24 +5,29 @@ This plan implements high and medium priority modernization improvements to brin
 
 ---
 
-## Phase 1: Update AI Models (High Priority, Low Effort)
+## Phase 1: Update AI Models (High Priority, Low Effort) ✅ COMPLETED
 
-### Changes:
+### Changes (Completed January 2025):
 1. **Claude API Client** (`bookmark_processor/core/claude_api_client.py`)
-   - Update model: `claude-3-haiku-20240307` → `claude-3-5-haiku-20241022`
-   - Update pricing (Claude 3.5 Haiku is ~60% cheaper):
-     - Input: $0.00025 → $0.0001 per 1K tokens
-     - Output: $0.00125 → $0.0005 per 1K tokens
+   - Updated model: `claude-3-5-haiku-20241022` → `claude-haiku-4-5-20251001`
+   - Updated pricing (Claude Haiku 4.5):
+     - Input: $1.00 per million tokens
+     - Output: $5.00 per million tokens
 
 2. **OpenAI API Client** (`bookmark_processor/core/openai_api_client.py`)
-   - Update model: `gpt-3.5-turbo` → `gpt-4o-mini`
-   - Update pricing (gpt-4o-mini is cheaper and better):
-     - Input: $0.0015 → $0.00015 per 1K tokens
-     - Output: $0.002 → $0.0006 per 1K tokens
+   - Updated model: `gpt-4o-mini` → `gpt-5-mini`
+   - Pricing (gpt-5-mini):
+     - Input: $0.25 per million tokens
+     - Output: $2.00 per million tokens
 
 ### Files Modified:
 - `bookmark_processor/core/claude_api_client.py`
 - `bookmark_processor/core/openai_api_client.py`
+- `bookmark_processor/cli.py`
+- `bookmark_processor/cli_argparse.py`
+- `tests/test_cloud_ai_integration.py`
+- `tests/test_utils_monitoring.py`
+- `tests/test_core_ai_processor.py`
 
 ---
 

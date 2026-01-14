@@ -114,11 +114,11 @@ def print_config_details(validated_args: dict, config: Configuration):
     elif ai_engine == "claude":
         has_key = config.has_api_key("claude")
         status = "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
-        table.add_row("AI Engine", f"claude-3-5-haiku ({status})")
+        table.add_row("AI Engine", f"claude-haiku-4-5 ({status})")
     elif ai_engine == "openai":
         has_key = config.has_api_key("openai")
         status = "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
-        table.add_row("AI Engine", f"gpt-4o-mini ({status})")
+        table.add_row("AI Engine", f"gpt-5-mini ({status})")
 
     # Processing options
     table.add_row("Batch Size", str(validated_args["batch_size"]))
@@ -194,7 +194,7 @@ if RICH_AVAILABLE:
         ai_engine: AIEngine = typer.Option(
             AIEngine.local,
             "--ai-engine",
-            help="AI engine: local (free), claude (claude-3-5-haiku), openai (gpt-4o-mini)",
+            help="AI engine: local (free), claude (claude-haiku-4-5), openai (gpt-5-mini)",
         ),
         no_duplicates: bool = typer.Option(
             False,
