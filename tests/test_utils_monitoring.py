@@ -556,7 +556,7 @@ class TestCostTracker:
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
 
         tracker.add_cost_record("claude", "claude-3-sonnet", 1000, 500, 0.05)
-        tracker.add_cost_record("claude", "claude-3-haiku", 800, 300, 0.02)
+        tracker.add_cost_record("claude", "claude-haiku-4-5", 800, 300, 0.02)
         tracker.add_cost_record("openai", "gpt-4", 600, 200, 0.08)
 
         # Get session provider costs (not historical)

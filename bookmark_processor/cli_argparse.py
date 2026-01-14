@@ -183,8 +183,8 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             default="local",
             help="Select AI engine for enhanced descriptions and tagging. "
             "Options: 'local' (free, uses facebook/bart-large-cnn), "
-            "'claude' (requires API key, uses claude-3-5-haiku), "
-            "'openai' (requires API key, uses gpt-4o-mini). "
+            "'claude' (requires API key, uses claude-haiku-4-5),"
+            "'openai' (requires API key, uses gpt-5-mini). "
             "Use --verbose to see detailed engine configuration.",
         )
         parser.add_argument(
@@ -504,7 +504,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                     print("    → Model: facebook/bart-large-cnn")
                     print("    → Processing: GPU-accelerated if available")
                 elif ai_engine == "claude":
-                    print("    → Model: claude-3-5-haiku-20241022")
+                    print("    → Model: claude-haiku-4-5-20251001")
                     has_key = config.has_api_key("claude")
                     rate_limit = config.get_rate_limit("claude")
                     status = '✓ configured' if has_key else '✗ missing API key'
@@ -519,7 +519,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                     else:
                         print("    → Add API key to configuration to enable")
                 elif ai_engine == "openai":
-                    print("    → Model: gpt-4o-mini")
+                    print("    → Model: gpt-5-mini")
                     has_key = config.has_api_key("openai")
                     rate_limit = config.get_rate_limit("openai")
                     status = '✓ configured' if has_key else '✗ missing API key'

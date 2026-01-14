@@ -23,18 +23,18 @@ class ClaudeAPIClient(BaseAPIClient):
     """
     Claude API client for generating bookmark descriptions.
 
-    Uses Claude 3.5 Haiku for cost-effective, high-quality description generation.
+    Uses Claude Haiku 4.5 for cost-effective, high-quality description generation.
     """
 
     # Claude API configuration
     BASE_URL = "https://api.anthropic.com/v1/messages"
     API_VERSION = "2023-06-01"
-    MODEL = "claude-3-5-haiku-20241022"  # Latest cost-effective model
+    MODEL = "claude-haiku-4-5-20251001"  # Latest Claude 4.5 Haiku - best value
 
     # Pricing (as of 2025) - in USD per 1K tokens
-    # Claude 3.5 Haiku is ~60% cheaper than Claude 3 Haiku with better quality
-    COST_PER_1K_INPUT_TOKENS = 0.0001  # $0.10 per million input tokens
-    COST_PER_1K_OUTPUT_TOKENS = 0.0005  # $0.50 per million output tokens
+    # Claude Haiku 4.5 offers excellent quality at competitive pricing
+    COST_PER_1K_INPUT_TOKENS = 0.001  # $1.00 per million input tokens
+    COST_PER_1K_OUTPUT_TOKENS = 0.005  # $5.00 per million output tokens
 
     def __init__(self, api_key: str, timeout: int = 30):
         """

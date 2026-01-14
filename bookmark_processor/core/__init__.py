@@ -29,8 +29,22 @@ from .url_validator import (
     ValidationError,
     ValidationResult,
     ValidationStats,
+    AsyncHttpClient,
 )
 from .batch_validator import EnhancedBatchProcessor as BatchProcessor
+
+# Batch types module (extracted from url_validator)
+from .batch_types import (
+    BatchConfig as BatchConfigType,
+    BatchResult as BatchResultType,
+    CostBreakdown as CostBreakdownType,
+    ProgressUpdate as ProgressUpdateType,
+    ValidationResult as ValidationResultType,
+    ValidationStats as ValidationStatsType,
+)
+
+# Async HTTP client (extracted from url_validator)
+from .async_http_client import AsyncHttpClient as AsyncUrlValidator
 
 __all__ = [
     "ChromeHTMLParser",
@@ -56,4 +70,7 @@ __all__ = [
     "BatchProcessorInterface",
     "EnhancedBatchProcessor",
     "BatchProcessor",
+    # Extracted modules
+    "AsyncHttpClient",
+    "AsyncUrlValidator",
 ]

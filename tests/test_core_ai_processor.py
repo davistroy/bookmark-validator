@@ -424,7 +424,7 @@ class TestOpenAIAPIClient:
         client = OpenAIAPIClient(api_key="test-key")
 
         assert client.api_key == "test-key"
-        assert client.model == "gpt-3.5-turbo"
+        assert client.model == "gpt-5-mini"
         assert client.base_url is not None
 
     def test_init_without_api_key(self):

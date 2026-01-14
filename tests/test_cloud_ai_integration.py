@@ -136,7 +136,7 @@ class TestCloudAIIntegration:
         # Add some cost records
         cost_tracker.add_cost_record(
             provider="claude",
-            model="claude-3-haiku-20240307",
+            model="claude-haiku-4-5-20251001",
             input_tokens=1000,
             output_tokens=150,
             cost_usd=0.001,
@@ -145,7 +145,7 @@ class TestCloudAIIntegration:
 
         cost_tracker.add_cost_record(
             provider="openai",
-            model="gpt-3.5-turbo",
+            model="gpt-5-mini",
             input_tokens=800,
             output_tokens=120,
             cost_usd=0.002,
@@ -296,7 +296,7 @@ class TestCloudAIIntegration:
         # Add cost to trigger confirmation
         cost_tracker.add_cost_record(
             provider="claude",
-            model="claude-3-haiku-20240307",
+            model="claude-haiku-4-5-20251001",
             input_tokens=5000,
             output_tokens=1000,
             cost_usd=1.5,  # Above threshold
