@@ -9,7 +9,7 @@ import asyncio
 import logging
 import time
 from collections import deque
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 class RateLimiter:
@@ -137,7 +137,7 @@ class RateLimiter:
         else:
             return False, wait_time
 
-    def get_status(self) -> Dict[str, any]:
+    def get_status(self) -> Dict[str, Any]:
         """
         Get current rate limiter status.
 
@@ -261,7 +261,7 @@ class ServiceRateLimiters:
             f"Added custom rate limiter for {service}: {requests_per_minute} req/min"
         )
 
-    def get_all_status(self) -> Dict[str, Dict[str, any]]:
+    def get_all_status(self) -> Dict[str, Dict[str, Any]]:
         """
         Get status for all rate limiters.
 
@@ -296,7 +296,7 @@ def get_rate_limiter(service: str) -> RateLimiter:
     return _global_rate_limiters.get_limiter(service)
 
 
-def get_all_rate_limiter_status() -> Dict[str, Dict[str, any]]:
+def get_all_rate_limiter_status() -> Dict[str, Dict[str, Any]]:
     """
     Get status for all rate limiters (convenience function).
 

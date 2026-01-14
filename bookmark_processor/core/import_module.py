@@ -12,21 +12,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .chrome_html_parser import ChromeHTMLError, ChromeHTMLParser
-from .csv_handler import CSVError, RaindropCSVHandler
+from .chrome_html_parser import ChromeHTMLParser
+from .csv_handler import RaindropCSVHandler
 from .data_models import Bookmark
-
-
-class UnsupportedFormatError(Exception):
-    """Raised when file format is not supported."""
-
-    pass
-
-
-class BookmarkImportError(Exception):
-    """Base exception for bookmark import-related errors."""
-
-    pass
+from ..utils.error_handler import (
+    ChromeHTMLError,
+    CSVError,
+    UnsupportedFormatError,
+    BookmarkImportError,
+)
 
 
 class MultiFormatImporter:

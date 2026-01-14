@@ -53,6 +53,16 @@ htmlcov/
 
 # Checkpoint files
 .bookmark_checkpoints/
+.test_checkpoint*/
+.test_checkpoints/
+.test_error_handling/
+.test_perf_checkpoints/
+
+# Cost tracking logs
+.bookmark_costs/
+
+# Backup files
+*.backup
 
 # IDE
 .idea/

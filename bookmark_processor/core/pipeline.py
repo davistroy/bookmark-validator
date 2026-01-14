@@ -25,9 +25,10 @@ from ..utils.progress_tracker import (
 )
 from .ai_processor import AIProcessingResult, EnhancedAIProcessor
 from .checkpoint_manager import CheckpointManager, ProcessingStage, ProcessingState
-from .chrome_html_generator import ChromeHTMLGenerator, ChromeHTMLGeneratorError
+from .chrome_html_generator import ChromeHTMLGenerator
 from .content_analyzer import ContentAnalyzer, ContentData
 from .csv_handler import RaindropCSVHandler
+from ..utils.error_handler import ChromeHTMLGeneratorError
 from .data_models import Bookmark
 from .duplicate_detector import DuplicateDetector
 from .folder_generator import AIFolderGenerator, FolderGenerationResult
@@ -112,61 +113,132 @@ class PipelineResults:
 class BookmarkProcessingPipeline:
     """Main processing pipeline orchestrating all components"""
 
-    def __init__(self, config: PipelineConfig):
+    def __init__(
+        self,
+        config: PipelineConfig,
+        csv_handler: Optional[RaindropCSVHandler] = None,
+        multi_importer: Optional[MultiFormatImporter] = None,
+        rate_limiter: Optional[IntelligentRateLimiter] = None,
+        url_validator: Optional[URLValidator] = None,
+        content_analyzer: Optional[ContentAnalyzer] = None,
+        ai_processor: Optional[EnhancedAIProcessor] = None,
+        tag_generator: Optional[CorpusAwareTagGenerator] = None,
+        duplicate_detector: Optional[DuplicateDetector] = None,
+        folder_generator: Optional[AIFolderGenerator] = None,
+        chrome_html_generator: Optional[ChromeHTMLGenerator] = None,
+        memory_monitor: Optional[MemoryMonitor] = None,
+        batch_processor: Optional[BatchProcessor] = None,
+        checkpoint_manager: Optional[CheckpointManager] = None,
+    ):
         """
-        Initialize processing pipeline.
+        Initialize processing pipeline with dependency injection.
 
         Args:
             config: Pipeline configuration
+            csv_handler: CSV handler for reading/writing raindrop.io format
+            multi_importer: Multi-format importer for various file types
+            rate_limiter: Rate limiter for network requests
+            url_validator: URL validator component
+            content_analyzer: Content analyzer for extracting metadata
+            ai_processor: AI processor for generating descriptions
+            tag_generator: Tag generator for corpus-wide optimization
+            duplicate_detector: Duplicate detector for removing duplicates
+            folder_generator: Folder generator for AI-powered organization
+            chrome_html_generator: Chrome HTML generator for HTML export
+            memory_monitor: Memory monitor for tracking usage
+            batch_processor: Batch processor for memory-efficient processing
+            checkpoint_manager: Checkpoint manager for resume functionality
         """
         self.config = config
 
-        # Initialize components
-        self.csv_handler = RaindropCSVHandler()
-        self.multi_importer = MultiFormatImporter()
-        self.rate_limiter = IntelligentRateLimiter(
-            max_concurrent=config.max_concurrent_requests
+        # Initialize components with dependency injection
+        self.csv_handler = csv_handler or RaindropCSVHandler()
+        self.multi_importer = multi_importer or MultiFormatImporter()
+
+        # Rate limiter needs to be created first if not provided
+        if rate_limiter is not None:
+            self.rate_limiter = rate_limiter
+        else:
+            self.rate_limiter = IntelligentRateLimiter(
+                max_concurrent=config.max_concurrent_requests
+            )
+
+        # URL validator can use injected rate limiter
+        if url_validator is not None:
+            self.url_validator = url_validator
+        else:
+            self.url_validator = URLValidator(
+                timeout=config.url_timeout,
+                max_concurrent=config.max_concurrent_requests,
+                verify_ssl=config.verify_ssl,
+                rate_limiter=self.rate_limiter,
+            )
+
+        self.content_analyzer = content_analyzer or ContentAnalyzer(
+            timeout=config.url_timeout
         )
-        self.url_validator = URLValidator(
-            timeout=config.url_timeout,
-            max_concurrent=config.max_concurrent_requests,
-            verify_ssl=config.verify_ssl,
-            rate_limiter=self.rate_limiter,
-        )
-        self.content_analyzer = ContentAnalyzer(timeout=config.url_timeout)
-        self.ai_processor = (
-            EnhancedAIProcessor(max_description_length=config.max_description_length)
-            if config.ai_enabled
-            else None
-        )
-        self.tag_generator = CorpusAwareTagGenerator(
+
+        # AI processor is optional based on config
+        if ai_processor is not None:
+            self.ai_processor = ai_processor
+        else:
+            self.ai_processor = (
+                EnhancedAIProcessor(max_description_length=config.max_description_length)
+                if config.ai_enabled
+                else None
+            )
+
+        self.tag_generator = tag_generator or CorpusAwareTagGenerator(
             target_tag_count=config.target_tag_count,
             max_tags_per_bookmark=config.max_tags_per_bookmark,
         )
-        self.duplicate_detector = (
-            DuplicateDetector() if config.detect_duplicates else None
-        )
-        self.folder_generator = (
-            AIFolderGenerator(
-                max_bookmarks_per_folder=config.max_bookmarks_per_folder,
-                ai_engine=config.ai_engine,
-            )
-            if config.generate_folders
-            else None
-        )
-        self.chrome_html_generator = (
-            ChromeHTMLGenerator() if config.generate_chrome_html else None
-        )
 
-        # Memory management
-        self.memory_monitor = MemoryMonitor(
-            warning_threshold_mb=config.memory_warning_threshold,
-            critical_threshold_mb=config.memory_critical_threshold,
-        )
-        self.batch_processor = BatchProcessor(
-            batch_size=config.memory_batch_size, memory_monitor=self.memory_monitor
-        )
-        self.checkpoint_manager = CheckpointManager(
+        # Duplicate detector is optional based on config
+        if duplicate_detector is not None:
+            self.duplicate_detector = duplicate_detector
+        else:
+            self.duplicate_detector = (
+                DuplicateDetector() if config.detect_duplicates else None
+            )
+
+        # Folder generator is optional based on config
+        if folder_generator is not None:
+            self.folder_generator = folder_generator
+        else:
+            self.folder_generator = (
+                AIFolderGenerator(
+                    max_bookmarks_per_folder=config.max_bookmarks_per_folder,
+                    ai_engine=config.ai_engine,
+                )
+                if config.generate_folders
+                else None
+            )
+
+        # Chrome HTML generator is optional based on config
+        if chrome_html_generator is not None:
+            self.chrome_html_generator = chrome_html_generator
+        else:
+            self.chrome_html_generator = (
+                ChromeHTMLGenerator() if config.generate_chrome_html else None
+            )
+
+        # Memory management components
+        if memory_monitor is not None:
+            self.memory_monitor = memory_monitor
+        else:
+            self.memory_monitor = MemoryMonitor(
+                warning_threshold_mb=config.memory_warning_threshold,
+                critical_threshold_mb=config.memory_critical_threshold,
+            )
+
+        if batch_processor is not None:
+            self.batch_processor = batch_processor
+        else:
+            self.batch_processor = BatchProcessor(
+                batch_size=config.memory_batch_size, memory_monitor=self.memory_monitor
+            )
+
+        self.checkpoint_manager = checkpoint_manager or CheckpointManager(
             checkpoint_dir=config.checkpoint_dir, save_interval=config.save_interval
         )
 
@@ -578,8 +650,8 @@ class BookmarkProcessingPipeline:
 
                 # Store results
                 for result in batch_results:
-                    self.ai_results[result.url] = result
-                    self.checkpoint_manager.add_ai_result(result.url, result)
+                    self.ai_results[result.original_url] = result
+                    self.checkpoint_manager.add_ai_result(result.original_url, result)
 
                 # Update progress
                 if self.progress_tracker:
@@ -978,11 +1050,183 @@ class BookmarkProcessingPipeline:
             logging.error(f"Error during cleanup: {e}")
 
 
+class PipelineFactory:
+    """Factory for creating processing pipelines with dependency injection."""
+
+    @staticmethod
+    def create(config: PipelineConfig) -> BookmarkProcessingPipeline:
+        """
+        Create a processing pipeline with all default components.
+
+        This factory method instantiates all components with their default
+        configurations based on the provided PipelineConfig. Use this when
+        you want standard pipeline behavior.
+
+        Args:
+            config: Pipeline configuration
+
+        Returns:
+            Configured BookmarkProcessingPipeline with all default components
+        """
+        # Create core components
+        csv_handler = RaindropCSVHandler()
+        multi_importer = MultiFormatImporter()
+
+        # Create rate limiter
+        rate_limiter = IntelligentRateLimiter(
+            max_concurrent=config.max_concurrent_requests
+        )
+
+        # Create URL validator with rate limiter
+        url_validator = URLValidator(
+            timeout=config.url_timeout,
+            max_concurrent=config.max_concurrent_requests,
+            verify_ssl=config.verify_ssl,
+            rate_limiter=rate_limiter,
+        )
+
+        # Create content analyzer
+        content_analyzer = ContentAnalyzer(timeout=config.url_timeout)
+
+        # Create AI processor if enabled
+        ai_processor = (
+            EnhancedAIProcessor(max_description_length=config.max_description_length)
+            if config.ai_enabled
+            else None
+        )
+
+        # Create tag generator
+        tag_generator = CorpusAwareTagGenerator(
+            target_tag_count=config.target_tag_count,
+            max_tags_per_bookmark=config.max_tags_per_bookmark,
+        )
+
+        # Create duplicate detector if enabled
+        duplicate_detector = (
+            DuplicateDetector() if config.detect_duplicates else None
+        )
+
+        # Create folder generator if enabled
+        folder_generator = (
+            AIFolderGenerator(
+                max_bookmarks_per_folder=config.max_bookmarks_per_folder,
+                ai_engine=config.ai_engine,
+            )
+            if config.generate_folders
+            else None
+        )
+
+        # Create Chrome HTML generator if enabled
+        chrome_html_generator = (
+            ChromeHTMLGenerator() if config.generate_chrome_html else None
+        )
+
+        # Create memory management components
+        memory_monitor = MemoryMonitor(
+            warning_threshold_mb=config.memory_warning_threshold,
+            critical_threshold_mb=config.memory_critical_threshold,
+        )
+
+        batch_processor = BatchProcessor(
+            batch_size=config.memory_batch_size, memory_monitor=memory_monitor
+        )
+
+        # Create checkpoint manager
+        checkpoint_manager = CheckpointManager(
+            checkpoint_dir=config.checkpoint_dir, save_interval=config.save_interval
+        )
+
+        # Create and return pipeline with all components
+        return BookmarkProcessingPipeline(
+            config=config,
+            csv_handler=csv_handler,
+            multi_importer=multi_importer,
+            rate_limiter=rate_limiter,
+            url_validator=url_validator,
+            content_analyzer=content_analyzer,
+            ai_processor=ai_processor,
+            tag_generator=tag_generator,
+            duplicate_detector=duplicate_detector,
+            folder_generator=folder_generator,
+            chrome_html_generator=chrome_html_generator,
+            memory_monitor=memory_monitor,
+            batch_processor=batch_processor,
+            checkpoint_manager=checkpoint_manager,
+        )
+
+    @staticmethod
+    def create_with_custom_components(
+        config: PipelineConfig, **components
+    ) -> BookmarkProcessingPipeline:
+        """
+        Create a pipeline with custom components.
+
+        This factory method allows you to override specific components while
+        using defaults for others. Useful for testing or custom configurations.
+
+        Args:
+            config: Pipeline configuration
+            **components: Custom component instances (e.g., url_validator=mock_validator)
+
+        Returns:
+            Configured BookmarkProcessingPipeline with mixed default and custom components
+
+        Example:
+            >>> mock_validator = Mock(spec=URLValidator)
+            >>> pipeline = PipelineFactory.create_with_custom_components(
+            ...     config, url_validator=mock_validator
+            ... )
+        """
+        # Create pipeline with defaults, then override with custom components
+        default_pipeline = PipelineFactory.create(config)
+
+        # Extract components from default pipeline or use custom ones
+        return BookmarkProcessingPipeline(
+            config=config,
+            csv_handler=components.get("csv_handler", default_pipeline.csv_handler),
+            multi_importer=components.get(
+                "multi_importer", default_pipeline.multi_importer
+            ),
+            rate_limiter=components.get("rate_limiter", default_pipeline.rate_limiter),
+            url_validator=components.get(
+                "url_validator", default_pipeline.url_validator
+            ),
+            content_analyzer=components.get(
+                "content_analyzer", default_pipeline.content_analyzer
+            ),
+            ai_processor=components.get("ai_processor", default_pipeline.ai_processor),
+            tag_generator=components.get(
+                "tag_generator", default_pipeline.tag_generator
+            ),
+            duplicate_detector=components.get(
+                "duplicate_detector", default_pipeline.duplicate_detector
+            ),
+            folder_generator=components.get(
+                "folder_generator", default_pipeline.folder_generator
+            ),
+            chrome_html_generator=components.get(
+                "chrome_html_generator", default_pipeline.chrome_html_generator
+            ),
+            memory_monitor=components.get(
+                "memory_monitor", default_pipeline.memory_monitor
+            ),
+            batch_processor=components.get(
+                "batch_processor", default_pipeline.batch_processor
+            ),
+            checkpoint_manager=components.get(
+                "checkpoint_manager", default_pipeline.checkpoint_manager
+            ),
+        )
+
+
 def create_pipeline(
     input_file: str, output_file: str, **kwargs
 ) -> BookmarkProcessingPipeline:
     """
     Create a processing pipeline with standard configuration.
+
+    This is a convenience function that creates a PipelineConfig and uses
+    the PipelineFactory to instantiate a pipeline with all default components.
 
     Args:
         input_file: Path to input CSV file
@@ -991,7 +1235,9 @@ def create_pipeline(
 
     Returns:
         Configured BookmarkProcessingPipeline
+
+    Example:
+        >>> pipeline = create_pipeline("input.csv", "output.csv", batch_size=50)
     """
     config = PipelineConfig(input_file=input_file, output_file=output_file, **kwargs)
-
-    return BookmarkProcessingPipeline(config)
+    return PipelineFactory.create(config)

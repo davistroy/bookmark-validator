@@ -383,7 +383,7 @@ class EnhancedAIProcessor:
     def process_batch(
         self,
         bookmarks: List[Bookmark],
-        content_data_map: Dict = None,
+        content_data_map: Optional[Dict[Any, Any]] = None,
         progress_callback=None,
     ) -> List[Bookmark]:
         """
@@ -422,7 +422,7 @@ class EnhancedAIProcessor:
     def batch_process(
         self,
         bookmarks: List[Bookmark],
-        content_data_map: Dict = None,
+        content_data_map: Optional[Dict[Any, Any]] = None,
         progress_callback=None,
     ) -> List[Bookmark]:
         """

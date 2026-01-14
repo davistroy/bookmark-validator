@@ -15,13 +15,7 @@ from bookmark_processor.core.ai_processor import (
 )
 from bookmark_processor.core.claude_api_client import ClaudeAPIClient
 from bookmark_processor.core.openai_api_client import OpenAIAPIClient
-from bookmark_processor.utils.error_handler import get_error_handler
-
-
-class AISelectionError(Exception):
-    """Raised when AI engine selection fails."""
-
-    pass
+from bookmark_processor.utils.error_handler import get_error_handler, AISelectionError
 
 
 class AIFactory:

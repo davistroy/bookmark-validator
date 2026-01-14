@@ -10,24 +10,13 @@ import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import unquote
 
 from bs4 import BeautifulSoup
 
 from .data_models import Bookmark
-
-
-class ChromeHTMLError(Exception):
-    """Base exception for Chrome HTML parsing errors."""
-
-    pass
-
-
-class ChromeHTMLStructureError(ChromeHTMLError):
-    """Raised when HTML structure doesn't match Chrome bookmark format."""
-
-    pass
+from ..utils.error_handler import ChromeHTMLError, ChromeHTMLStructureError
 
 
 class ChromeHTMLParser:
@@ -170,7 +159,7 @@ class ChromeHTMLParser:
         Returns:
             List of Bookmark objects
         """
-        bookmarks = []
+        bookmarks: List[Bookmark] = []
 
         # Find the root DL element
         root_dl = soup.find("dl")
@@ -356,7 +345,7 @@ class ChromeHTMLParser:
         except Exception:
             return False
 
-    def get_file_info(self, file_path: Union[str, Path]) -> Dict[str, any]:
+    def get_file_info(self, file_path: Union[str, Path]) -> Dict[str, Any]:
         """
         Get information about a Chrome HTML bookmark file.
 

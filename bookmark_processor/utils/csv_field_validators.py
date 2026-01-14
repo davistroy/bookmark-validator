@@ -790,7 +790,7 @@ class CSVFieldValidator:
             ValidationResult,
         )
 
-        result = ValidationResult()
+        result = ValidationResult(is_valid=True)
 
         # Check if all expected columns are present
         missing_columns = [col for col in expected_columns if col not in row_data]
@@ -810,16 +810,13 @@ class CSVFieldValidator:
                 "columns"
             )
 
-        # Validate individual fields
-        if "url" in row_data:
-            url_result = self.composite_validator.validate_url(row_data["url"])
-            if not url_result.is_valid:
-                result.merge(url_result)
-
-        if "title" in row_data:
-            title_result = self.composite_validator.validate_title(row_data["title"])
-            if not title_result.is_valid:
-                result.merge(title_result)
+        # Validate individual fields using field validators
+        for col in expected_columns:
+            if col in row_data:
+                validator = get_field_validator(col)
+                field_result = validator.validate(row_data[col])
+                if field_result.has_errors():
+                    result = result.merge(field_result)
 
         return result
 
@@ -829,7 +826,7 @@ class CSVFieldValidator:
             ValidationResult,
         )
 
-        result = ValidationResult()
+        result = ValidationResult(is_valid=True)
 
         # Check for required columns
         missing_columns = set(self.expected_columns) - set(df.columns)

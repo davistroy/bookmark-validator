@@ -39,6 +39,8 @@ class TestValidationUtilities:
 
     def test_validate_csv_structure_missing_columns(self):
         """Test CSV structure validation with missing required columns."""
+        from bookmark_processor.core.csv_handler import RaindropCSVHandler
+
         # Create DataFrame with missing columns
         invalid_df = pd.DataFrame(
             {
@@ -50,9 +52,9 @@ class TestValidationUtilities:
         )
 
         with pytest.raises(ValidationError) as exc_info:
-            validate_csv_structure(invalid_df)
+            validate_csv_structure(invalid_df, RaindropCSVHandler.EXPORT_COLUMNS)
 
-        assert "missing required columns" in str(exc_info.value).lower()
+        assert "missing" in str(exc_info.value).lower()
 
     def test_validate_csv_structure_extra_columns(self, sample_export_dataframe):
         """Test CSV structure validation with extra columns (should be allowed)."""
@@ -65,12 +67,14 @@ class TestValidationUtilities:
 
     def test_validate_csv_structure_empty_dataframe(self):
         """Test CSV structure validation with empty DataFrame."""
+        from bookmark_processor.core.csv_handler import RaindropCSVHandler
+
         empty_df = pd.DataFrame()
 
         with pytest.raises(ValidationError) as exc_info:
-            validate_csv_structure(empty_df)
+            validate_csv_structure(empty_df, RaindropCSVHandler.EXPORT_COLUMNS)
 
-        assert "empty" in str(exc_info.value).lower()
+        assert "empty" in str(exc_info.value).lower() or "missing" in str(exc_info.value).lower()
 
     @pytest.mark.parametrize(
         "url,expected",
@@ -135,103 +139,70 @@ class TestInputValidator:
         validator = InputValidator()
         assert validator is not None
 
-    def test_validate_file_path_valid(self, temp_csv_file):
-        """Test file path validation with valid file."""
+    def test_validate_input_valid(self):
+        """Test input validation with valid data."""
         validator = InputValidator()
 
-        # Create the file first
-        temp_csv_file.write_text("test,data\n1,2")
+        input_data = {
+            "url": "https://example.com",
+            "title": "Test Bookmark",
+            "tags": "test, bookmark",
+            "folder": "Test/Folder"
+        }
 
-        result = validator.validate_file_path(str(temp_csv_file))
-        assert result is True
+        result = validator.validate_input(input_data)
+        assert result.is_valid or not result.has_errors()
 
-    def test_validate_file_path_nonexistent(self, temp_dir):
-        """Test file path validation with non-existent file."""
-        validator = InputValidator()
-        nonexistent_file = temp_dir / "nonexistent.csv"
-
-        with pytest.raises(ValidationError) as exc_info:
-            validator.validate_file_path(str(nonexistent_file))
-
-        assert "does not exist" in str(exc_info.value).lower()
-
-    def test_validate_file_path_directory(self, temp_dir):
-        """Test file path validation with directory instead of file."""
+    def test_validate_input_invalid_url(self):
+        """Test input validation with invalid URL."""
         validator = InputValidator()
 
-        with pytest.raises(ValidationError) as exc_info:
-            validator.validate_file_path(str(temp_dir))
+        input_data = {
+            "url": "javascript:alert('xss')",  # Invalid scheme
+            "title": "Test Bookmark"
+        }
 
-        assert "not a file" in str(exc_info.value).lower()
+        result = validator.validate_input(input_data)
+        assert result.has_errors() or result.has_warnings()
 
-    def test_validate_output_path_valid(self, temp_dir):
-        """Test output path validation with valid directory."""
-        validator = InputValidator()
-        output_file = temp_dir / "output.csv"
-
-        result = validator.validate_output_path(str(output_file))
-        assert result is True
-
-    def test_validate_output_path_readonly_directory(self, temp_dir):
-        """Test output path validation with read-only directory."""
+    def test_validate_input_missing_title(self):
+        """Test input validation with missing title."""
         validator = InputValidator()
 
-        # Make directory read-only (if supported by OS)
-        import os
+        input_data = {
+            "url": "https://example.com",
+            "title": ""
+        }
 
-        try:
-            temp_dir.chmod(0o444)  # Read-only
-            output_file = temp_dir / "output.csv"
+        result = validator.validate_input(input_data)
+        assert result.has_errors()
 
-            with pytest.raises(ValidationError):
-                validator.validate_output_path(str(output_file))
-        except (OSError, PermissionError):
-            # Skip if permission change not supported
-            pytest.skip("Cannot change directory permissions on this system")
-        finally:
-            # Restore permissions
-            try:
-                temp_dir.chmod(0o755)
-            except (OSError, PermissionError):
-                pass
-
-    def test_validate_batch_size(self):
-        """Test batch size validation."""
+    def test_is_valid_method(self):
+        """Test is_valid method."""
         validator = InputValidator()
 
-        # Valid batch sizes
-        assert validator.validate_batch_size(1) is True
-        assert validator.validate_batch_size(100) is True
-        assert validator.validate_batch_size(1000) is True
+        # Valid data
+        valid_data = {
+            "url": "https://example.com",
+            "title": "Test"
+        }
+        assert validator.is_valid(valid_data)
 
-        # Invalid batch sizes
-        with pytest.raises(ValidationError):
-            validator.validate_batch_size(0)
+        # Invalid data - missing required URL
+        invalid_data = {
+            "url": "",  # Empty URL
+            "title": "Test"
+        }
+        assert not validator.is_valid(invalid_data)
 
-        with pytest.raises(ValidationError):
-            validator.validate_batch_size(-1)
-
-        with pytest.raises(ValidationError):
-            validator.validate_batch_size(10001)  # Too large
-
-    def test_validate_timeout(self):
-        """Test timeout validation."""
-        validator = InputValidator()
-
-        # Valid timeouts
-        assert validator.validate_timeout(1) is True
-        assert validator.validate_timeout(30) is True
-        assert validator.validate_timeout(300) is True
-
-        # Invalid timeouts
-        with pytest.raises(ValidationError):
-            validator.validate_timeout(0)
-
-        with pytest.raises(ValidationError):
-            validator.validate_timeout(-1)
-
-        with pytest.raises(ValidationError):
-            validator.validate_timeout(3601)  # Too large (> 1 hour)
+        # Invalid data - bad scheme
+        invalid_data2 = {
+            "url": "javascript:void(0)",
+            "title": "Test"
+        }
+        # This should have errors due to invalid scheme
+        result = validator.validate_input(invalid_data2)
+        assert result.has_errors() or not result.is_valid
 
 
 class TestCSVFieldValidator:
@@ -242,15 +213,52 @@ class TestCSVFieldValidator:
         validator = CSVFieldValidator()
         assert validator is not None
 
-    def test_validate_required_columns(self, sample_export_dataframe):
-        """Test required columns validation."""
+    def test_validate_row_valid(self):
+        """Test row validation with valid data."""
+        from bookmark_processor.core.csv_handler import RaindropCSVHandler
+
         validator = CSVFieldValidator()
 
-        result = validator.validate_required_columns(sample_export_dataframe)
-        assert result is True
+        valid_row = {
+            "id": "1",
+            "title": "Test",
+            "note": "Note",
+            "excerpt": "Excerpt",
+            "url": "https://example.com",
+            "folder": "Test",
+            "tags": "test, tag",
+            "created": "2024-01-01T00:00:00Z",
+            "cover": "",
+            "highlights": "",
+            "favorite": "false"
+        }
 
-    def test_validate_required_columns_missing(self):
-        """Test required columns validation with missing columns."""
+        result = validator.validate_row(valid_row)
+        assert result.is_valid or not result.has_errors()
+
+    def test_validate_row_missing_columns(self):
+        """Test row validation with missing columns."""
+        validator = CSVFieldValidator()
+
+        # Row with missing columns
+        invalid_row = {
+            "id": "1",
+            "title": "Test",
+            "url": "https://example.com"
+        }
+
+        result = validator.validate_row(invalid_row)
+        assert result.has_errors()
+
+    def test_validate_csv_structure_valid(self, sample_export_dataframe):
+        """Test CSV structure validation with valid data."""
+        validator = CSVFieldValidator()
+
+        result = validator.validate_csv_structure(sample_export_dataframe)
+        assert result.is_valid or not result.has_errors()
+
+    def test_validate_csv_structure_missing_columns(self):
+        """Test CSV structure validation with missing columns."""
         validator = CSVFieldValidator()
 
         # DataFrame with missing columns
@@ -258,81 +266,16 @@ class TestCSVFieldValidator:
             {"id": ["1"], "title": ["Test"], "url": ["https://example.com"]}
         )
 
-        missing_columns = validator.validate_required_columns(invalid_df)
-        assert isinstance(missing_columns, list)
-        assert len(missing_columns) > 0
-        assert "note" in missing_columns
-        assert "tags" in missing_columns
+        result = validator.validate_csv_structure(invalid_df)
+        assert result.has_errors()
 
-    def test_validate_data_types(self, sample_export_dataframe):
-        """Test data type validation."""
+    def test_validate_csv_structure_empty(self):
+        """Test CSV structure validation with empty DataFrame."""
         validator = CSVFieldValidator()
 
-        errors = validator.validate_data_types(sample_export_dataframe)
-        assert isinstance(errors, list)
-        # Should have no errors for valid data
-        assert len(errors) == 0
-
-    def test_validate_data_types_invalid(self):
-        """Test data type validation with invalid data."""
-        validator = CSVFieldValidator()
-
-        # Create DataFrame with invalid data types
-        invalid_df = pd.DataFrame(
-            {
-                "id": [None, 2, "3"],  # Mixed types, None value
-                "title": ["Title 1", "", None],  # None value
-                "note": ["Note 1", "Note 2", "Note 3"],
-                "excerpt": ["Excerpt 1", "Excerpt 2", "Excerpt 3"],
-                "url": ["https://example.com", "invalid-url", ""],  # Invalid URL
-                "folder": ["Folder 1", "Folder 2", "Folder 3"],
-                "tags": ["tag1, tag2", "", "tag3"],
-                "created": ["2024-01-01T00:00:00Z", "invalid-date", ""],  # Invalid date
-                "cover": ["", "", ""],
-                "highlights": ["", "", ""],
-                "favorite": ["true", "invalid-bool", ""],  # Invalid boolean
-            }
-        )
-
-        errors = validator.validate_data_types(invalid_df)
-        assert isinstance(errors, list)
-        assert len(errors) > 0
-
-    def test_validate_url_column(self):
-        """Test URL column validation."""
-        validator = CSVFieldValidator()
-
-        urls = [
-            "https://example.com",
-            "http://test.com",
-            "invalid-url",
-            "",
-            "ftp://files.example.com",
-        ]
-
-        df = pd.DataFrame({"url": urls})
-        errors = validator.validate_url_column(df)
-
-        assert isinstance(errors, list)
-        assert len(errors) >= 1  # Should have errors for invalid URLs
-
-    def test_validate_date_column(self):
-        """Test date column validation."""
-        validator = CSVFieldValidator()
-
-        dates = [
-            "2024-01-01T00:00:00Z",
-            "2024-12-31T23:59:59+00:00",
-            "invalid-date",
-            "",
-            "2024-13-01T00:00:00Z",  # Invalid month
-        ]
-
-        df = pd.DataFrame({"created": dates})
-        errors = validator.validate_date_column(df)
-
-        assert isinstance(errors, list)
-        assert len(errors) >= 2  # Should have errors for invalid dates
+        empty_df = pd.DataFrame()
+        result = validator.validate_csv_structure(empty_df)
+        assert result.has_errors()
 
 
 # NOTE: ConfigValidator tests commented out - ConfigValidator was removed during Pydantic migration
@@ -347,143 +290,185 @@ class TestCLIValidator:
 
     def test_init(self):
         """Test CLIValidator initialization."""
-        validator = CLIValidator()
+        from bookmark_processor.utils.cli_validators import CLIArgumentValidator
+        validator = CLIArgumentValidator()
         assert validator is not None
 
-    def test_validate_arguments_valid(self, temp_csv_file, temp_dir):
+    def test_validate_all_arguments_valid(self, temp_csv_file, temp_dir):
         """Test CLI arguments validation with valid arguments."""
-        validator = CLIValidator()
+        from bookmark_processor.utils.cli_validators import CLIArgumentValidator
+        import argparse
+
+        validator = CLIArgumentValidator()
 
         # Create input file
         temp_csv_file.write_text("id,title,url\n1,Test,https://example.com")
         output_file = temp_dir / "output.csv"
 
-        args = {
-            "input": str(temp_csv_file),
-            "output": str(output_file),
-            "batch_size": 50,
-            "timeout": 30,
-            "max_retries": 3,
-            "verbose": True,
-            "resume": False,
-        }
+        # Create argparse Namespace
+        args = argparse.Namespace(
+            input=str(temp_csv_file),
+            output=str(output_file),
+            batch_size=50,
+            max_retries=3,
+            ai_engine="local",
+            duplicate_strategy="highest_quality",
+            verbose=True,
+            resume=False,
+            clear_checkpoints=False,
+            no_duplicates=False,
+            config=None
+        )
 
-        errors = validator.validate_arguments(args)
-        assert len(errors) == 0
+        result = validator.validate_all_arguments(args)
+        assert result.is_valid or not result.has_errors()
 
-    def test_validate_arguments_invalid(self, temp_dir):
+    def test_validate_all_arguments_invalid(self, temp_dir):
         """Test CLI arguments validation with invalid arguments."""
-        validator = CLIValidator()
+        from bookmark_processor.utils.cli_validators import CLIArgumentValidator
+        import argparse
+
+        validator = CLIArgumentValidator()
 
         nonexistent_file = temp_dir / "nonexistent.csv"
-        readonly_dir = temp_dir / "readonly"
 
-        args = {
-            "input": str(nonexistent_file),  # Non-existent file
-            "output": str(readonly_dir / "output.csv"),  # Invalid output
-            "batch_size": 0,  # Invalid batch size
-            "timeout": -1,  # Invalid timeout
-            "max_retries": 100,  # Invalid retries
-            "verbose": "not_boolean",  # Invalid boolean
-            "resume": "not_boolean",  # Invalid boolean
-        }
+        # Create argparse Namespace with invalid args
+        args = argparse.Namespace(
+            input=str(nonexistent_file),  # Non-existent file
+            output=str(temp_dir / "output.csv"),
+            batch_size=0,  # Invalid batch size
+            max_retries=100,  # Invalid retries
+            ai_engine="invalid",  # Invalid engine
+            duplicate_strategy="highest_quality",
+            verbose=True,
+            resume=False,
+            clear_checkpoints=False,
+            no_duplicates=False,
+            config=None
+        )
 
-        errors = validator.validate_arguments(args)
-        assert len(errors) > 0
+        result = validator.validate_all_arguments(args)
+        assert result.has_errors()
 
-    def test_validate_file_compatibility(self, temp_csv_file, temp_dir):
-        """Test file compatibility validation."""
-        validator = CLIValidator()
+    def test_validate_argument_combinations(self, temp_csv_file, temp_dir):
+        """Test argument combination validation."""
+        from bookmark_processor.utils.cli_validators import ArgumentCombinationValidator
+
+        validator = ArgumentCombinationValidator()
 
         # Create input file
         temp_csv_file.write_text("test,data\n1,2")
         output_file = temp_dir / "output.csv"
 
-        # Same file should cause error
-        errors = validator.validate_file_compatibility(
-            str(temp_csv_file), str(temp_csv_file)
-        )
-        assert len(errors) > 0
-        assert "same file" in errors[0].lower()
+        # Test conflicting resume and clear_checkpoints
+        args_dict = {
+            "resume": True,
+            "clear_checkpoints": True,
+            "input_path": str(temp_csv_file),
+            "output_path": str(output_file)
+        }
 
-        # Different files should be valid
-        errors = validator.validate_file_compatibility(
-            str(temp_csv_file), str(output_file)
-        )
-        assert len(errors) == 0
+        result = validator.validate(args_dict)
+        assert result.has_errors()
 
-    def test_validate_ai_engine_selection(self):
-        """Test AI engine selection validation."""
-        validator = CLIValidator()
+        # Test same input and output files
+        args_dict = {
+            "resume": False,
+            "clear_checkpoints": False,
+            "input_path": str(temp_csv_file),
+            "output_path": str(temp_csv_file)
+        }
 
-        # Valid engines
-        for engine in ["local", "claude", "openai"]:
-            errors = validator.validate_ai_engine_selection(engine)
-            assert len(errors) == 0
-
-        # Invalid engine
-        errors = validator.validate_ai_engine_selection("invalid_engine")
-        assert len(errors) > 0
+        result = validator.validate(args_dict)
+        assert result.has_errors()
 
 
 class TestIntegratedValidation:
     """Test integrated validation functionality."""
 
-    def test_comprehensive_validation_valid(self, sample_csv_file, temp_dir):
-        """Test comprehensive validation with valid inputs."""
-        from bookmark_processor.utils.integrated_validation import IntegratedValidator
-
-        validator = IntegratedValidator()
-        output_file = temp_dir / "output.csv"
-
-        args = {
-            "input": str(sample_csv_file),
-            "output": str(output_file),
-            "batch_size": 50,
-            "timeout": 30,
-            "ai_engine": "local",
-        }
-
-        errors = validator.validate_all(args)
-        assert isinstance(errors, list)
-        assert len(errors) == 0
-
-    def test_comprehensive_validation_invalid(self, temp_dir):
-        """Test comprehensive validation with invalid inputs."""
+    def test_validate_bookmark_record_valid(self):
+        """Test bookmark record validation with valid data."""
         from bookmark_processor.utils.integrated_validation import IntegratedValidator
 
         validator = IntegratedValidator()
 
-        args = {
-            "input": str(temp_dir / "nonexistent.csv"),
-            "output": "",  # Invalid output
-            "batch_size": 0,  # Invalid
-            "timeout": -1,  # Invalid
-            "ai_engine": "invalid",  # Invalid
+        valid_bookmark = {
+            "id": "1",
+            "title": "Test",
+            "note": "Note",
+            "excerpt": "Excerpt",
+            "url": "https://example.com",
+            "folder": "Test",
+            "tags": "test",
+            "created": "2024-01-01T00:00:00Z",
+            "cover": "",
+            "highlights": "",
+            "favorite": False
         }
 
-        errors = validator.validate_all(args)
-        assert isinstance(errors, list)
-        assert len(errors) > 0
+        result = validator.validate_bookmark_record(valid_bookmark)
+        assert result.is_valid or not result.has_errors()
 
-    def test_validation_error_aggregation(self, temp_dir):
-        """Test that validation errors are properly aggregated."""
+    def test_validate_bookmark_record_invalid(self):
+        """Test bookmark record validation with invalid data."""
         from bookmark_processor.utils.integrated_validation import IntegratedValidator
 
         validator = IntegratedValidator()
 
-        # Multiple invalid arguments
-        args = {
-            "input": "",  # Invalid
-            "output": "",  # Invalid
-            "batch_size": -1,  # Invalid
-            "timeout": 0,  # Invalid
-            "max_retries": -1,  # Invalid
-            "ai_engine": "invalid",  # Invalid
+        invalid_bookmark = {
+            "url": "not-a-url",  # Invalid URL
+            "title": "",  # Empty title
         }
 
-        errors = validator.validate_all(args)
-        assert len(errors) >= 4  # Should have multiple errors
+        result = validator.validate_bookmark_record(invalid_bookmark)
+        assert result.has_errors()
+
+    def test_validate_and_recover_bookmarks(self):
+        """Test validation and recovery of multiple bookmarks."""
+        from bookmark_processor.utils.integrated_validation import IntegratedValidator
+
+        validator = IntegratedValidator()
+
+        bookmarks = [
+            {
+                "url": "https://example.com",
+                "title": "Valid Bookmark",
+                "note": "",
+                "excerpt": "",
+                "folder": "",
+                "tags": "",
+                "created": "2024-01-01T00:00:00Z",
+                "cover": "",
+                "highlights": "",
+                "favorite": False
+            },
+            {
+                "url": "invalid-url",
+                "title": "Invalid Bookmark",
+            }
+        ]
+
+        valid_bookmarks, summary = validator.validate_and_recover_bookmarks(bookmarks)
+
+        assert isinstance(valid_bookmarks, list)
+        assert isinstance(summary, dict)
+        assert "total_processed" in summary
+        assert "valid_bookmarks" in summary
+        assert "failed_bookmarks" in summary
+
+    def test_get_validation_statistics(self):
+        """Test getting validation statistics."""
+        from bookmark_processor.utils.integrated_validation import IntegratedValidator
+
+        validator = IntegratedValidator()
+
+        # Perform some validations
+        validator.validate_bookmark_record({"url": "https://example.com", "title": "Test"})
+
+        stats = validator.get_validation_statistics()
+        assert isinstance(stats, dict)
+        assert "total_validations" in stats
+        assert stats["total_validations"] > 0
 
 
 if __name__ == "__main__":

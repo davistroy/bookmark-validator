@@ -13,12 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from .data_models import Bookmark
-
-
-class ChromeHTMLGeneratorError(Exception):
-    """Base exception for Chrome HTML generation errors."""
-
-    pass
+from ..utils.error_handler import ChromeHTMLGeneratorError
 
 
 class FolderNode:

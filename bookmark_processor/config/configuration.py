@@ -48,122 +48,75 @@ class Configuration:
         self._config = self._manager.config
 
     def get(self, section: str, option: str, fallback: Any = None) -> str:
-        """Get configuration value as string (for compatibility)."""
-        try:
-            if section == "network":
-                if option == "timeout":
-                    return str(self._config.network.timeout)
-                elif option == "max_retries":
-                    return str(self._config.network.max_retries)
-                elif option == "max_concurrent_requests":
-                    return str(self._config.network.concurrent_requests)
-                elif option == "default_delay":
-                    return "0.5"  # Fixed value in new system
-                elif option == "user_agent_rotation":
-                    return "true"  # Always enabled in new system
-                elif option.endswith("_delay"):
-                    return "1.5"  # Simplified delay handling
+        """
+        Get configuration value as string.
 
-            elif section == "processing":
-                if option == "batch_size":
-                    return str(self._config.processing.batch_size)
-                elif option == "max_description_length":
-                    return str(self._config.processing.max_description_length)
-                elif option == "ai_model":
-                    return "facebook/bart-large-cnn"  # Fixed in new system
-                elif option == "use_existing_content":
-                    return "true"  # Always true in new system
-                elif option == "max_tags_per_bookmark":
-                    return "5"  # Fixed value
-                elif option == "target_unique_tags":
-                    return "150"  # Fixed value
+        DEPRECATED: This method exists for backward compatibility only.
+        Use direct Pydantic attribute access instead:
+        - config.network.timeout instead of config.get('network', 'timeout')
+        - config.processing.batch_size instead of config.get('processing', 'batch_size')
 
-            elif section == "checkpoint":
-                if option == "enabled":
-                    return str(self._config.checkpoint_enabled).lower()
-                elif option == "save_interval":
-                    return str(self._config.checkpoint_interval)
-                elif option == "checkpoint_dir":
-                    return str(self._config.checkpoint_dir)
-                elif option == "auto_cleanup":
-                    return "true"  # Always true in new system
+        Args:
+            section: Configuration section (ignored)
+            option: Configuration option (ignored)
+            fallback: Fallback value to return
 
-            elif section == "output":
-                if option == "output_format":
-                    return self._config.output.format
-                elif option == "error_log_detailed":
-                    return str(self._config.output.detailed_errors).lower()
-                elif option == "preserve_folder_structure":
-                    return "true"  # Always true in new system
-                elif option == "include_timestamps":
-                    return "true"  # Always true in new system
-
-            elif section == "logging":
-                if option == "log_level":
-                    return "INFO"  # Simplified logging
-                elif option == "log_file":
-                    return "bookmark_processor.log"
-                elif option == "console_output":
-                    return "true"
-                elif option == "performance_logging":
-                    return "true"
-
-            elif section == "ai":
-                if option == "default_engine":
-                    return self._config.processing.ai_engine
-                elif option == "claude_rpm":
-                    return str(self._config.ai.claude_rpm)
-                elif option == "openai_rpm":
-                    return str(self._config.ai.openai_rpm)
-                elif option == "claude_batch_size":
-                    return "10"  # Fixed value
-                elif option == "openai_batch_size":
-                    return "20"  # Fixed value
-                elif option == "show_running_costs":
-                    return "true"  # Always true
-                elif option == "cost_confirmation_interval":
-                    return str(self._config.ai.cost_confirmation_interval)
-                elif option == "max_cost_per_run":
-                    return "0.0"  # No limit by default
-                elif option == "pause_at_cost":
-                    return "true"
-
-            elif section == "executable":
-                if option == "model_cache_dir":
-                    return "~/.cache/bookmark-processor/models"
-                elif option == "temp_dir":
-                    return "/tmp/bookmark-processor"
-                elif option == "cleanup_on_exit":
-                    return "true"
-
-            return str(fallback) if fallback is not None else ""
-
-        except Exception:
-            return str(fallback) if fallback is not None else ""
+        Returns:
+            Fallback value as string
+        """
+        import warnings
+        warnings.warn(
+            f"config.get('{section}', '{option}') is deprecated. "
+            "Use direct Pydantic attribute access instead (e.g., config.network.timeout)",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return str(fallback) if fallback is not None else ""
 
     def getint(self, section: str, option: str, fallback: int = 0) -> int:
-        """Get configuration value as integer."""
-        try:
-            value = self.get(section, option, str(fallback))
-            return int(value)
-        except (ValueError, TypeError):
-            return fallback
+        """
+        Get configuration value as integer.
+
+        DEPRECATED: Use direct Pydantic attribute access instead.
+        """
+        import warnings
+        warnings.warn(
+            f"config.getint('{section}', '{option}') is deprecated. "
+            "Use direct Pydantic attribute access instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return fallback
 
     def getfloat(self, section: str, option: str, fallback: float = 0.0) -> float:
-        """Get configuration value as float."""
-        try:
-            value = self.get(section, option, str(fallback))
-            return float(value)
-        except (ValueError, TypeError):
-            return fallback
+        """
+        Get configuration value as float.
+
+        DEPRECATED: Use direct Pydantic attribute access instead.
+        """
+        import warnings
+        warnings.warn(
+            f"config.getfloat('{section}', '{option}') is deprecated. "
+            "Use direct Pydantic attribute access instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return fallback
 
     def getboolean(self, section: str, option: str, fallback: bool = False) -> bool:
-        """Get configuration value as boolean."""
-        try:
-            value = self.get(section, option, str(fallback)).lower()
-            return value in ("true", "1", "yes", "on", "enabled")
-        except (ValueError, TypeError, AttributeError):
-            return fallback
+        """
+        Get configuration value as boolean.
+
+        DEPRECATED: Use direct Pydantic attribute access instead.
+        """
+        import warnings
+        warnings.warn(
+            f"config.getboolean('{section}', '{option}') is deprecated. "
+            "Use direct Pydantic attribute access instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return fallback
 
     def get_model_cache_dir(self) -> Path:
         """Get AI model cache directory with environment variable expansion."""

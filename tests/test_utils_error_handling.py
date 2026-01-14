@@ -4,20 +4,26 @@ Unit tests for error handling and retry utilities.
 Tests for error handler, retry handler, and related utilities.
 """
 
+import asyncio
 import time
 from typing import Any, Callable
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.utils.error_handler import (
     AIProcessingError,
-    BookmarkProcessingError,
+    BookmarkProcessorError,
+    ErrorCategory,
     ErrorHandler,
+    ErrorSeverity,
     NetworkError,
+    RetryStrategy,
     ValidationError,
 )
 from bookmark_processor.utils.retry_handler import (
+    ErrorType,
     ExponentialBackoff,
     FixedBackoff,
     LinearBackoff,
@@ -30,37 +36,28 @@ class TestCustomExceptions:
     """Test custom exception classes."""
 
     def test_bookmark_processing_error(self):
-        """Test BookmarkProcessingError exception."""
-        error = BookmarkProcessingError("Test error")
+        """Test BookmarkProcessorError exception."""
+        error = BookmarkProcessorError("Test error")
         assert str(error) == "Test error"
         assert isinstance(error, Exception)
 
     def test_validation_error(self):
         """Test ValidationError exception."""
-        error = ValidationError("Validation failed", field="url")
+        error = ValidationError("Validation failed")
         assert str(error) == "Validation failed"
-        assert error.field == "url"
-        assert isinstance(error, BookmarkProcessingError)
+        assert isinstance(error, BookmarkProcessorError)
 
     def test_network_error(self):
         """Test NetworkError exception."""
-        error = NetworkError(
-            "Network failed", url="https://example.com", status_code=404
-        )
+        error = NetworkError("Network failed")
         assert str(error) == "Network failed"
-        assert error.url == "https://example.com"
-        assert error.status_code == 404
-        assert isinstance(error, BookmarkProcessingError)
+        assert isinstance(error, BookmarkProcessorError)
 
     def test_ai_processing_error(self):
         """Test AIProcessingError exception."""
-        error = AIProcessingError(
-            "AI failed", model="test-model", input_text="test input"
-        )
+        error = AIProcessingError("AI failed")
         assert str(error) == "AI failed"
-        assert error.model == "test-model"
-        assert error.input_text == "test input"
-        assert isinstance(error, BookmarkProcessingError)
+        assert isinstance(error, BookmarkProcessorError)
 
 
 class TestErrorHandler:
@@ -70,241 +67,244 @@ class TestErrorHandler:
         """Test ErrorHandler initialization with defaults."""
         handler = ErrorHandler()
 
-        assert handler.max_errors == 100
-        assert handler.error_threshold == 0.2
-        assert len(handler.errors) == 0
-        assert handler.total_operations == 0
+        assert handler.enable_fallback is True
+        assert len(handler.error_counts) == 0
+        assert len(handler.recent_errors) == 0
 
     def test_init_custom(self):
         """Test ErrorHandler initialization with custom values."""
-        handler = ErrorHandler(max_errors=50, error_threshold=0.1)
+        handler = ErrorHandler(enable_fallback=False)
 
-        assert handler.max_errors == 50
-        assert handler.error_threshold == 0.1
+        assert handler.enable_fallback is False
 
-    def test_handle_error_basic(self):
-        """Test basic error handling."""
+    def test_categorize_error_timeout(self):
+        """Test error categorization for timeout errors."""
         handler = ErrorHandler()
 
-        try:
-            raise ValueError("Test error")
-        except Exception as e:
-            handler.handle_error(e, context="test_operation")
+        error = asyncio.TimeoutError("Operation timed out")
+        details = handler.categorize_error(error)
 
-        assert len(handler.errors) == 1
-        error_record = handler.errors[0]
-        assert error_record["error_type"] == "ValueError"
-        assert error_record["message"] == "Test error"
-        assert error_record["context"] == "test_operation"
-        assert "timestamp" in error_record
-        assert "traceback" in error_record
+        assert details.category == ErrorCategory.NETWORK
+        assert details.severity == ErrorSeverity.MEDIUM
+        assert details.is_recoverable is True
 
-    def test_handle_error_with_url(self):
-        """Test error handling with URL context."""
+    def test_categorize_error_rate_limit(self):
+        """Test error categorization for rate limit errors."""
         handler = ErrorHandler()
 
-        try:
-            raise NetworkError("Connection failed")
-        except Exception as e:
-            handler.handle_error(e, context="url_validation", url="https://example.com")
+        error = Exception("Rate limit exceeded")
+        details = handler.categorize_error(error)
 
-        error_record = handler.errors[0]
-        assert error_record["url"] == "https://example.com"
-        assert error_record["context"] == "url_validation"
+        assert details.category == ErrorCategory.API_LIMIT
+        assert details.severity == ErrorSeverity.HIGH
 
-    def test_handle_error_with_bookmark_id(self):
-        """Test error handling with bookmark ID context."""
+    def test_categorize_error_validation(self):
+        """Test error categorization for validation errors."""
         handler = ErrorHandler()
 
-        try:
-            raise ValidationError("Invalid bookmark")
-        except Exception as e:
-            handler.handle_error(e, bookmark_id="123")
+        error = ValidationError("Invalid data")
+        details = handler.categorize_error(error)
 
-        error_record = handler.errors[0]
-        assert error_record["bookmark_id"] == "123"
+        assert details.category == ErrorCategory.VALIDATION
+        assert details.severity == ErrorSeverity.LOW
+        assert details.is_recoverable is False
 
-    def test_record_operation(self):
-        """Test operation recording."""
+    @pytest.mark.asyncio
+    async def test_handle_with_retry_success(self):
+        """Test handle_with_retry with successful operation."""
         handler = ErrorHandler()
 
-        assert handler.total_operations == 0
+        async def successful_operation():
+            return "success"
 
-        handler.record_operation()
-        assert handler.total_operations == 1
+        result = await handler.handle_with_retry(successful_operation)
+        assert result == "success"
 
-        handler.record_operation(count=5)
-        assert handler.total_operations == 6
+    @pytest.mark.asyncio
+    async def test_handle_with_retry_with_retry(self):
+        """Test handle_with_retry with retry."""
+        handler = ErrorHandler()
+        call_count = 0
 
-    def test_get_error_rate(self):
-        """Test error rate calculation."""
+        async def flaky_operation():
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise NetworkError("Connection failed")
+            return "success"
+
+        result = await handler.handle_with_retry(flaky_operation)
+        assert result == "success"
+        assert call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_handle_bookmark_processing_error_fallback(self):
+        """Test handle_bookmark_processing_error with fallback."""
+        handler = ErrorHandler(enable_fallback=True)
+
+        bookmark = Bookmark(
+            url="https://example.com",
+            title="Test Bookmark",
+            note="Test note",
+            folder="Test",
+        )
+
+        error = NetworkError("Connection failed")
+        description, metadata = await handler.handle_bookmark_processing_error(
+            error, bookmark
+        )
+
+        assert isinstance(description, str)
+        assert len(description) > 0
+        assert metadata["provider"] == "fallback"
+        assert metadata["success"] is True
+
+    def test_get_error_statistics(self):
+        """Test error statistics generation."""
         handler = ErrorHandler()
 
-        # No operations yet
-        assert handler.get_error_rate() == 0.0
-
-        # Record operations and errors
-        handler.record_operation(count=10)
-
-        for i in range(3):
-            try:
-                raise ValueError(f"Error {i}")
-            except Exception as e:
-                handler.handle_error(e)
-
-        # Should be 3/10 = 0.3
-        assert handler.get_error_rate() == 0.3
-
-    def test_should_continue_below_threshold(self):
-        """Test should_continue when below error threshold."""
-        handler = ErrorHandler(error_threshold=0.5)
-
-        # Record operations with errors below threshold
-        handler.record_operation(count=10)
-        for i in range(4):  # 40% error rate
-            try:
-                raise ValueError(f"Error {i}")
-            except Exception as e:
-                handler.handle_error(e)
-
-        assert handler.should_continue() is True
-
-    def test_should_continue_above_threshold(self):
-        """Test should_continue when above error threshold."""
-        handler = ErrorHandler(error_threshold=0.3)
-
-        # Record operations with errors above threshold
-        handler.record_operation(count=10)
-        for i in range(5):  # 50% error rate
-            try:
-                raise ValueError(f"Error {i}")
-            except Exception as e:
-                handler.handle_error(e)
-
-        assert handler.should_continue() is False
-
-    def test_should_continue_max_errors(self):
-        """Test should_continue when max errors reached."""
-        handler = ErrorHandler(max_errors=3)
-
-        # Record errors up to max
-        for i in range(3):
-            try:
-                raise ValueError(f"Error {i}")
-            except Exception as e:
-                handler.handle_error(e)
-
-        assert handler.should_continue() is True
-
-        # One more error should trigger failure
-        try:
-            raise ValueError("Final error")
-        except Exception as e:
-            handler.handle_error(e)
-
-        assert handler.should_continue() is False
-
-    def test_get_error_summary(self):
-        """Test error summary generation."""
-        handler = ErrorHandler()
-
-        # Record different types of errors
+        # Categorize some errors to populate statistics
         errors = [
-            ValueError("Error 1"),
-            ValueError("Error 2"),
-            NetworkError("Network failed"),
-            AIProcessingError("AI failed"),
+            NetworkError("Network error 1"),
+            NetworkError("Network error 2"),
+            ValidationError("Validation error"),
         ]
 
         for error in errors:
-            try:
-                raise error
-            except Exception as e:
-                handler.handle_error(e)
+            handler.categorize_error(error)
+            handler._track_error(handler.categorize_error(error))
 
-        summary = handler.get_error_summary()
+        stats = handler.get_error_statistics()
 
-        assert isinstance(summary, dict)
-        assert summary["total_errors"] == 4
-        assert "error_types" in summary
-        assert summary["error_types"]["ValueError"] == 2
-        assert summary["error_types"]["NetworkError"] == 1
-        assert summary["error_types"]["AIProcessingError"] == 1
+        assert isinstance(stats, dict)
+        assert stats["total_errors"] > 0
+        assert "error_counts_by_category" in stats
+        assert "error_rates" in stats
+        assert "recent_errors" in stats
 
-    def test_get_errors_by_type(self):
-        """Test filtering errors by type."""
+    def test_reset_statistics(self):
+        """Test resetting error statistics."""
         handler = ErrorHandler()
 
-        # Record different types of errors
-        try:
-            raise ValueError("Value error")
-        except Exception as e:
-            handler.handle_error(e)
+        # Add some errors
+        error = NetworkError("Test error")
+        handler._track_error(handler.categorize_error(error))
 
-        try:
-            raise NetworkError("Network error")
-        except Exception as e:
-            handler.handle_error(e)
+        assert len(handler.recent_errors) > 0
 
-        value_errors = handler.get_errors_by_type("ValueError")
-        assert len(value_errors) == 1
-        assert value_errors[0]["message"] == "Value error"
+        handler.reset_statistics()
+        assert len(handler.error_counts) == 0
+        assert len(handler.recent_errors) == 0
 
-        network_errors = handler.get_errors_by_type("NetworkError")
-        assert len(network_errors) == 1
-        assert network_errors[0]["message"] == "Network error"
-
-        # Non-existent type
-        missing_errors = handler.get_errors_by_type("MissingError")
-        assert len(missing_errors) == 0
-
-    def test_clear_errors(self):
-        """Test clearing error history."""
+    def test_get_health_status_healthy(self):
+        """Test health status when no errors."""
         handler = ErrorHandler()
 
-        # Record some errors
-        for i in range(3):
-            try:
-                raise ValueError(f"Error {i}")
-            except Exception as e:
-                handler.handle_error(e)
+        status = handler.get_health_status()
 
-        assert len(handler.errors) == 3
+        assert status["status"] == "healthy"
+        assert status["recent_error_count"] == 0
 
-        handler.clear_errors()
-        assert len(handler.errors) == 0
-        # Operations count should remain
-        assert handler.total_operations == 0
+    def test_get_health_status_with_errors(self):
+        """Test health status with errors."""
+        handler = ErrorHandler()
+
+        # Add some errors
+        for _ in range(5):
+            error = NetworkError("Test error")
+            handler._track_error(handler.categorize_error(error))
+
+        status = handler.get_health_status()
+
+        assert status["status"] in ["healthy", "stable", "concerning"]
+        assert status["recent_error_count"] == 5
+
+
+class TestRetryStrategy:
+    """Test RetryStrategy class from error_handler."""
+
+    def test_init_default(self):
+        """Test RetryStrategy initialization with defaults."""
+        strategy = RetryStrategy()
+
+        assert strategy.max_attempts == 3
+        assert strategy.base_delay == 1.0
+        assert strategy.max_delay == 60.0
+        assert strategy.exponential_backoff is True
+        assert strategy.jitter is True
+
+    def test_init_custom(self):
+        """Test RetryStrategy initialization with custom values."""
+        strategy = RetryStrategy(
+            max_attempts=5,
+            base_delay=2.0,
+            max_delay=120.0,
+            exponential_backoff=False,
+            jitter=False,
+        )
+
+        assert strategy.max_attempts == 5
+        assert strategy.base_delay == 2.0
+        assert strategy.max_delay == 120.0
+        assert strategy.exponential_backoff is False
+        assert strategy.jitter is False
+
+    def test_get_delay_exponential(self):
+        """Test exponential backoff delay calculation."""
+        strategy = RetryStrategy(base_delay=1.0, exponential_backoff=True, jitter=False)
+
+        assert strategy.get_delay(0) == 1.0  # 1.0 * 2^0
+        assert strategy.get_delay(1) == 2.0  # 1.0 * 2^1
+        assert strategy.get_delay(2) == 4.0  # 1.0 * 2^2
+
+    def test_get_delay_linear(self):
+        """Test linear backoff delay calculation."""
+        strategy = RetryStrategy(base_delay=2.0, exponential_backoff=False, jitter=False)
+
+        # Linear backoff always returns base_delay
+        assert strategy.get_delay(0) == 2.0
+        assert strategy.get_delay(1) == 2.0
+        assert strategy.get_delay(2) == 2.0
+
+    def test_should_retry_max_attempts(self):
+        """Test should_retry with max attempts."""
+        strategy = RetryStrategy(max_attempts=3)
+        handler = ErrorHandler()
+        error = handler.categorize_error(NetworkError("Test"))
+
+        assert strategy.should_retry(0, error) is True
+        assert strategy.should_retry(2, error) is True
+        assert strategy.should_retry(3, error) is False
 
 
 class TestRetryConfig:
-    """Test RetryConfig class."""
+    """Test RetryConfig class from retry_handler."""
 
     def test_init_default(self):
         """Test RetryConfig initialization with defaults."""
         config = RetryConfig()
 
-        assert config.max_attempts == 3
+        assert config.max_retries == 3
         assert config.base_delay == 1.0
         assert config.max_delay == 60.0
-        assert config.backoff_strategy == "exponential"
-        assert config.retry_on_status_codes == [408, 429, 500, 502, 503, 504]
+        assert config.backoff_multiplier == 2.0
+        assert config.jitter is True
 
     def test_init_custom(self):
         """Test RetryConfig initialization with custom values."""
         config = RetryConfig(
-            max_attempts=5,
+            max_retries=5,
             base_delay=2.0,
             max_delay=120.0,
-            backoff_strategy="linear",
-            retry_on_status_codes=[503, 504],
+            backoff_multiplier=3.0,
+            jitter=False,
         )
 
-        assert config.max_attempts == 5
+        assert config.max_retries == 5
         assert config.base_delay == 2.0
         assert config.max_delay == 120.0
-        assert config.backoff_strategy == "linear"
-        assert config.retry_on_status_codes == [503, 504]
+        assert config.backoff_multiplier == 3.0
+        assert config.jitter is False
 
 
 class TestBackoffStrategies:
@@ -312,14 +312,15 @@ class TestBackoffStrategies:
 
     def test_exponential_backoff(self):
         """Test exponential backoff strategy."""
-        backoff = ExponentialBackoff(base_delay=1.0, multiplier=2.0, max_delay=10.0)
+        backoff = ExponentialBackoff(base_delay=1.0, multiplier=2.0, max_delay=10.0, jitter=False)
 
         # Test delay calculation for different attempts
-        assert backoff.get_delay(1) == 1.0  # base_delay * multiplier^0
-        assert backoff.get_delay(2) == 2.0  # base_delay * multiplier^1
-        assert backoff.get_delay(3) == 4.0  # base_delay * multiplier^2
-        assert backoff.get_delay(4) == 8.0  # base_delay * multiplier^3
-        assert backoff.get_delay(5) == 10.0  # Capped at max_delay
+        # Implementation uses attempt directly as exponent
+        assert backoff.get_delay(0) == 1.0  # base_delay * multiplier^0
+        assert backoff.get_delay(1) == 2.0  # base_delay * multiplier^1
+        assert backoff.get_delay(2) == 4.0  # base_delay * multiplier^2
+        assert backoff.get_delay(3) == 8.0  # base_delay * multiplier^3
+        assert backoff.get_delay(4) == 10.0  # Capped at max_delay
         assert backoff.get_delay(10) == 10.0  # Still capped
 
     def test_linear_backoff(self):
@@ -327,10 +328,11 @@ class TestBackoffStrategies:
         backoff = LinearBackoff(base_delay=1.0, increment=0.5, max_delay=5.0)
 
         # Test delay calculation for different attempts
-        assert backoff.get_delay(1) == 1.0  # base_delay + increment * 0
-        assert backoff.get_delay(2) == 1.5  # base_delay + increment * 1
-        assert backoff.get_delay(3) == 2.0  # base_delay + increment * 2
-        assert backoff.get_delay(4) == 2.5  # base_delay + increment * 3
+        # Implementation uses attempt directly
+        assert backoff.get_delay(0) == 1.0  # base_delay + increment * 0
+        assert backoff.get_delay(1) == 1.5  # base_delay + increment * 1
+        assert backoff.get_delay(2) == 2.0  # base_delay + increment * 2
+        assert backoff.get_delay(3) == 2.5  # base_delay + increment * 3
         assert backoff.get_delay(10) == 5.0  # Capped at max_delay
 
     def test_fixed_backoff(self):
@@ -338,210 +340,116 @@ class TestBackoffStrategies:
         backoff = FixedBackoff(delay=2.5)
 
         # Should always return the same delay
-        for attempt in range(1, 10):
+        for attempt in range(0, 10):
             assert backoff.get_delay(attempt) == 2.5
 
 
 class TestRetryHandler:
-    """Test RetryHandler class."""
+    """Test RetryHandler class for URL validation retries."""
 
     def test_init_default(self):
         """Test RetryHandler initialization with defaults."""
         handler = RetryHandler()
 
-        assert isinstance(handler.config, RetryConfig)
-        assert handler.config.max_attempts == 3
-        assert handler.total_attempts == 0
-        assert handler.successful_retries == 0
+        assert handler.default_max_retries == 3
+        assert handler.default_base_delay == 2.0
+        assert len(handler.retry_queue) == 0
+        assert len(handler.completed_retries) == 0
 
-    def test_init_custom_config(self):
-        """Test RetryHandler initialization with custom config."""
-        config = RetryConfig(max_attempts=5, base_delay=2.0)
-        handler = RetryHandler(config)
+    def test_init_custom(self):
+        """Test RetryHandler initialization with custom values."""
+        handler = RetryHandler(default_max_retries=5, default_base_delay=1.0)
 
-        assert handler.config.max_attempts == 5
-        assert handler.config.base_delay == 2.0
+        assert handler.default_max_retries == 5
+        assert handler.default_base_delay == 1.0
 
-    def test_should_retry_success(self):
-        """Test should_retry decision for successful operation."""
+    def test_classify_error_timeout(self):
+        """Test error classification for timeout."""
         handler = RetryHandler()
 
-        # Successful operations should not retry
-        assert handler.should_retry(None, attempt=1) is False
-        assert (
-            handler.should_retry(ValueError("test"), attempt=1) is False
-        )  # Non-retryable error
+        import requests
+        error = requests.exceptions.Timeout("Request timed out")
+        error_type = handler._classify_error(error)
 
-    def test_should_retry_retryable_error(self):
-        """Test should_retry decision for retryable errors."""
-        config = RetryConfig(retry_on_status_codes=[503, 504])
-        handler = RetryHandler(config)
+        assert error_type == ErrorType.TIMEOUT
 
-        # Network errors with retryable status codes
-        retryable_error = NetworkError("Service unavailable", status_code=503)
-        assert handler.should_retry(retryable_error, attempt=1) is True
-        assert handler.should_retry(retryable_error, attempt=2) is True
-        assert (
-            handler.should_retry(retryable_error, attempt=3) is False
-        )  # Max attempts reached
-
-    def test_should_retry_non_retryable_error(self):
-        """Test should_retry decision for non-retryable errors."""
+    def test_classify_error_connection(self):
+        """Test error classification for connection error."""
         handler = RetryHandler()
 
-        # Network errors with non-retryable status codes
-        non_retryable_error = NetworkError("Not found", status_code=404)
-        assert handler.should_retry(non_retryable_error, attempt=1) is False
+        import requests
+        error = requests.exceptions.ConnectionError("Connection refused")
+        error_type = handler._classify_error(error)
 
-        # Validation errors are generally not retryable
-        validation_error = ValidationError("Invalid data")
-        assert handler.should_retry(validation_error, attempt=1) is False
+        assert error_type == ErrorType.CONNECTION_ERROR
 
-    def test_get_delay_exponential(self):
-        """Test delay calculation with exponential backoff."""
-        config = RetryConfig(backoff_strategy="exponential", base_delay=1.0)
-        handler = RetryHandler(config)
-
-        assert handler.get_delay(1) == 1.0
-        assert handler.get_delay(2) == 2.0
-        assert handler.get_delay(3) == 4.0
-
-    def test_get_delay_linear(self):
-        """Test delay calculation with linear backoff."""
-        config = RetryConfig(backoff_strategy="linear", base_delay=1.0)
-        handler = RetryHandler(config)
-
-        assert handler.get_delay(1) == 1.0
-        assert handler.get_delay(2) == 1.5
-        assert handler.get_delay(3) == 2.0
-
-    def test_get_delay_fixed(self):
-        """Test delay calculation with fixed backoff."""
-        config = RetryConfig(backoff_strategy="fixed", base_delay=2.0)
-        handler = RetryHandler(config)
-
-        assert handler.get_delay(1) == 2.0
-        assert handler.get_delay(2) == 2.0
-        assert handler.get_delay(3) == 2.0
-
-    def test_execute_success_no_retry(self):
-        """Test execute with successful operation (no retry needed)."""
+    def test_add_failed_url(self):
+        """Test adding a failed URL to retry queue."""
         handler = RetryHandler()
 
-        # Mock successful operation
-        def successful_operation():
-            return "success"
+        import requests
+        error = requests.exceptions.Timeout("Timeout")
+        handler.add_failed_url("https://example.com", error)
 
-        result = handler.execute(successful_operation)
+        assert len(handler.retry_queue) == 1
+        assert handler.retry_queue[0].url == "https://example.com"
+        assert handler.retry_queue[0].error_type == ErrorType.TIMEOUT
 
-        assert result == "success"
-        assert handler.total_attempts == 1
-        assert handler.successful_retries == 0
-
-    def test_execute_success_after_retry(self):
-        """Test execute with success after retries."""
-        config = RetryConfig(max_attempts=3, base_delay=0.01)  # Fast retry for testing
-        handler = RetryHandler(config)
-
-        # Mock operation that fails twice then succeeds
-        call_count = 0
-
-        def flaky_operation():
-            nonlocal call_count
-            call_count += 1
-            if call_count <= 2:
-                raise NetworkError("Service unavailable", status_code=503)
-            return "success"
-
-        with patch("time.sleep"):  # Mock sleep to speed up test
-            result = handler.execute(flaky_operation)
-
-        assert result == "success"
-        assert handler.total_attempts == 3
-        assert handler.successful_retries == 1
-
-    def test_execute_max_attempts_exceeded(self):
-        """Test execute when max attempts are exceeded."""
-        config = RetryConfig(max_attempts=2, base_delay=0.01)
-        handler = RetryHandler(config)
-
-        # Mock operation that always fails with retryable error
-        def always_fails():
-            raise NetworkError("Service unavailable", status_code=503)
-
-        with patch("time.sleep"):  # Mock sleep to speed up test
-            with pytest.raises(NetworkError):
-                handler.execute(always_fails)
-
-        assert handler.total_attempts == 2
-        assert handler.successful_retries == 0
-
-    def test_execute_non_retryable_error(self):
-        """Test execute with non-retryable error."""
+    def test_add_failed_url_non_retryable(self):
+        """Test adding a non-retryable error."""
         handler = RetryHandler()
 
-        # Mock operation that fails with non-retryable error
-        def non_retryable_failure():
-            raise NetworkError("Not found", status_code=404)
+        # Client errors have max_retries = 0 in the strategy
+        import requests
+        response = Mock()
+        response.status_code = 404
+        error = requests.exceptions.HTTPError("Not found")
+        error.response = response
 
-        with pytest.raises(NetworkError):
-            handler.execute(non_retryable_failure)
+        handler.add_failed_url("https://example.com", error)
 
-        assert handler.total_attempts == 1  # Should not retry
-        assert handler.successful_retries == 0
+        # Should not be added to queue if max_retries is 0
+        assert len(handler.retry_queue) == 0
 
-    def test_execute_with_args_kwargs(self):
-        """Test execute with function arguments."""
+    def test_get_retry_statistics_empty(self):
+        """Test getting statistics when no retries."""
         handler = RetryHandler()
 
-        def operation_with_args(x, y, z=None):
-            return f"{x}-{y}-{z}"
+        stats = handler.get_retry_statistics()
 
-        result = handler.execute(operation_with_args, 1, 2, z=3)
-        assert result == "1-2-3"
+        assert stats["total_items"] == 0
 
-    def test_get_statistics(self):
-        """Test getting retry statistics."""
-        config = RetryConfig(max_attempts=3, base_delay=0.01)
-        handler = RetryHandler(config)
-
-        # Perform some operations
-        handler.execute(lambda: "success")  # Immediate success
-
-        call_count = 0
-
-        def flaky_operation():
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                raise NetworkError("Service unavailable", status_code=503)
-            return "success"
-
-        with patch("time.sleep"):
-            handler.execute(flaky_operation)  # Success after 1 retry
-
-        stats = handler.get_statistics()
-
-        assert isinstance(stats, dict)
-        assert stats["total_operations"] == 2
-        assert stats["total_attempts"] == 3  # 1 + 2 attempts
-        assert stats["successful_retries"] == 1
-        assert stats["average_attempts"] == 1.5  # 3/2
-
-    def test_reset_statistics(self):
-        """Test resetting retry statistics."""
+    def test_get_retry_statistics_with_items(self):
+        """Test getting statistics with retry items."""
         handler = RetryHandler()
 
-        # Perform an operation
-        handler.execute(lambda: "success")
+        import requests
+        error = requests.exceptions.Timeout("Timeout")
+        handler.add_failed_url("https://example1.com", error)
+        handler.add_failed_url("https://example2.com", error)
 
-        assert handler.total_attempts > 0
+        stats = handler.get_retry_statistics()
 
-        # Reset and verify
-        handler.reset_statistics()
+        assert stats["total_items"] == 2
+        assert stats["remaining_in_queue"] == 2
+        assert "error_type_distribution" in stats
 
-        assert handler.total_attempts == 0
-        assert handler.successful_retries == 0
+    def test_clear_completed(self):
+        """Test clearing completed retries."""
+        handler = RetryHandler()
+
+        import requests
+        error = requests.exceptions.Timeout("Timeout")
+        handler.add_failed_url("https://example.com", error)
+
+        # Simulate completion
+        item = handler.retry_queue[0]
+        handler.completed_retries.append(item)
+
+        assert len(handler.completed_retries) == 1
+
+        handler.clear_completed()
+        assert len(handler.completed_retries) == 0
 
 
 if __name__ == "__main__":

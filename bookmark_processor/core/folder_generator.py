@@ -279,9 +279,9 @@ class AIFolderGenerator:
     def generate_folder_structure(
         self,
         bookmarks: List[Bookmark],
-        content_data_map: Dict[str, ContentData] = None,
-        ai_results_map: Dict[str, AIProcessingResult] = None,
-        original_folders_map: Dict[str, str] = None,
+        content_data_map: Optional[Dict[str, ContentData]] = None,
+        ai_results_map: Optional[Dict[str, AIProcessingResult]] = None,
+        original_folders_map: Optional[Dict[str, str]] = None,
     ) -> FolderGenerationResult:
         """
         Generate AI-powered folder structure for bookmarks.

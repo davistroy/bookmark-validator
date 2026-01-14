@@ -894,29 +894,29 @@ class InputValidator:
         Returns:
             ValidationResult containing all validation issues
         """
-        issues = []
+        result = ValidationResult(is_valid=True)
 
         # Validate URL if present
         if "url" in input_data:
             url_result = self.url_validator.validate(input_data["url"])
-            issues.extend(url_result.issues)
+            result = result.merge(url_result)
 
         # Validate title if present
         if "title" in input_data:
             title_result = self.title_validator.validate(input_data["title"])
-            issues.extend(title_result.issues)
+            result = result.merge(title_result)
 
         # Validate tags if present
         if "tags" in input_data:
             tags_result = self.tags_validator.validate(input_data["tags"])
-            issues.extend(tags_result.issues)
+            result = result.merge(tags_result)
 
         # Validate folder if present
         if "folder" in input_data:
             folder_result = self.folder_validator.validate(input_data["folder"])
-            issues.extend(folder_result.issues)
+            result = result.merge(folder_result)
 
-        return ValidationResult(issues=issues)
+        return result
 
     def is_valid(self, input_data: Dict[str, Any]) -> bool:
         """Check if input data is valid."""

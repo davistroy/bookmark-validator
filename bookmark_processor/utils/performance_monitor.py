@@ -390,12 +390,31 @@ class PerformanceMonitor:
         if current["network_success_rate"] < 90:
             bottlenecks.append("High network failure rate")
 
-        # Check stage performance
-        for stage_name, summary in self.get_performance_analysis()[
-            "stage_analysis"
-        ].items():
-            if summary["items_per_second"] < 1:  # Less than 1 item per second
-                bottlenecks.append(f"Slow {stage_name} stage processing")
+        # Check stage performance (avoid recursion by getting stage summary directly)
+        stage_summary = {}
+        for stage in self.stage_metrics:
+            if stage.stage_name not in stage_summary:
+                stage_summary[stage.stage_name] = {
+                    "total_duration": 0,
+                    "total_items": 0,
+                    "total_requests": 0,
+                    "total_errors": 0,
+                    "executions": 0,
+                }
+
+            summary = stage_summary[stage.stage_name]
+            summary["total_duration"] += stage.duration_seconds
+            summary["total_items"] += stage.items_processed
+            summary["total_requests"] += stage.network_requests
+            summary["total_errors"] += stage.errors_count
+            summary["executions"] += 1
+
+        # Calculate averages and check for bottlenecks
+        for stage_name, summary in stage_summary.items():
+            if summary["executions"] > 0 and summary["total_duration"] > 0:
+                items_per_second = summary["total_items"] / summary["total_duration"]
+                if items_per_second < 1:  # Less than 1 item per second
+                    bottlenecks.append(f"Slow {stage_name} stage processing")
 
         return bottlenecks
 
