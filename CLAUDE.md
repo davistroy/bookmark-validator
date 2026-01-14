@@ -1,7 +1,7 @@
 # CLAUDE.md
 # Bookmark Validation and Enhancement Tool - AI Development Guide (Revised)
 
-This file serves as the comprehensive reference for AI assistants (primarily Claude) working on the Bookmark Validation and Enhancement Tool project. It contains essential commands, project context, development guidelines, and mandatory requirements based on the actual raindrop.io CSV format and Windows executable requirements.
+This file serves as the comprehensive reference for AI assistants (primarily Claude) working on the Bookmark Validation and Enhancement Tool project. It contains essential commands, project context, development guidelines, and mandatory requirements based on the actual raindrop.io CSV format and Linux/WSL deployment.
 
 ---
 
@@ -93,7 +93,7 @@ python -m pytest tests/test_ai_processor.py -v
 # Run tests with coverage
 python -m pytest tests/ --cov=bookmark_processor --cov-report=html
 
-# Test Windows executable functionality
+# Test Linux executable functionality
 python -m pytest tests/test_executable.py -v
 
 # Performance tests
@@ -124,16 +124,16 @@ black bookmark_processor/ tests/ && isort bookmark_processor/ tests/ && flake8 b
 ### Build and Distribution
 ```bash
 # Clean build artifacts
-rmdir /s /q build dist __pycache__ *.egg-info
+rm -rf build dist __pycache__ *.egg-info
 
 # Build executable with optimization
-python build_exe.py --optimize
+./build_linux.sh
 
 # Create distribution package
 python create_distribution.py
 
-# Test on clean Windows system
-test_executable.bat
+# Test on clean Linux system
+./test_executable.sh
 ```
 
 ---
@@ -219,7 +219,7 @@ url,folder,title,note,tags,created
 - **Type hints:** Required for all public functions and methods
 - **Docstrings:** Google style for all classes and public methods
 
-### Windows Executable Considerations
+### Linux Executable Considerations
 ```python
 # Always check if running as executable
 if getattr(sys, 'frozen', False):
@@ -364,42 +364,42 @@ Before making any commits, ensure:
 4. No linting errors: `flake8 bookmark_processor/ tests/`
 5. Type checking passes: `mypy bookmark_processor/`
 6. Security scan clean: `bandit -r bookmark_processor/`
-7. Executable builds successfully: `python build_exe.py`
-8. Executable basic test passes: `dist\bookmark-processor.exe --help`
+7. Executable builds successfully: `./build_linux.sh`
+8. Executable basic test passes: `./dist/bookmark-processor --help`
 
-### Windows Executable Testing Workflow
+### Linux Executable Testing Workflow
 ```bash
 # Build and test cycle
-python build_exe.py
-dist\bookmark-processor.exe --input test_data\small_sample.csv --output test_output.csv --verbose
+./build_linux.sh
+./dist/bookmark-processor --input test_data/small_sample.csv --output test_output.csv --verbose
 
 # Test checkpoint functionality
 # 1. Start processing and interrupt (Ctrl+C)
-dist\bookmark-processor.exe --input test_data\large_sample.csv --output test_output.csv
+./dist/bookmark-processor --input test_data/large_sample.csv --output test_output.csv
 # 2. Resume processing
-dist\bookmark-processor.exe --input test_data\large_sample.csv --output test_output.csv --resume
+./dist/bookmark-processor --input test_data/large_sample.csv --output test_output.csv --resume
 
 # Test error handling
-dist\bookmark-processor.exe --input invalid_file.csv --output test_output.csv
+./dist/bookmark-processor --input invalid_file.csv --output test_output.csv
 ```
 
 ### Git Workflow
 ```bash
 # Feature branch for executable-related work
-git checkout -b feature/windows-executable
+git checkout -b feature/linux-executable
 
 # Commit with executable testing results
 git add .
-git commit -m "feat: implement Windows executable with PyInstaller
+git commit -m "feat: implement Linux executable with PyInstaller
 
-- Add PyInstaller build configuration
+- Add PyInstaller build configuration for Linux
 - Implement resource path handling for executable
 - Add checkpoint/resume functionality
 - Test with 3,598 bookmark dataset
 - Verify tag optimization with corpus analysis"
 
 # Push and create PR
-git push origin feature/windows-executable
+git push origin feature/linux-executable
 ```
 
 ---
@@ -412,7 +412,7 @@ git push origin feature/windows-executable
 - **Network Efficiency:** Smart rate limiting, max 10 concurrent connections
 - **Error Logging:** Sanitized logs without sensitive information
 
-### Security Checklist for Windows Executable
+### Security Checklist for Linux Executable
 - [ ] Input validation for all user-provided data
 - [ ] Secure HTTP client configuration (SSL verification enabled)
 - [ ] Safe URL parsing and validation
@@ -429,7 +429,7 @@ git push origin feature/windows-executable
 ### Test Categories
 1. **Unit Tests:** Individual component testing
 2. **Integration Tests:** Pipeline and component interaction
-3. **Executable Tests:** Windows .exe specific functionality
+3. **Executable Tests:** Linux executable specific functionality
 4. **Performance Tests:** Large dataset processing validation
 5. **Checkpoint Tests:** Resume functionality validation
 6. **End-to-End Tests:** Complete raindrop.io format workflow
@@ -482,7 +482,7 @@ def test_url_validation_with_retry(mock_get, raindrop_export_sample):
 - **Minimum Coverage:** 85% for all modules
 - **Critical Path Coverage:** 95% for validation, AI processing, and checkpointing
 - **Integration Coverage:** 80% for pipeline workflows
-- **Executable Coverage:** 75% for Windows-specific functionality
+- **Executable Coverage:** 75% for Linux-specific functionality
 
 ---
 
@@ -524,10 +524,10 @@ def test_url_validation_with_retry(mock_get, raindrop_export_sample):
 - **ENFORCE** checkpoint file security and automatic cleanup
 - **FORBIDDEN** to lose progress on system interruption
 
-#### 5. Windows Executable Requirements
-- **MANDATORY** deliver as standalone Windows .exe file
+#### 5. Linux Executable Requirements
+- **MANDATORY** deliver as standalone Linux executable file
 - **REQUIRED** embed all Python dependencies in executable
-- **MUST** work on Windows 11 without Python installation
+- **MUST** work on Linux/WSL without Python installation
 - **ENFORCE** proper resource path handling for executable environment
 - **FORBIDDEN** to require external Python runtime or pip installations
 
@@ -573,29 +573,29 @@ def test_url_validation_with_retry(mock_get, raindrop_export_sample):
 
 ### Common Issues and Solutions
 
-#### Windows Executable Issues
-```cmd
-REM Test if executable can find resources
-bookmark-processor.exe --help
+#### Linux Executable Issues
+```bash
+# Test if executable can find resources
+./bookmark-processor --help
 
-REM Check if AI models are accessible
-bookmark-processor.exe --input small_test.csv --output test_out.csv --verbose
+# Check if AI models are accessible
+./bookmark-processor --input small_test.csv --output test_out.csv --verbose
 
-REM Debug checkpoint functionality
-dir .bookmark_checkpoints
-bookmark-processor.exe --input test.csv --output out.csv --clear-checkpoints
+# Debug checkpoint functionality
+ls -la .bookmark_checkpoints
+./bookmark-processor --input test.csv --output out.csv --clear-checkpoints
 ```
 
 #### Processing Issues with Large Dataset
-```cmd
-REM Monitor memory usage during processing
-bookmark-processor.exe --input large_dataset.csv --output out.csv --batch-size 25 --verbose
+```bash
+# Monitor memory usage during processing
+./bookmark-processor --input large_dataset.csv --output out.csv --batch-size 25 --verbose
 
-REM Test resume functionality
-REM 1. Start processing and interrupt (Ctrl+C after some progress)
-bookmark-processor.exe --input large_dataset.csv --output out.csv
-REM 2. Resume from checkpoint
-bookmark-processor.exe --input large_dataset.csv --output out.csv --resume
+# Test resume functionality
+# 1. Start processing and interrupt (Ctrl+C after some progress)
+./bookmark-processor --input large_dataset.csv --output out.csv
+# 2. Resume from checkpoint
+./bookmark-processor --input large_dataset.csv --output out.csv --resume
 ```
 
 #### Tag Generation Issues
@@ -662,11 +662,11 @@ def health_check():
 #### 1. Always Start By
 - Reading this CLAUDE.md file completely
 - Understanding the raindrop.io CSV format requirements (11→6 columns)
-- Checking Windows executable specific requirements
+- Checking Linux/WSL executable specific requirements
 - Reviewing checkpoint/resume functionality needs
 - Understanding the large dataset processing context (3,598+ bookmarks)
 
-#### 2. Development Approach for Windows Executable
+#### 2. Development Approach for Linux Executable
 - Test all functionality in both Python script and executable form
 - Ensure proper resource path handling for PyInstaller
 - Implement robust checkpoint/resume for long-running processes
@@ -679,14 +679,14 @@ def health_check():
 - [ ] Uses existing content as input for AI description generation
 - [ ] Performs corpus-wide tag optimization after processing
 - [ ] Includes checkpoint/resume functionality
-- [ ] Works correctly when packaged as Windows executable
+- [ ] Works correctly when packaged as Linux executable
 - [ ] Handles large datasets efficiently (3,598+ items)
 - [ ] Provides accurate progress estimation for 8-hour processing
 - [ ] Formats tags correctly for raindrop.io import
 
 #### 4. Testing Requirements
 - Always test with sample raindrop.io export data
-- Verify executable builds and runs on clean Windows system
+- Verify executable builds and runs on clean Linux system
 - Test checkpoint/resume with simulated interruptions
 - Validate output format exactly matches raindrop.io import requirements
 - Performance test with datasets of 1000+ bookmarks
@@ -696,28 +696,28 @@ def health_check():
 - Implement intelligent retry logic for failed URLs
 - Use existing bookmark content to enhance AI descriptions
 - Consider memory efficiency for large dataset processing
-- Ensure Windows executable compatibility throughout development
+- Ensure Linux executable compatibility throughout development
 
 ---
 
 ## 📚 Reference Documentation
 
-### Key Dependencies for Windows Executable
+### Key Dependencies for Linux Executable
 - **pandas:** Data manipulation and CSV processing
 - **requests:** HTTP client for URL validation
 - **beautifulsoup4:** HTML parsing and content extraction
 - **transformers:** AI model loading and text summarization (with model caching)
 - **tqdm:** Progress bar display with checkpoint integration
 - **pytest:** Testing framework
-- **pyinstaller:** Windows executable creation
+- **pyinstaller:** Linux executable creation
 
 ### Raindrop.io Format References
 - [Raindrop.io Import Documentation](https://help.raindrop.io/import#supported-formats)
 - [CSV Format Specifications](https://help.raindrop.io/import#csv-format)
 
-### Windows Executable Resources
+### Linux Executable Resources
 - [PyInstaller Documentation](https://pyinstaller.readthedocs.io/)
-- [Windows PATH and Resource Handling](https://pyinstaller.readthedocs.io/en/stable/runtime-information.html)
+- [Linux PATH and Resource Handling](https://pyinstaller.readthedocs.io/en/stable/runtime-information.html)
 
 ---
 
@@ -725,7 +725,7 @@ def health_check():
 
 ### Version 2.0.0 (Current - Revised for Actual Requirements)
 - Updated for actual raindrop.io 11-column export format
-- Added Windows executable requirements and PyInstaller configuration
+- Added Linux/WSL executable requirements and PyInstaller configuration
 - Implemented checkpoint/resume functionality for large dataset processing
 - Enhanced AI description generation to use existing content as input
 - Added corpus-aware tag optimization for 3,598+ bookmark datasets
@@ -744,16 +744,17 @@ def health_check():
 
 ## 🆘 Support and Troubleshooting
 
-### Getting Help with Windows Executable
-1. Check this CLAUDE.md file for Windows-specific solutions
+### Getting Help with Linux Executable
+1. Check this CLAUDE.md file for Linux-specific solutions
 2. Review the PyInstaller build logs for dependency issues
 3. Test with small dataset first before processing large collections
 4. Verify checkpoint files are being created and can resume processing
-5. Check Windows event logs for system-level issues during long processing
+5. Check system logs for issues during long processing
 
 ### Reporting Issues
 When reporting bugs or issues, include:
-- Windows version and system specifications
+- Linux distribution and version (or WSL version)
+- System specifications
 - Input data sample (anonymized raindrop.io export)
 - Full error traceback from both console and log files
 - Checkpoint files status and contents
@@ -768,10 +769,10 @@ When reporting bugs or issues, include:
 
 ---
 
-**Last Updated:** June 4, 2025  
-**Document Version:** 2.0  
-**Maintained By:** AI Development Team  
-**Target:** Windows 11 Executable with Large Dataset Support Rate:** < 5% for valid URLs
+**Last Updated:** June 4, 2025
+**Document Version:** 2.0
+**Maintained By:** AI Development Team
+**Target:** Linux/WSL Executable with Large Dataset Support
 - **Checkpoint Frequency:** Save progress every 50 processed items
 - **Resume Time:** < 30 seconds to resume from checkpoint
 

@@ -79,6 +79,9 @@ markers = [
     "ai: Tests related to AI processing functionality",
     "security: Security-related tests",
     "performance: Performance and load tests",
+    "small: Small dataset performance tests (100 bookmarks)",
+    "medium: Medium dataset performance tests (1000 bookmarks)",
+    "large: Large dataset performance tests (3500+ bookmarks)",
     "mock: Tests that heavily rely on mocking",
     "parametrize: Parameterized tests with multiple inputs",
 ]
@@ -91,6 +94,14 @@ warn_unused_configs = true
 show_error_codes = true
 strict_optional = true
 pretty = false
+# Allow some flexibility for complex types
+allow_untyped_defs = true
+allow_untyped_calls = true
+check_untyped_defs = false
+# Reasonable strictness without being overly pedantic
+warn_return_any = false
+warn_unreachable = true
+no_implicit_reexport = false
 
 [[tool.mypy.overrides]]
 module = "transformers.*"
@@ -134,6 +145,18 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "aiohttp.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "typer.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "rich.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "toml"
 ignore_missing_imports = true
 
 [tool.coverage.run]

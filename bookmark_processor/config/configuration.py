@@ -47,76 +47,6 @@ class Configuration:
         self._manager.update_from_cli_args(args)
         self._config = self._manager.config
 
-    def get(self, section: str, option: str, fallback: Any = None) -> str:
-        """
-        Get configuration value as string.
-
-        DEPRECATED: This method exists for backward compatibility only.
-        Use direct Pydantic attribute access instead:
-        - config.network.timeout instead of config.get('network', 'timeout')
-        - config.processing.batch_size instead of config.get('processing', 'batch_size')
-
-        Args:
-            section: Configuration section (ignored)
-            option: Configuration option (ignored)
-            fallback: Fallback value to return
-
-        Returns:
-            Fallback value as string
-        """
-        import warnings
-        warnings.warn(
-            f"config.get('{section}', '{option}') is deprecated. "
-            "Use direct Pydantic attribute access instead (e.g., config.network.timeout)",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return str(fallback) if fallback is not None else ""
-
-    def getint(self, section: str, option: str, fallback: int = 0) -> int:
-        """
-        Get configuration value as integer.
-
-        DEPRECATED: Use direct Pydantic attribute access instead.
-        """
-        import warnings
-        warnings.warn(
-            f"config.getint('{section}', '{option}') is deprecated. "
-            "Use direct Pydantic attribute access instead",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return fallback
-
-    def getfloat(self, section: str, option: str, fallback: float = 0.0) -> float:
-        """
-        Get configuration value as float.
-
-        DEPRECATED: Use direct Pydantic attribute access instead.
-        """
-        import warnings
-        warnings.warn(
-            f"config.getfloat('{section}', '{option}') is deprecated. "
-            "Use direct Pydantic attribute access instead",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return fallback
-
-    def getboolean(self, section: str, option: str, fallback: bool = False) -> bool:
-        """
-        Get configuration value as boolean.
-
-        DEPRECATED: Use direct Pydantic attribute access instead.
-        """
-        import warnings
-        warnings.warn(
-            f"config.getboolean('{section}', '{option}') is deprecated. "
-            "Use direct Pydantic attribute access instead",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return fallback
 
     def get_model_cache_dir(self) -> Path:
         """Get AI model cache directory with environment variable expansion."""
@@ -197,7 +127,3 @@ def create_configuration(config_path: Optional[Path] = None) -> Configuration:
         Configuration instance
     """
     return Configuration(config_path)
-
-
-# Alias for backward compatibility during migration
-AppConfig = Configuration

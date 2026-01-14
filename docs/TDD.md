@@ -11,7 +11,7 @@
 ## 1. Technical Overview
 
 ### 1.1 System Architecture
-The application follows a checkpoint-enabled, pipeline-based architecture designed for long-running batch processing of large bookmark datasets. The system is designed for Windows executable deployment with embedded dependencies.
+The application follows a checkpoint-enabled, pipeline-based architecture designed for long-running batch processing of large bookmark datasets. The system is designed for Linux/WSL deployment with embedded dependencies.
 
 ### 1.2 High-Level Architecture Diagram
 ```
@@ -23,7 +23,7 @@ Input CSV (11 cols) → CSV Parser → Checkpoint Manager → Deduplicator → U
 ```
 
 ### 1.3 Technology Stack
-- **Runtime:** Python 3.9+ (embedded in Windows executable)
+- **Runtime:** Python 3.9+ (embedded in Linux executable or via system Python)
 - **HTTP Requests:** `requests` with intelligent session management
 - **CSV Processing:** `pandas` for data manipulation
 - **HTML Parsing:** `BeautifulSoup4`
@@ -65,7 +65,7 @@ class BookmarkProcessor:
         return self.continue_pipeline(checkpoint)
         
     def run_cli(self, args: argparse.Namespace) -> int:
-        """CLI entry point for Windows executable"""
+        """CLI entry point for Linux executable"""
 ```
 
 #### 2.1.2 Checkpoint Manager (`checkpoint_manager.py`)
@@ -373,7 +373,7 @@ import os
 from pathlib import Path
 
 def build_executable():
-    """Build Windows executable with all dependencies"""
+    """Build Linux executable with all dependencies"""
     
     # PyInstaller arguments
     args = [
@@ -471,7 +471,7 @@ exe = EXE(
 #### 2.2.2 CLI Interface (`cli.py`)
 ```python
 class CLIInterface:
-    """Enhanced command line interface for Windows executable"""
+    """Enhanced command line interface for Linux executable"""
     
     def __init__(self):
         self.parser = self._create_parser()
@@ -483,9 +483,9 @@ class CLIInterface:
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog='''
 Examples:
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv --resume
-  bookmark-processor.exe --input bookmarks.csv --output enhanced.csv --batch-size 50 --verbose
+  ./bookmark-processor --input bookmarks.csv --output enhanced.csv
+  ./bookmark-processor --input bookmarks.csv --output enhanced.csv --resume
+  ./bookmark-processor --input bookmarks.csv --output enhanced.csv --batch-size 50 --verbose
             '''
         )
         
@@ -747,7 +747,7 @@ excludedimports = [
 
 ```python
 class ModelManager:
-    """Manage AI models for Windows executable"""
+    """Manage AI models for Linux executable"""
     
     def __init__(self, model_cache_dir: str = None):
         if model_cache_dir is None:
@@ -783,7 +783,7 @@ class ModelManager:
 
 ```python
 class ExecutableErrorHandler:
-    """Handle errors specific to Windows executable environment"""
+    """Handle errors specific to Linux executable environment"""
     
     @staticmethod
     def setup_executable_logging():
@@ -937,7 +937,7 @@ class AdvancedProgressTracker:
 
 ```python
 class ExecutableTestRunner:
-    """Test framework for Windows executable"""
+    """Test framework for Linux executable"""
     
     def __init__(self, exe_path: str):
         self.exe_path = Path(exe_path)
@@ -993,7 +993,7 @@ class ExecutableTestRunner:
 ### 8.1 Build Process
 
 ```bash
-# Complete build script for Windows executable
+# Complete build script for Linux executable
 # build.bat
 
 @echo off
@@ -1016,9 +1016,9 @@ python build_exe.py
 
 REM Test executable
 echo Testing executable...
-dist\bookmark-processor.exe --help
+./dist/bookmark-processor --help
 
-echo Build complete! Executable located at: dist\bookmark-processor.exe
+echo Build complete! Executable located at: ./dist/bookmark-processor
 
 deactivate
 ```
@@ -1027,7 +1027,7 @@ deactivate
 
 ```
 BookmarkProcessor_v1.0/
-├── bookmark-processor.exe      # Main executable
+├── bookmark-processor          # Main executable
 ├── README.txt                  # Usage instructions
 ├── LICENSE.txt                 # License information
 ├── sample_config.ini           # Sample configuration
@@ -1043,4 +1043,4 @@ BookmarkProcessor_v1.0/
 
 **Document Prepared By:** Technical Team  
 **Review Status:** Ready for Implementation  
-**Target Completion:** Standalone Windows executable with full functionality
+**Target Completion:** Standalone Linux/WSL executable with full functionality

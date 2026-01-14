@@ -10,7 +10,7 @@ import logging
 import re
 import socket
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 from urllib.parse import parse_qs, urlparse
 
 logger = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class SecurityValidator:
     ALLOWED_SCHEMES = {"http", "https"}
 
     # Private/internal IP ranges (RFC 1918, RFC 3927, etc.)
-    PRIVATE_IP_RANGES = [
+    PRIVATE_IP_RANGES: List[Union[ipaddress.IPv4Network, ipaddress.IPv6Network]] = [
         ipaddress.IPv4Network("10.0.0.0/8"),  # RFC 1918
         ipaddress.IPv4Network("172.16.0.0/12"),  # RFC 1918
         ipaddress.IPv4Network("192.168.0.0/16"),  # RFC 1918

@@ -82,6 +82,12 @@ def pytest_runtest_setup(item):
     ):
         pytest.skip("network tests skipped in offline mode")
 
+    # Skip performance tests unless specifically requested
+    if "performance" in item.keywords and not item.config.getoption(
+        "--runperformance", default=False
+    ):
+        pytest.skip("need --runperformance option to run")
+
 
 def pytest_addoption(parser):
     """Add custom command line options."""
@@ -93,6 +99,18 @@ def pytest_addoption(parser):
         action="store_true",
         default=False,
         help="run network tests (disable offline mode)",
+    )
+    parser.addoption(
+        "--runperformance",
+        action="store_true",
+        default=False,
+        help="run performance tests (can be time-consuming)",
+    )
+    parser.addoption(
+        "--benchmark",
+        action="store_true",
+        default=False,
+        help="enable benchmarking for performance tests",
     )
 
 
@@ -966,6 +984,228 @@ DATE_PARSING_TEST_CASES = [
 ]
 
 
+# ============================================================================
+# Performance Testing Fixtures
+# ============================================================================
+
+
+import time
+import psutil
+from typing import Generator, Dict
+
+
+class PerformanceMonitor:
+    """Monitor performance metrics during test execution."""
+
+    def __init__(self):
+        self.start_time = None
+        self.end_time = None
+        self.start_memory = None
+        self.peak_memory = None
+        self.process = psutil.Process()
+
+    def start(self):
+        """Start performance monitoring."""
+        self.start_time = time.time()
+        self.start_memory = self.process.memory_info().rss / 1024 / 1024  # MB
+        self.peak_memory = self.start_memory
+
+    def update_peak_memory(self):
+        """Update peak memory usage."""
+        current_memory = self.process.memory_info().rss / 1024 / 1024  # MB
+        if current_memory > self.peak_memory:
+            self.peak_memory = current_memory
+
+    def stop(self) -> Dict[str, float]:
+        """Stop monitoring and return metrics."""
+        self.end_time = time.time()
+        self.update_peak_memory()
+
+        return {
+            "duration_seconds": self.end_time - self.start_time,
+            "start_memory_mb": self.start_memory,
+            "peak_memory_mb": self.peak_memory,
+            "memory_increase_mb": self.peak_memory - self.start_memory,
+        }
+
+    def get_current_metrics(self) -> Dict[str, float]:
+        """Get current metrics without stopping."""
+        self.update_peak_memory()
+        current_time = time.time()
+        current_memory = self.process.memory_info().rss / 1024 / 1024  # MB
+
+        return {
+            "elapsed_seconds": current_time - self.start_time if self.start_time else 0,
+            "current_memory_mb": current_memory,
+            "peak_memory_mb": self.peak_memory,
+        }
+
+
+@pytest.fixture
+def performance_monitor() -> Generator[PerformanceMonitor, None, None]:
+    """Fixture for monitoring performance during tests."""
+    monitor = PerformanceMonitor()
+    monitor.start()
+    yield monitor
+    metrics = monitor.stop()
+
+    # Log metrics
+    print(f"\n=== Performance Metrics ===")
+    print(f"Duration: {metrics['duration_seconds']:.2f} seconds")
+    print(f"Start Memory: {metrics['start_memory_mb']:.2f} MB")
+    print(f"Peak Memory: {metrics['peak_memory_mb']:.2f} MB")
+    print(f"Memory Increase: {metrics['memory_increase_mb']:.2f} MB")
+
+
+@pytest.fixture
+def benchmark_timer():
+    """Simple timing fixture for performance benchmarks."""
+
+    class Timer:
+        def __init__(self):
+            self.times = {}
+            self.current_label = None
+            self.start_time = None
+
+        def start(self, label: str = "default"):
+            """Start timing for a labeled operation."""
+            self.current_label = label
+            self.start_time = time.time()
+
+        def stop(self) -> float:
+            """Stop timing and return elapsed time."""
+            if self.start_time is None:
+                return 0.0
+            elapsed = time.time() - self.start_time
+            if self.current_label:
+                self.times[self.current_label] = elapsed
+            self.start_time = None
+            return elapsed
+
+        def get_time(self, label: str) -> float:
+            """Get time for a specific label."""
+            return self.times.get(label, 0.0)
+
+        def get_all_times(self) -> Dict[str, float]:
+            """Get all recorded times."""
+            return self.times.copy()
+
+        def print_summary(self):
+            """Print a summary of all timings."""
+            print("\n=== Timing Summary ===")
+            for label, duration in sorted(self.times.items()):
+                print(f"{label}: {duration:.4f} seconds")
+
+    return Timer()
+
+
+@pytest.fixture
+def performance_test_data_dir(temp_dir: Path) -> Path:
+    """Create directory for performance test data."""
+    perf_dir = temp_dir / "performance_data"
+    perf_dir.mkdir(exist_ok=True)
+    return perf_dir
+
+
+@pytest.fixture
+def generated_test_files(
+    performance_test_data_dir: Path,
+) -> Generator[Dict[str, Path], None, None]:
+    """Generate test files for performance testing on demand."""
+    from tests.fixtures.generate_test_data import TestDataGenerator
+
+    generator = TestDataGenerator(seed=42)
+    test_files = generator.generate_performance_suite(performance_test_data_dir)
+
+    yield test_files
+
+    # Cleanup is handled by temp_dir fixture
+
+
+@pytest.fixture
+def performance_baseline() -> Dict[str, Any]:
+    """Define baseline performance expectations."""
+    return {
+        "small_test": {
+            "size": 100,
+            "max_duration_seconds": 60,  # 1 minute
+            "max_memory_mb": 1000,  # 1 GB
+            "min_throughput_per_hour": 100,
+        },
+        "medium_test": {
+            "size": 1000,
+            "max_duration_seconds": 600,  # 10 minutes
+            "max_memory_mb": 2000,  # 2 GB
+            "min_throughput_per_hour": 300,
+        },
+        "large_test": {
+            "size": 3500,
+            "max_duration_seconds": 28800,  # 8 hours
+            "max_memory_mb": 4000,  # 4 GB
+            "min_throughput_per_hour": 400,
+        },
+    }
+
+
+class PerformanceAssertion:
+    """Helper for asserting performance metrics."""
+
+    @staticmethod
+    def assert_duration_within_limit(
+        actual_seconds: float, max_seconds: float, test_name: str = "test"
+    ):
+        """Assert that duration is within acceptable limits."""
+        assert (
+            actual_seconds <= max_seconds
+        ), f"{test_name} took {actual_seconds:.2f}s, exceeds limit of {max_seconds}s"
+
+    @staticmethod
+    def assert_memory_within_limit(
+        peak_memory_mb: float, max_memory_mb: float, test_name: str = "test"
+    ):
+        """Assert that memory usage is within acceptable limits."""
+        assert (
+            peak_memory_mb <= max_memory_mb
+        ), f"{test_name} used {peak_memory_mb:.2f}MB, exceeds limit of {max_memory_mb}MB"
+
+    @staticmethod
+    def assert_throughput_above_minimum(
+        processed_count: int,
+        duration_seconds: float,
+        min_per_hour: float,
+        test_name: str = "test",
+    ):
+        """Assert that processing throughput meets minimum requirements."""
+        if duration_seconds == 0:
+            return  # Skip if test was too fast
+
+        actual_per_hour = (processed_count / duration_seconds) * 3600
+        assert actual_per_hour >= min_per_hour, (
+            f"{test_name} throughput was {actual_per_hour:.2f} items/hour, "
+            f"below minimum of {min_per_hour} items/hour"
+        )
+
+    @staticmethod
+    def assert_success_rate_above_threshold(
+        successful: int, total: int, min_rate: float = 0.8, test_name: str = "test"
+    ):
+        """Assert that success rate meets minimum threshold."""
+        if total == 0:
+            return  # Skip if no items processed
+
+        actual_rate = successful / total
+        assert actual_rate >= min_rate, (
+            f"{test_name} success rate was {actual_rate:.2%}, "
+            f"below minimum of {min_rate:.2%}"
+        )
+
+
+@pytest.fixture
+def performance_assertion() -> PerformanceAssertion:
+    """Fixture for performance assertions."""
+    return PerformanceAssertion()
+
+
 # Export these for use in tests
 __all__ = [
     "temp_dir",
@@ -1006,4 +1246,12 @@ __all__ = [
     "URL_TEST_CASES",
     "TAG_FORMAT_TEST_CASES",
     "DATE_PARSING_TEST_CASES",
+    "performance_monitor",
+    "benchmark_timer",
+    "performance_test_data_dir",
+    "generated_test_files",
+    "performance_baseline",
+    "performance_assertion",
+    "PerformanceMonitor",
+    "PerformanceAssertion",
 ]

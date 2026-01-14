@@ -1,7 +1,7 @@
 # CLAUDE.md
 # Bookmark Validation and Enhancement Tool - AI Development Guide (Revised)
 
-This file serves as the comprehensive reference for AI assistants (primarily Claude) working on the Bookmark Validation and Enhancement Tool project. It contains essential commands, project context, development guidelines, and mandatory requirements based on the actual raindrop.io CSV format and Windows executable requirements.
+This file serves as the comprehensive reference for AI assistants (primarily Claude) working on the Bookmark Validation and Enhancement Tool project. It contains essential commands, project context, development guidelines, and mandatory requirements based on the actual raindrop.io CSV format and Linux/WSL deployment.
 
 ---
 
@@ -292,6 +292,27 @@ ai_model = facebook/bart-large-cnn
 max_description_length = 150
 use_existing_content = true
 
+[ai]
+# Default engine: local, claude, or openai
+default_engine = local
+
+# Cloud AI configuration (NEVER commit this file with API keys!)
+# Copy config/default_config.ini to config/user_config.ini and add your keys there
+# claude_api_key = your-claude-api-key-here
+# openai_api_key = your-openai-api-key-here
+
+# Rate limiting (requests per minute)
+claude_rpm = 50
+openai_rpm = 60
+
+# Batch sizes for cloud AI
+claude_batch_size = 10
+openai_batch_size = 20
+
+# Cost tracking
+show_running_costs = true
+cost_confirmation_interval = 10.0  # USD
+
 [checkpoint]
 enabled = true
 save_interval = 50
@@ -371,7 +392,7 @@ git checkout -b feature/linux-executable
 git add .
 git commit -m "feat: implement Linux executable with PyInstaller
 
-- Add PyInstaller build configuration
+- Add PyInstaller build configuration for Linux
 - Implement resource path handling for executable
 - Add checkpoint/resume functionality
 - Test with 3,598 bookmark dataset
@@ -481,6 +502,13 @@ def test_url_validation_with_retry(mock_get, raindrop_export_sample):
 - **MANDATORY** fallback hierarchy: AI with existing content → existing excerpt → meta description → title-based
 - **MUST** generate enhanced descriptions that incorporate existing context
 - **FORBIDDEN** to ignore existing user notes when generating descriptions
+- **EXCEPTION** Cloud AI APIs (Claude/OpenAI) are now supported as alternatives to local AI:
+  - **ALLOWED** Use of Claude API (Anthropic) or OpenAI API for enhanced description generation
+  - **REQUIRED** API keys must be stored in configuration file (never in code or command line)
+  - **MANDATORY** Configuration file with API keys must be in .gitignore
+  - **REQUIRED** Default to local AI unless cloud AI explicitly selected
+  - **MANDATORY** Implement proper rate limiting for each API service
+  - **REQUIRED** Cost tracking and user confirmation at $10 intervals
 
 #### 3. Tag Processing
 - **MANDATORY** replace existing tags entirely with AI-generated tags
@@ -697,7 +725,7 @@ def health_check():
 
 ### Version 2.0.0 (Current - Revised for Actual Requirements)
 - Updated for actual raindrop.io 11-column export format
-- Added Linux executable requirements and PyInstaller configuration
+- Added Linux/WSL executable requirements and PyInstaller configuration
 - Implemented checkpoint/resume functionality for large dataset processing
 - Enhanced AI description generation to use existing content as input
 - Added corpus-aware tag optimization for 3,598+ bookmark datasets
@@ -741,9 +769,9 @@ When reporting bugs or issues, include:
 
 ---
 
-**Last Updated:** June 4, 2025  
-**Document Version:** 2.0  
-**Maintained By:** AI Development Team  
+**Last Updated:** June 4, 2025
+**Document Version:** 2.0
+**Maintained By:** AI Development Team
 **Target:** Linux/WSL Executable with Large Dataset Support
 - **Checkpoint Frequency:** Save progress every 50 processed items
 - **Resume Time:** < 30 seconds to resume from checkpoint
