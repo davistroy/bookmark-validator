@@ -10,7 +10,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Deque, Dict, List, Optional
 
 try:
     from tqdm import tqdm
@@ -161,7 +161,7 @@ class ProgressTracker:
         }
 
         # Performance tracking
-        self.rate_history = deque(maxlen=60)  # Last 60 measurements
+        self.rate_history: Deque[float] = deque(maxlen=60)  # Last 60 measurements
         self.last_update_time = time.time()
         self.last_items_processed = 0
 
@@ -174,7 +174,7 @@ class ProgressTracker:
         self.last_status_update = 0.0
 
         # Resource monitoring
-        self.memory_usage_history = deque(maxlen=60)
+        self.memory_usage_history: Deque[float] = deque(maxlen=60)
         self.active_tasks = 0
         self.max_active_tasks = 0
 

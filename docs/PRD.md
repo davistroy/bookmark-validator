@@ -12,7 +12,7 @@
 ## 1. Executive Summary
 
 ### 1.1 Product Vision
-Create a powerful, standalone Windows application that transforms large bookmark collections from raindrop.io into enhanced, validated, and intelligently organized bookmark libraries through AI-powered content analysis and optimization.
+Create a powerful Linux/WSL command-line application that transforms large bookmark collections from raindrop.io into enhanced, validated, and intelligently organized bookmark libraries through AI-powered content analysis and optimization.
 
 ### 1.2 Product Mission
 Eliminate the tedious manual work of bookmark curation by providing an automated solution that validates URLs, enhances descriptions using AI and existing content, and applies intelligent tagging to make bookmark collections more discoverable and useful.
@@ -29,7 +29,7 @@ Eliminate the tedious manual work of bookmark curation by providing an automated
 ## 2. Product Overview
 
 ### 2.1 Product Description
-A Windows command-line executable that processes raindrop.io bookmark exports, validates URLs, generates AI-enhanced descriptions, and creates an optimized tagging system. The tool is designed for users with large bookmark collections who want to clean, enhance, and better organize their digital bookmarks.
+A Linux/WSL command-line application that processes raindrop.io bookmark exports, validates URLs, generates AI-enhanced descriptions, and creates an optimized tagging system. The tool is designed for users with large bookmark collections who want to clean, enhance, and better organize their digital bookmarks.
 
 ### 2.2 Target Audience
 
@@ -54,7 +54,7 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
 - Struggles to find relevant bookmarks when needed
 - Many bookmarks have poor or missing descriptions
 - Wants automated way to enhance bookmark metadata
-- Uses Windows 11 for work, comfortable with technical tools
+- Uses Linux/WSL for work, comfortable with technical tools
 
 **Persona 2: "The Academic Researcher" - Dr. Chen**
 - Age: 45, University Professor
@@ -95,7 +95,7 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
    - Ensure reliable processing with minimal user intervention
 
 2. **Technical Excellence**
-   - Deliver as standalone Windows executable requiring no dependencies
+   - Deliver as Linux/WSL application with optional standalone executable
    - Implement robust error handling and recovery mechanisms
    - Optimize for performance and memory efficiency
 
@@ -273,14 +273,14 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
 - Accurate time estimation for remaining work
 - Stage-specific progress (validation, content analysis, AI processing, tagging)
 
-#### Feature 7: Windows Executable Packaging
+#### Feature 7: Linux/WSL Executable Packaging
 **Description:** Standalone executable requiring no Python installation
 **Priority:** P0 (Critical)
 **Complexity:** Medium
 
 **Detailed Requirements:**
-- Single .exe file with embedded dependencies
-- Windows 11 compatibility
+- Single executable file with embedded dependencies
+- Linux/WSL compatibility
 - Proper resource path handling for executable environment
 - Model caching and management for AI components
 
@@ -326,7 +326,7 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
 - **Help System:** Comprehensive help and troubleshooting information
 
 #### Accessibility
-- **Platform Support:** Windows 11 primary target
+- **Platform Support:** Linux/WSL primary target
 - **Installation:** Zero-installation executable deployment
 - **Configuration:** Simple configuration file management
 - **Documentation:** Complete user guide and troubleshooting documentation
@@ -352,7 +352,7 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
 ### 7.1 System Architecture
 
 #### Application Architecture
-- **Type:** Command-line application with Windows executable packaging
+- **Type:** Command-line application with Linux/WSL executable packaging
 - **Language:** Python 3.9+ with PyInstaller for executable creation
 - **Dependencies:** Embedded in executable (pandas, requests, transformers, etc.)
 - **Configuration:** INI-based configuration with embedded defaults
@@ -508,7 +508,7 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
   - Raindrop.io CSV format handling
   - Basic URL validation with retry logic
   - Checkpoint/resume system foundation
-  - Initial Windows executable build
+  - Initial Linux executable build
 
 #### Phase 2: AI and Content Processing (Weeks 3-4)
 - **Milestone:** AI description generation and content analysis
@@ -527,10 +527,10 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
   - Performance optimization for large datasets
 
 #### Phase 4: Testing and Optimization (Weeks 7-8)
-- **Milestone:** Production-ready Windows executable
+- **Milestone:** Production-ready Linux/WSL executable
 - **Deliverables:**
   - Comprehensive testing with large datasets
-  - Windows executable optimization
+  - Linux executable optimization
   - Documentation and user guides
   - Final performance tuning and bug fixes
 
@@ -539,7 +539,7 @@ A Windows command-line executable that processes raindrop.io bookmark exports, v
 #### Week 2 Checkpoint
 - Successfully process small bookmark collections (100-500 items)
 - Basic checkpoint/resume functionality working
-- Windows executable builds and runs correctly
+- Linux executable builds and runs correctly
 
 #### Week 4 Checkpoint
 - AI description generation producing quality results

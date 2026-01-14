@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  bookmark-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bookmark-processor:latest
+    container_name: bookmark-processor
+
+    # Environment variables
+    environment:
+      # AI Model configuration
+      - TRANSFORMERS_CACHE=/app/cache/models
+
+      # Checkpoint configuration
+      - BOOKMARK_CHECKPOINT_DIR=/app/checkpoints
+
+      # Optional: API keys (uncomment and set if using cloud AI)
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      # - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      # - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+
+      # Processing configuration (optional overrides)
+      # - BATCH_SIZE=100
+      # - MAX_RETRIES=3
+      # - TIMEOUT=30
+
+    # Volume mounts for persistent data
+    volumes:
+      # Input/output CSV files
+      - ./data:/app/data
+
+      # AI model cache (persists downloaded models)
+      - model-cache:/app/cache/models
+
+      # Checkpoint files (enables resume functionality)
+      - checkpoint-data:/app/checkpoints
+
+      # Log files
+      - ./logs:/app/logs
+
+      # Optional: Mount custom configuration
+      # - ./config:/app/config:ro
+
+    # Resource limits (adjust based on your system)
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+
+    # Network configuration (if needed)
+    # network_mode: bridge
+
+    # Command override examples (uncomment one to use):
+
+    # Example 1: Process a specific file
+    # command: --input /app/data/raindrop_export.csv --output /app/data/enhanced_bookmarks.csv
+
+    # Example 2: Process with resume capability
+    # command: --input /app/data/raindrop_export.csv --output /app/data/enhanced_bookmarks.csv --resume
+
+    # Example 3: Process with custom batch size and verbose logging
+    # command: --input /app/data/bookmarks.csv --output /app/data/enhanced.csv --batch-size 50 --verbose
+
+    # Example 4: Process with cloud AI (requires API keys in environment)
+    # command: --input /app/data/bookmarks.csv --output /app/data/enhanced.csv --ai-engine claude
+
+    # Example 5: Clear checkpoints and start fresh
+    # command: --input /app/data/bookmarks.csv --output /app/data/enhanced.csv --clear-checkpoints
+
+    # By default, shows help message (override with your command)
+    command: --help
+
+# Named volumes for persistent data
+volumes:
+  # AI model cache - persists across container restarts
+  # This prevents re-downloading large AI models
+  model-cache:
+    driver: local
+
+  # Checkpoint data - enables resume functionality
+  checkpoint-data:
+    driver: local
+
+# Optional: Network configuration
+# networks:
+#   bookmark-net:
+#     driver: bridge

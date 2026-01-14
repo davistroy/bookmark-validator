@@ -319,7 +319,7 @@ class PerformanceMonitor:
         for stage in self.stage_metrics:
             if stage.stage_name not in stage_summary:
                 stage_summary[stage.stage_name] = {
-                    "total_duration": 0,
+                    "total_duration": 0.0,
                     "total_items": 0,
                     "total_requests": 0,
                     "total_errors": 0,
@@ -395,7 +395,7 @@ class PerformanceMonitor:
         for stage in self.stage_metrics:
             if stage.stage_name not in stage_summary:
                 stage_summary[stage.stage_name] = {
-                    "total_duration": 0,
+                    "total_duration": 0.0,
                     "total_items": 0,
                     "total_requests": 0,
                     "total_errors": 0,

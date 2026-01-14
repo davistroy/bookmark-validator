@@ -10,14 +10,14 @@
 
 ## 1. Executive Summary
 
-This document outlines the business requirements for developing a Python-based command-line tool that processes bookmark exports from raindrop.io. The tool will validate bookmark URLs, generate AI-powered descriptions, and assign relevant tags to enhance bookmark organization and usability. The final deliverable will be a standalone Windows 11 executable file.
+This document outlines the business requirements for developing a Python-based command-line tool that processes bookmark exports from raindrop.io. The tool will validate bookmark URLs, generate AI-powered descriptions, and assign relevant tags to enhance bookmark organization and usability. The final deliverable will be a Linux/WSL application with optional standalone executable.
 
 ---
 
 ## 2. Project Overview
 
 ### 2.1 Purpose
-Create an automated Windows executable tool to process and enhance bookmark collections by validating URLs, generating concise descriptions using AI and existing content, and applying intelligent tagging for better organization.
+Create an automated Linux/WSL command-line tool to process and enhance bookmark collections by validating URLs, generating concise descriptions using AI and existing content, and applying intelligent tagging for better organization.
 
 ### 2.2 Scope
 The tool will process CSV exports from raindrop.io (11-column format), validate each bookmark's accessibility, generate enhanced descriptions using AI and existing content, apply intelligent tagging, and output enhanced bookmark data in raindrop.io compatible 6-column CSV import format.
@@ -28,7 +28,7 @@ The tool will process CSV exports from raindrop.io (11-column format), validate 
 - Apply intelligent content-based tagging to replace existing tags
 - Eliminate duplicate URLs
 - Provide comprehensive progress tracking with checkpoint/resume functionality
-- Deliver as standalone Windows executable requiring no Python installation
+- Deliver as Linux/WSL application with optional standalone executable
 
 ---
 
@@ -119,10 +119,10 @@ The tool will process CSV exports from raindrop.io (11-column format), validate 
 - Comprehensive error summary at completion
 
 ### 4.3 Technical Requirements
-**NFR-05: Windows Executable**
-- The system shall be packaged as a standalone Windows executable (.exe)
-- No Python installation or dependencies required on target system
-- Compatible with Windows 11 (no specific version constraints)
+**NFR-05: Linux/WSL Deployment**
+- The system shall be packaged as a standalone Linux executable
+- No Python installation or dependencies required on target system for executable
+- Compatible with Linux distributions and WSL2 on Windows
 - Command-line interface with argument parsing
 
 **NFR-06: Data Persistence**
@@ -138,7 +138,7 @@ The tool will process CSV exports from raindrop.io (11-column format), validate 
 - **Programming Language:** Python 3.9+
 - **Application Type:** Command Line Interface (CLI)
 - **Processing Method:** Batch processing with checkpoint/resume capability
-- **Packaging:** PyInstaller for Windows executable creation
+- **Packaging:** PyInstaller for Linux executable creation
 
 ### 5.2 Input/Output Format Specifications
 
@@ -236,12 +236,12 @@ url,folder,title,note,tags,created
 - raindrop.io CSV export format will remain stable (11-column structure)
 - Target websites will be generally accessible via standard HTTP requests
 - AI summarization capabilities will be available and functional locally
-- Windows 11 environment will have standard networking capabilities
+- Linux/WSL environment will have standard networking capabilities
 
 ### 9.2 Dependencies
 - Reliable internet connection for URL validation and content retrieval
 - Sufficient local storage for checkpoint files and model caching
-- Windows 11 system with adequate memory for AI processing (minimum 8GB recommended)
+- Linux/WSL system with adequate memory for AI processing (minimum 8GB recommended)
 - PyInstaller compatibility with all required Python libraries
 
 ---
@@ -282,17 +282,19 @@ url,folder,title,note,tags,created
 
 ---
 
-## 12. Windows Executable Requirements
+## 12. Linux/WSL Deployment Requirements
 
 ### 12.1 Packaging Specifications
 - **Tool:** PyInstaller for creating standalone executable
-- **Target:** Single .exe file with all dependencies embedded
+- **Target:** Single executable with all dependencies embedded
 - **Size Optimization:** Exclude unnecessary libraries and optimize for size
-- **Testing:** Comprehensive testing on clean Windows 11 systems
+- **Testing:** Comprehensive testing on clean Linux and WSL systems
 
 ### 12.2 Command Line Interface
-```cmd
-bookmark-processor.exe --input raindrop_export.csv --output enhanced_bookmarks.csv [options]
+```bash
+./bookmark-processor --input raindrop_export.csv --output enhanced_bookmarks.csv [options]
+# Or with Python
+python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookmarks.csv [options]
 
 Options:
   --config CONFIG_FILE    Custom configuration file
@@ -313,4 +315,4 @@ Options:
 
 **Document Prepared By:** AI Assistant  
 **Stakeholder Review Required:** Yes  
-**Next Steps:** Technical specification development and Windows executable implementation
+**Next Steps:** Technical specification development and Linux/WSL implementation

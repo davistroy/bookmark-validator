@@ -183,7 +183,7 @@ class DuplicateDetector:
         Returns:
             Dictionary mapping normalized URLs to duplicate groups
         """
-        url_groups = defaultdict(DuplicateGroup)
+        url_groups: Dict[str, DuplicateGroup] = {}
 
         for i, bookmark in enumerate(bookmarks):
             if not bookmark.url:
@@ -253,7 +253,7 @@ class DuplicateDetector:
         newest_date = bookmarks[0].created
 
         for i, bookmark in enumerate(bookmarks[1:], 1):
-            if bookmark.created and bookmark.created > newest_date:
+            if bookmark.created and newest_date and bookmark.created > newest_date:
                 newest_date = bookmark.created
                 newest_index = i
 
@@ -265,7 +265,7 @@ class DuplicateDetector:
         oldest_date = bookmarks[0].created
 
         for i, bookmark in enumerate(bookmarks[1:], 1):
-            if bookmark.created and bookmark.created < oldest_date:
+            if bookmark.created and oldest_date and bookmark.created < oldest_date:
                 oldest_date = bookmark.created
                 oldest_index = i
 

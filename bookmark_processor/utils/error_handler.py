@@ -236,10 +236,6 @@ class BatchProcessingError(ProcessingError):
     pass
 
 
-# Legacy alias for backwards compatibility
-BookmarkProcessingError = BookmarkProcessorError
-
-
 class ErrorSeverity(Enum):
     """Error severity levels for categorization."""
 

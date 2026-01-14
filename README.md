@@ -36,7 +36,38 @@ python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-en
 
 ## Installation
 
-**Quick install for Linux/WSL:**
+### Option 1: Docker (Recommended for Quick Start)
+
+**Easiest way to get started - no Python setup required:**
+
+```bash
+# Clone the repository
+git clone https://github.com/davistroy/bookmark-validator.git
+cd bookmark-validator
+
+# Create data directory and add your CSV
+mkdir -p data
+cp /path/to/your/raindrop_export.csv data/
+
+# Build and run with Docker Compose
+docker-compose build
+docker-compose run --rm bookmark-processor \
+  --input /app/data/raindrop_export.csv \
+  --output /app/data/enhanced_bookmarks.csv
+```
+
+**Benefits of Docker:**
+- ✅ No Python environment setup required
+- ✅ Isolated environment with all dependencies
+- ✅ Persistent model cache (no re-downloading)
+- ✅ Easy checkpoint/resume functionality
+- ✅ Works on Linux, macOS, and Windows
+
+📖 **Docker Documentation:** See [DOCKER.md](DOCKER.md) for complete Docker setup and usage guide
+
+### Option 2: Native Python Installation (Linux/WSL)
+
+**Traditional installation for Linux/WSL:**
 
 ```bash
 # Clone and set up
@@ -329,6 +360,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Documentation
 
 📚 **Complete User Guides:**
+- **[Docker Setup Guide](DOCKER.md)** - Docker installation and usage (recommended for quick start)
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get started in minutes
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
 - **[WSL Setup Guide](docs/WSL_SETUP.md)** - Windows users start here

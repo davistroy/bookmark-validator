@@ -8,7 +8,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 
 def setup_logging(config=None, log_file: Optional[str] = None) -> None:
@@ -46,7 +46,7 @@ def setup_logging(config=None, log_file: Optional[str] = None) -> None:
     date_format = "%Y-%m-%d %H:%M:%S"
 
     # Configure handlers
-    handlers = []
+    handlers: List[logging.Handler] = []
 
     # File handler
     file_handler = logging.FileHandler(log_path, encoding="utf-8")
