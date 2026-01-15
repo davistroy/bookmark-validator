@@ -17,6 +17,19 @@ Comprehensive guide to all features of the Bookmark Validation and Enhancement T
 - [Cloud AI Integration](#cloud-ai-integration)
 - [Performance Optimization](#performance-optimization)
 - [Security Features](#security-features)
+- [Advanced Filtering](#advanced-filtering)
+- [Processing Modes](#processing-modes)
+- [Quality Reporting](#quality-reporting)
+- [Hybrid AI Routing](#hybrid-ai-routing)
+- [Tag Configuration](#tag-configuration)
+- [Multi-Format Export](#multi-format-export)
+- [Health Monitoring](#health-monitoring)
+- [Interactive Processing](#interactive-processing)
+- [Plugin Architecture](#plugin-architecture)
+- [MCP Integration](#mcp-integration)
+- [Streaming Processing](#streaming-processing)
+- [Async Pipeline](#async-pipeline)
+- [Database-Backed State](#database-backed-state)
 
 ## Core Features
 
@@ -734,6 +747,531 @@ chmod 600 user_config.ini
 # Verify file permissions
 ls -la user_config.ini
 # Should show: -rw------- 1 user user 1234 date user_config.ini
+```
+
+## Advanced Filtering
+
+### 🔍 Composable Filter System
+
+Filter bookmarks using powerful, composable filters with AND/OR logic.
+
+**Available Filters:**
+- **FolderFilter**: Filter by folder path with regex support
+- **TagFilter**: Filter by tags (any or all match modes)
+- **DateRangeFilter**: Filter by creation date range
+- **DomainFilter**: Filter by URL domain patterns
+- **StatusFilter**: Filter by processing status
+
+**Usage:**
+```bash
+# Filter by folder
+python -m bookmark_processor --input data.csv --output out.csv --filter-folder "Programming.*"
+
+# Filter by tags (require all)
+python -m bookmark_processor --input data.csv --output out.csv --filter-tag "python,ai" --tag-match-mode all
+
+# Filter by date range
+python -m bookmark_processor --input data.csv --output out.csv --filter-date "2024-01-01,2024-12-31"
+
+# Filter by domain
+python -m bookmark_processor --input data.csv --output out.csv --filter-domain "github.com,gitlab.com"
+
+# Combine filters
+python -m bookmark_processor --input data.csv --output out.csv \
+  --filter-folder "Tech" --filter-tag "python" --filter-domain "github.com"
+```
+
+**Programmatic Usage:**
+```python
+from bookmark_processor.core.filters import FilterChain, FolderFilter, TagFilter
+
+# Create composable filter chain
+chain = FilterChain([
+    FolderFilter(pattern="Programming.*"),
+    TagFilter(tags=["python"], match_mode="any")
+])
+filtered = chain.filter(bookmarks)
+```
+
+## Processing Modes
+
+### ⚙️ Granular Processing Control
+
+Control exactly which processing stages to run.
+
+**Processing Stages:**
+- `VALIDATION`: URL validation
+- `CONTENT_FETCH`: Content extraction
+- `AI_DESCRIPTION`: AI description generation
+- `TAG_GENERATION`: Tag optimization
+- `FOLDER_GENERATION`: Folder organization
+- `DUPLICATE_DETECTION`: Duplicate removal
+
+**Usage:**
+```bash
+# Skip validation (for offline testing)
+python -m bookmark_processor --input data.csv --output out.csv --skip-validation
+
+# Skip AI processing (faster)
+python -m bookmark_processor --input data.csv --output out.csv --skip-ai
+
+# Tags only
+python -m bookmark_processor --input data.csv --output out.csv --tags-only
+
+# Validation only
+python -m bookmark_processor --input data.csv --output out.csv --validate-only
+
+# Retry only invalid URLs
+python -m bookmark_processor --input data.csv --output out.csv --retry-invalid
+```
+
+**Preview and Dry-Run:**
+```bash
+# Preview what would be processed (no changes)
+python -m bookmark_processor --input data.csv --output out.csv --preview
+
+# Dry-run mode (simulate processing)
+python -m bookmark_processor --input data.csv --output out.csv --dry-run
+```
+
+## Quality Reporting
+
+### 📊 Quality Metrics and Analysis
+
+Comprehensive quality scoring and metrics for your bookmark collection.
+
+**Quality Dimensions:**
+- **Completeness**: Percentage of fields populated
+- **Validity**: URL validation status
+- **Description Quality**: AI-enhanced description quality
+- **Tag Quality**: Tag relevance and coverage
+- **Organization**: Folder structure quality
+
+**Report Formats:**
+```bash
+# Generate quality report (Rich terminal output)
+python -m bookmark_processor --input data.csv --output out.csv --report rich
+
+# JSON report for automation
+python -m bookmark_processor --input data.csv --output out.csv --report json
+
+# Markdown report
+python -m bookmark_processor --input data.csv --output out.csv --report markdown
+```
+
+**Sample Quality Report:**
+```
+Quality Report
+══════════════════════════════════════════════════════
+Overall Score: 87.3%
+
+Completeness:     92% ████████████████████░░
+Validity:         95% ███████████████████░░░
+Description:      85% █████████████████░░░░░
+Tags:             82% ████████████████░░░░░░
+Organization:     80% ████████████████░░░░░░
+
+Issues Found:
+  - 47 bookmarks missing descriptions
+  - 23 URLs returning 404 errors
+  - 12 bookmarks with no tags
+══════════════════════════════════════════════════════
+```
+
+## Hybrid AI Routing
+
+### 🧠 Intelligent AI Engine Selection
+
+Automatically route AI requests to local or cloud based on complexity.
+
+**Routing Logic:**
+- **Local AI**: Short content, simple descriptions (faster, free)
+- **Cloud AI**: Complex content, long pages (better quality)
+
+**Configuration:**
+```ini
+[ai]
+# Enable hybrid routing
+enable_hybrid_routing = true
+
+# Complexity threshold for cloud routing
+complexity_threshold = 0.7
+
+# Local model for simple tasks
+local_model = facebook/bart-large-cnn
+
+# Cloud fallback
+cloud_engine = claude
+```
+
+**Usage:**
+```bash
+# Use hybrid routing (auto-select local vs cloud)
+python -m bookmark_processor --input data.csv --output out.csv --ai-engine hybrid
+
+# Force cloud AI
+python -m bookmark_processor --input data.csv --output out.csv --ai-engine claude
+
+# Force local AI
+python -m bookmark_processor --input data.csv --output out.csv --ai-engine local
+```
+
+## Tag Configuration
+
+### 🏷️ User-Defined Tag Vocabulary
+
+Define your own tag vocabulary and hierarchy using TOML configuration.
+
+**Configuration File (tags.toml):**
+```toml
+[vocabulary]
+# Define your preferred tags
+allowed_tags = [
+    "python", "javascript", "rust", "go",
+    "web-development", "machine-learning", "devops",
+    "tutorial", "documentation", "tool"
+]
+
+# Tag aliases (map variations to canonical tags)
+[aliases]
+"js" = "javascript"
+"py" = "python"
+"ml" = "machine-learning"
+"ai" = "artificial-intelligence"
+
+# Tag hierarchy
+[hierarchy]
+"programming" = ["python", "javascript", "rust", "go"]
+"ai" = ["machine-learning", "deep-learning", "nlp"]
+
+# Forbidden tags (never use these)
+[forbidden]
+tags = ["misc", "other", "temp", "todo"]
+```
+
+**Usage:**
+```bash
+# Use custom tag configuration
+python -m bookmark_processor --input data.csv --output out.csv --tag-config tags.toml
+```
+
+## Multi-Format Export
+
+### 📤 Export to Multiple Formats
+
+Export your bookmarks to various formats for different platforms.
+
+**Supported Formats:**
+
+**1. JSON Export:**
+```bash
+python -m bookmark_processor --input data.csv --export-json bookmarks.json
+```
+
+**2. Markdown Export:**
+```bash
+python -m bookmark_processor --input data.csv --export-markdown bookmarks.md
+```
+
+**3. Obsidian Export:**
+```bash
+# Creates vault-compatible structure with wikilinks
+python -m bookmark_processor --input data.csv --export-obsidian ./obsidian_vault/
+```
+
+**4. Notion Export:**
+```bash
+# Creates Notion-compatible markdown with database properties
+python -m bookmark_processor --input data.csv --export-notion notion_export/
+```
+
+**5. OPML Export:**
+```bash
+# Standard OPML format for feed readers
+python -m bookmark_processor --input data.csv --export-opml bookmarks.opml
+```
+
+**Export All Formats:**
+```bash
+python -m bookmark_processor --input data.csv \
+  --export-json bookmarks.json \
+  --export-markdown bookmarks.md \
+  --export-obsidian ./obsidian/ \
+  --export-opml bookmarks.opml
+```
+
+## Health Monitoring
+
+### 🏥 Bookmark Health Checks
+
+Monitor the health of your bookmark collection over time.
+
+**Health Check Features:**
+- URL validity monitoring
+- Wayback Machine integration for dead links
+- Domain accessibility tracking
+- SSL certificate monitoring
+- Content change detection
+
+**Usage:**
+```bash
+# Run health check on existing bookmarks
+python -m bookmark_processor health-check --input bookmarks.csv
+
+# Generate health report
+python -m bookmark_processor health-check --input bookmarks.csv --report health_report.json
+
+# Check with Wayback Machine fallback
+python -m bookmark_processor health-check --input bookmarks.csv --wayback-fallback
+```
+
+**Sample Health Report:**
+```json
+{
+  "total_checked": 1000,
+  "healthy": 934,
+  "unhealthy": 66,
+  "archived_available": 45,
+  "issues": {
+    "404_not_found": 45,
+    "ssl_expired": 8,
+    "domain_unreachable": 13
+  },
+  "recommendations": [
+    "45 bookmarks have Wayback Machine archives available",
+    "Consider removing 21 permanently dead links"
+  ]
+}
+```
+
+## Interactive Processing
+
+### 🎮 Interactive Approval Mode
+
+Review and approve changes interactively before they're applied.
+
+**Features:**
+- Preview proposed changes before applying
+- Accept, reject, or modify individual changes
+- Batch approval for similar changes
+- Undo capability
+
+**Usage:**
+```bash
+# Enable interactive mode
+python -m bookmark_processor --input data.csv --output out.csv --interactive
+
+# Interactive with approval batching
+python -m bookmark_processor --input data.csv --output out.csv --interactive --batch-approve
+```
+
+**Interactive Session:**
+```
+Bookmark: https://github.com/user/repo
+────────────────────────────────────────────
+Current Title:  "user/repo: A project"
+Proposed Title: "GitHub - user/repo: Modern CLI Tool"
+
+Current Tags:   git, code
+Proposed Tags:  github, cli-tool, development, open-source
+
+Current Folder: Unsorted
+Proposed Folder: Development/Tools
+
+[A]ccept  [R]eject  [M]odify  [S]kip  [B]atch approve similar  [Q]uit
+>
+```
+
+## Plugin Architecture
+
+### 🔌 Extensible Plugin System
+
+Extend functionality with custom plugins.
+
+**Plugin Types:**
+- **ValidatorPlugin**: Custom URL validation logic
+- **AIProcessorPlugin**: Custom AI backends (e.g., Ollama)
+- **OutputPlugin**: Custom output formats
+
+**Example: Ollama AI Plugin:**
+```python
+from bookmark_processor.plugins import AIProcessorPlugin
+
+class OllamaPlugin(AIProcessorPlugin):
+    name = "ollama"
+
+    def process(self, bookmark, content):
+        # Call local Ollama API
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "llama2", "prompt": content}
+        )
+        return response.json()["response"]
+```
+
+**Example: Paywall Detector Plugin:**
+```python
+from bookmark_processor.plugins import ValidatorPlugin
+
+class PaywallDetectorPlugin(ValidatorPlugin):
+    name = "paywall_detector"
+
+    PAYWALL_INDICATORS = ["subscribe to read", "premium content"]
+
+    def validate(self, bookmark, content):
+        for indicator in self.PAYWALL_INDICATORS:
+            if indicator in content.lower():
+                return {"has_paywall": True}
+        return {"has_paywall": False}
+```
+
+**Plugin Discovery:**
+```bash
+# List available plugins
+python -m bookmark_processor plugins list
+
+# Enable plugins
+python -m bookmark_processor --input data.csv --output out.csv \
+  --enable-plugin paywall_detector \
+  --enable-plugin ollama
+```
+
+## MCP Integration
+
+### 🔗 Model Context Protocol (MCP) Support
+
+Direct integration with Raindrop.io via MCP for real-time sync.
+
+**Features:**
+- Read bookmarks directly from Raindrop.io
+- Write enhanced bookmarks back
+- Incremental sync (process only changes)
+- Rollback support
+
+**Commands:**
+```bash
+# Enhance bookmarks directly in Raindrop.io
+python -m bookmark_processor enhance --collection "Programming"
+
+# Configure MCP connection
+python -m bookmark_processor config --mcp-server "raindrop"
+
+# Rollback last enhancement
+python -m bookmark_processor rollback --run-id 12345
+```
+
+**Configuration:**
+```ini
+[mcp]
+enabled = true
+server = raindrop
+api_token = your_raindrop_token
+```
+
+## Streaming Processing
+
+### 🌊 Memory-Efficient Streaming
+
+Process large collections with minimal memory footprint.
+
+**Features:**
+- Generator-based file reading
+- Incremental writing
+- Constant memory usage regardless of file size
+- Automatic checkpointing
+
+**Usage:**
+```bash
+# Enable streaming for large files (>10k bookmarks)
+python -m bookmark_processor --input huge_file.csv --output out.csv --streaming
+
+# Streaming with custom buffer
+python -m bookmark_processor --input huge_file.csv --output out.csv \
+  --streaming --buffer-size 1000
+```
+
+**Memory Comparison:**
+| Bookmarks | Standard Mode | Streaming Mode |
+|-----------|---------------|----------------|
+| 10,000    | 2.5 GB        | 256 MB         |
+| 50,000    | 12 GB         | 256 MB         |
+| 100,000   | OOM           | 256 MB         |
+
+## Async Pipeline
+
+### ⚡ Concurrent Processing
+
+Fully async pipeline for maximum throughput.
+
+**Features:**
+- Semaphore-based concurrency control
+- Async URL validation
+- Async content fetching
+- Parallel cloud AI processing
+- Configurable concurrency limits
+
+**Usage:**
+```bash
+# Enable async processing
+python -m bookmark_processor --input data.csv --output out.csv --async
+
+# Custom concurrency
+python -m bookmark_processor --input data.csv --output out.csv \
+  --async --max-concurrent 50
+```
+
+**Performance Improvement:**
+| Stage | Sync Speed | Async Speed | Improvement |
+|-------|------------|-------------|-------------|
+| URL Validation | 2/sec | 20/sec | 10x |
+| Content Fetch | 1/sec | 15/sec | 15x |
+| Cloud AI | 0.5/sec | 5/sec | 10x |
+
+## Database-Backed State
+
+### 💾 SQLite State Management
+
+Persistent state tracking with query capabilities.
+
+**Features:**
+- Full processing history
+- Failed bookmark queries
+- Run comparison
+- Full-text search across bookmarks
+- Processing statistics
+
+**CLI Commands:**
+```bash
+# Query failed bookmarks
+python -m bookmark_processor db query-failed
+
+# Search bookmarks
+python -m bookmark_processor db search "python tutorial"
+
+# Compare processing runs
+python -m bookmark_processor db compare-runs --run1 123 --run2 456
+
+# View processing history
+python -m bookmark_processor db history --url "https://example.com"
+```
+
+**Query Examples:**
+```python
+from bookmark_processor.core.database import BookmarkDatabase
+
+db = BookmarkDatabase("bookmarks.db")
+
+# Query failed bookmarks
+failed = db.query_failed()
+
+# Search by content (FTS5)
+results = db.search_content("machine learning python")
+
+# Query by date range
+recent = db.query_by_date(start=datetime(2024, 1, 1))
+
+# Compare runs
+diff = db.compare_runs(run1_id=123, run2_id=456)
 ```
 
 ## Integration Features

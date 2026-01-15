@@ -719,3 +719,591 @@ class AIFolderGenerator:
 
         for child in sorted(folder.children, key=lambda x: x.name):
             self._add_folder_lines(child, lines, indent)
+
+
+@dataclass
+class FolderSuggestion:
+    """A folder suggestion with confidence and reasoning."""
+
+    path: str
+    confidence: float
+    reasoning: str
+    bookmark_count: int = 0
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary."""
+        return {
+            "path": self.path,
+            "confidence": self.confidence,
+            "reasoning": self.reasoning,
+            "bookmark_count": self.bookmark_count,
+        }
+
+
+@dataclass
+class FolderSuggestionResult:
+    """Results from folder suggestion mode."""
+
+    suggestions: Dict[str, FolderSuggestion]  # url -> suggestion
+    learned_patterns: Dict[str, List[str]]  # category -> folder patterns
+    total_bookmarks: int
+    confidence_avg: float
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary for JSON output."""
+        return {
+            "suggestions": {
+                url: sugg.to_dict() for url, sugg in self.suggestions.items()
+            },
+            "learned_patterns": self.learned_patterns,
+            "total_bookmarks": self.total_bookmarks,
+            "confidence_avg": self.confidence_avg,
+        }
+
+    def to_json(self, file_path: str) -> None:
+        """Save suggestions to JSON file."""
+        import json
+        from pathlib import Path
+
+        Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(self.to_dict(), f, indent=2)
+        logging.info(f"Saved folder suggestions to: {file_path}")
+
+
+class EnhancedFolderGenerator(AIFolderGenerator):
+    """
+    Enhanced folder organization with preservation and suggestion modes.
+
+    Features:
+    - Preserve existing folders (--preserve-folders)
+    - Suggest folders without changing (--suggest-folders)
+    - Learn from existing folder structure (--learn-folders)
+    - Control folder depth (--max-folder-depth)
+    """
+
+    def __init__(
+        self,
+        max_bookmarks_per_folder: int = 20,
+        ai_engine: str = "local",
+        api_key: Optional[str] = None,
+        preserve_existing: bool = False,
+        suggest_only: bool = False,
+        learn_from_existing: bool = False,
+        max_depth: int = 3,
+    ):
+        """
+        Initialize enhanced folder generator.
+
+        Args:
+            max_bookmarks_per_folder: Maximum bookmarks per folder
+            ai_engine: AI engine to use
+            api_key: API key for cloud services
+            preserve_existing: Keep original folder assignments
+            suggest_only: Only suggest folders, don't apply
+            learn_from_existing: Learn patterns from existing folders
+            max_depth: Maximum folder hierarchy depth
+        """
+        super().__init__(max_bookmarks_per_folder, ai_engine, api_key)
+
+        self.preserve_existing = preserve_existing
+        self.suggest_only = suggest_only
+        self.learn_from_existing = learn_from_existing
+        self.max_depth = max_depth
+
+        # Learned patterns from existing folder structure
+        self.learned_patterns: Dict[str, List[str]] = {}
+        self.folder_domain_mapping: Dict[str, str] = {}
+
+        logging.info(
+            f"Enhanced folder generator initialized "
+            f"(preserve={preserve_existing}, suggest={suggest_only}, "
+            f"learn={learn_from_existing}, max_depth={max_depth})"
+        )
+
+    def generate_folder_structure(
+        self,
+        bookmarks: List[Bookmark],
+        content_data_map: Optional[Dict[str, ContentData]] = None,
+        ai_results_map: Optional[Dict[str, AIProcessingResult]] = None,
+        original_folders_map: Optional[Dict[str, str]] = None,
+    ) -> FolderGenerationResult:
+        """
+        Generate folder structure with enhanced options.
+
+        Args:
+            bookmarks: List of bookmarks to organize
+            content_data_map: Content analysis results
+            ai_results_map: AI processing results
+            original_folders_map: Original folder paths as hints
+
+        Returns:
+            FolderGenerationResult with folder assignments
+        """
+        import time
+
+        start_time = time.time()
+
+        # Build original folders map from bookmarks if not provided
+        if original_folders_map is None:
+            original_folders_map = {}
+            for bookmark in bookmarks:
+                if bookmark.folder:
+                    original_folders_map[bookmark.url] = bookmark.folder
+
+        # Learn from existing structure first
+        if self.learn_from_existing and original_folders_map:
+            self._learn_from_existing_structure(bookmarks, original_folders_map)
+
+        # Preserve existing folders mode
+        if self.preserve_existing:
+            result = self._preserve_existing_folders(
+                bookmarks, original_folders_map, start_time
+            )
+            return result
+
+        # Normal folder generation with learned patterns
+        result = super().generate_folder_structure(
+            bookmarks, content_data_map, ai_results_map, original_folders_map
+        )
+
+        # Apply max depth limit
+        if self.max_depth > 0:
+            result = self._apply_max_depth(result)
+
+        return result
+
+    def suggest_folders(
+        self,
+        bookmarks: List[Bookmark],
+        content_data_map: Optional[Dict[str, ContentData]] = None,
+        ai_results_map: Optional[Dict[str, AIProcessingResult]] = None,
+        original_folders_map: Optional[Dict[str, str]] = None,
+    ) -> FolderSuggestionResult:
+        """
+        Generate folder suggestions without applying them.
+
+        Args:
+            bookmarks: List of bookmarks to analyze
+            content_data_map: Content analysis results
+            ai_results_map: AI processing results
+            original_folders_map: Original folder paths
+
+        Returns:
+            FolderSuggestionResult with suggestions
+        """
+        logging.info(f"Generating folder suggestions for {len(bookmarks)} bookmarks")
+
+        # Build original folders map from bookmarks if not provided
+        if original_folders_map is None:
+            original_folders_map = {}
+            for bookmark in bookmarks:
+                if bookmark.folder:
+                    original_folders_map[bookmark.url] = bookmark.folder
+
+        # Learn from existing if enabled
+        if self.learn_from_existing and original_folders_map:
+            self._learn_from_existing_structure(bookmarks, original_folders_map)
+
+        # Initialize data maps
+        if content_data_map is None:
+            content_data_map = {}
+        if ai_results_map is None:
+            ai_results_map = {}
+
+        suggestions: Dict[str, FolderSuggestion] = {}
+        total_confidence = 0.0
+
+        for bookmark in bookmarks:
+            content = content_data_map.get(bookmark.url)
+            ai_result = ai_results_map.get(bookmark.url)
+            original_folder = original_folders_map.get(bookmark.url, "")
+
+            # Determine suggested folder
+            category, subcategory = self._determine_category(
+                bookmark, content, ai_result, original_folder
+            )
+
+            # Build suggested path
+            if subcategory and subcategory != "General":
+                suggested_path = f"{category}/{subcategory}"
+            else:
+                suggested_path = category
+
+            # Limit depth
+            if self.max_depth > 0:
+                parts = suggested_path.split("/")
+                suggested_path = "/".join(parts[: self.max_depth])
+
+            # Calculate confidence
+            confidence = self._calculate_folder_confidence(
+                bookmark, content, suggested_path, original_folder
+            )
+
+            # Generate reasoning
+            reasoning = self._generate_reasoning(
+                bookmark, content, category, subcategory, original_folder
+            )
+
+            suggestions[bookmark.url] = FolderSuggestion(
+                path=suggested_path,
+                confidence=confidence,
+                reasoning=reasoning,
+            )
+            total_confidence += confidence
+
+        avg_confidence = total_confidence / len(bookmarks) if bookmarks else 0.0
+
+        return FolderSuggestionResult(
+            suggestions=suggestions,
+            learned_patterns=self.learned_patterns.copy(),
+            total_bookmarks=len(bookmarks),
+            confidence_avg=avg_confidence,
+        )
+
+    def _preserve_existing_folders(
+        self,
+        bookmarks: List[Bookmark],
+        original_folders_map: Dict[str, str],
+        start_time: float,
+    ) -> FolderGenerationResult:
+        """
+        Preserve existing folder assignments.
+
+        Args:
+            bookmarks: List of bookmarks
+            original_folders_map: Original folder paths
+            start_time: Processing start time
+
+        Returns:
+            FolderGenerationResult preserving original folders
+        """
+        import time
+
+        logging.info("Preserving existing folder structure")
+
+        root = FolderNode(name="root", path="")
+        folder_assignments = {}
+        folder_nodes: Dict[str, FolderNode] = {}
+
+        for bookmark in bookmarks:
+            original_folder = original_folders_map.get(bookmark.url, "")
+
+            # Limit folder depth
+            if original_folder and self.max_depth > 0:
+                parts = original_folder.split("/")
+                original_folder = "/".join(parts[: self.max_depth])
+
+            # Default to "Uncategorized" if no folder
+            if not original_folder:
+                original_folder = "Uncategorized"
+
+            # Get or create folder node
+            if original_folder not in folder_nodes:
+                folder_node = self._create_folder_path(root, original_folder)
+                folder_nodes[original_folder] = folder_node
+
+            # Add bookmark to folder
+            folder_nodes[original_folder].add_bookmark(bookmark)
+            folder_assignments[bookmark.url] = original_folder
+
+        # Calculate stats
+        folder_stats = self._calculate_folder_stats(root)
+        max_depth = self._calculate_max_depth(root)
+        processing_time = time.time() - start_time
+
+        return FolderGenerationResult(
+            root_folder=root,
+            folder_assignments=folder_assignments,
+            total_folders=len(folder_stats),
+            max_depth=max_depth,
+            folder_stats=folder_stats,
+            processing_time=processing_time,
+        )
+
+    def _create_folder_path(self, root: FolderNode, path: str) -> FolderNode:
+        """Create folder node hierarchy for a path."""
+        if not path:
+            return root
+
+        parts = path.split("/")
+        current = root
+        current_path = ""
+
+        for part in parts:
+            if not part:
+                continue
+
+            current_path = f"{current_path}/{part}" if current_path else part
+
+            # Check if child exists
+            existing = None
+            for child in current.children:
+                if child.name == part:
+                    existing = child
+                    break
+
+            if existing:
+                current = existing
+            else:
+                # Create new folder
+                new_folder = FolderNode(name=part, path=current_path)
+                current.add_child(new_folder)
+                current = new_folder
+
+        return current
+
+    def _learn_from_existing_structure(
+        self,
+        bookmarks: List[Bookmark],
+        original_folders_map: Dict[str, str],
+    ) -> None:
+        """
+        Learn patterns from existing folder structure.
+
+        Args:
+            bookmarks: List of bookmarks
+            original_folders_map: Existing folder assignments
+        """
+        logging.info("Learning from existing folder structure")
+
+        # Clear existing learned patterns
+        self.learned_patterns.clear()
+        self.folder_domain_mapping.clear()
+
+        # Track domain -> folder mappings
+        domain_folder_count: Dict[str, Dict[str, int]] = {}
+
+        # Track keyword -> folder mappings
+        keyword_folder_count: Dict[str, Dict[str, int]] = {}
+
+        for bookmark in bookmarks:
+            folder = original_folders_map.get(bookmark.url, "")
+            if not folder:
+                continue
+
+            # Extract domain
+            domain = self._extract_domain(bookmark.url)
+            if domain:
+                if domain not in domain_folder_count:
+                    domain_folder_count[domain] = {}
+                folder_top = folder.split("/")[0]
+                domain_folder_count[domain][folder_top] = (
+                    domain_folder_count[domain].get(folder_top, 0) + 1
+                )
+
+            # Extract keywords from title and tags
+            keywords = set()
+            if bookmark.title:
+                for word in bookmark.title.lower().split():
+                    if len(word) > 3:
+                        keywords.add(word)
+            if bookmark.tags:
+                tags = bookmark.tags if isinstance(bookmark.tags, list) else []
+                for tag in tags:
+                    keywords.add(tag.lower())
+
+            folder_top = folder.split("/")[0]
+            for keyword in keywords:
+                if keyword not in keyword_folder_count:
+                    keyword_folder_count[keyword] = {}
+                keyword_folder_count[keyword][folder_top] = (
+                    keyword_folder_count[keyword].get(folder_top, 0) + 1
+                )
+
+        # Build domain -> folder mapping (most common folder for each domain)
+        for domain, folders in domain_folder_count.items():
+            if folders:
+                best_folder = max(folders.items(), key=lambda x: x[1])[0]
+                # Only use if count is significant
+                if folders[best_folder] >= 2:
+                    self.folder_domain_mapping[domain] = best_folder
+
+        # Build learned patterns (top folders for each keyword category)
+        for keyword, folders in keyword_folder_count.items():
+            if folders:
+                best_folder = max(folders.items(), key=lambda x: x[1])[0]
+                if folders[best_folder] >= 2:
+                    if best_folder not in self.learned_patterns:
+                        self.learned_patterns[best_folder] = []
+                    if keyword not in self.learned_patterns[best_folder]:
+                        self.learned_patterns[best_folder].append(keyword)
+
+        logging.info(
+            f"Learned {len(self.folder_domain_mapping)} domain mappings "
+            f"and {len(self.learned_patterns)} folder patterns"
+        )
+
+    def _calculate_folder_confidence(
+        self,
+        bookmark: Bookmark,
+        content: Optional[ContentData],
+        suggested_path: str,
+        original_folder: str,
+    ) -> float:
+        """
+        Calculate confidence score for a folder suggestion.
+
+        Args:
+            bookmark: Bookmark being categorized
+            content: Content data
+            suggested_path: Suggested folder path
+            original_folder: Original folder path
+
+        Returns:
+            Confidence score (0.0 - 1.0)
+        """
+        confidence = 0.5  # Base confidence
+
+        # Boost if matches original folder
+        if original_folder:
+            original_top = original_folder.split("/")[0].lower()
+            suggested_top = suggested_path.split("/")[0].lower()
+            if original_top == suggested_top:
+                confidence += 0.25
+            elif original_top in suggested_top or suggested_top in original_top:
+                confidence += 0.15
+
+        # Boost if domain is learned
+        domain = self._extract_domain(bookmark.url)
+        if domain in self.folder_domain_mapping:
+            if self.folder_domain_mapping[domain].lower() in suggested_path.lower():
+                confidence += 0.2
+
+        # Boost if content categories match
+        if content and content.content_categories:
+            for cat in content.content_categories:
+                if cat.lower() in suggested_path.lower():
+                    confidence += 0.1
+                    break
+
+        return min(1.0, confidence)
+
+    def _generate_reasoning(
+        self,
+        bookmark: Bookmark,
+        content: Optional[ContentData],
+        category: str,
+        subcategory: str,
+        original_folder: str,
+    ) -> str:
+        """
+        Generate human-readable reasoning for folder suggestion.
+
+        Args:
+            bookmark: Bookmark being categorized
+            content: Content data
+            category: Suggested category
+            subcategory: Suggested subcategory
+            original_folder: Original folder path
+
+        Returns:
+            Reasoning string
+        """
+        reasons = []
+
+        # Domain-based reasoning
+        domain = self._extract_domain(bookmark.url)
+        if domain in self.folder_domain_mapping:
+            reasons.append(f"Domain '{domain}' typically mapped to this folder")
+
+        # Category pattern reasoning
+        for pattern_folder, keywords in self.learned_patterns.items():
+            if pattern_folder.lower() == category.lower():
+                matching_keywords = []
+                title_words = bookmark.title.lower().split() if bookmark.title else []
+                for kw in keywords[:3]:  # Limit to first 3
+                    if kw in title_words:
+                        matching_keywords.append(kw)
+                if matching_keywords:
+                    reasons.append(f"Title contains keywords: {', '.join(matching_keywords)}")
+                break
+
+        # Content category reasoning
+        if content and content.content_categories:
+            matching_cats = [c for c in content.content_categories if c.lower() in category.lower()]
+            if matching_cats:
+                reasons.append(f"Content categorized as: {', '.join(matching_cats[:2])}")
+
+        # Original folder reasoning
+        if original_folder:
+            original_top = original_folder.split("/")[0]
+            if original_top.lower() in category.lower():
+                reasons.append(f"Similar to original folder '{original_top}'")
+
+        if not reasons:
+            reasons.append("Best match based on content analysis")
+
+        return "; ".join(reasons)
+
+    def _apply_max_depth(self, result: FolderGenerationResult) -> FolderGenerationResult:
+        """
+        Apply maximum depth limit to folder result.
+
+        Args:
+            result: Original folder generation result
+
+        Returns:
+            Result with depth-limited paths
+        """
+        if self.max_depth <= 0:
+            return result
+
+        # Limit depth in assignments
+        new_assignments = {}
+        for url, path in result.folder_assignments.items():
+            parts = path.split("/")
+            new_path = "/".join(parts[: self.max_depth])
+            new_assignments[url] = new_path
+
+        # Rebuild folder stats
+        new_stats = {}
+        for path, count in result.folder_stats.items():
+            parts = path.split("/")
+            new_path = "/".join(parts[: self.max_depth])
+            new_stats[new_path] = new_stats.get(new_path, 0) + count
+
+        return FolderGenerationResult(
+            root_folder=result.root_folder,
+            folder_assignments=new_assignments,
+            total_folders=len(new_stats),
+            max_depth=min(result.max_depth, self.max_depth),
+            folder_stats=new_stats,
+            processing_time=result.processing_time,
+        )
+
+    def _determine_category(
+        self,
+        bookmark: Bookmark,
+        content: Optional[ContentData],
+        ai_result: Optional[AIProcessingResult],
+        original_folder: str,
+    ) -> Tuple[str, str]:
+        """
+        Determine category using learned patterns first, then fallback.
+
+        Overrides parent method to incorporate learned patterns.
+        """
+        # Check domain mapping first
+        domain = self._extract_domain(bookmark.url)
+        if domain in self.folder_domain_mapping:
+            folder = self.folder_domain_mapping[domain]
+            return folder, "General"
+
+        # Check learned patterns
+        text_parts = []
+        if bookmark.title:
+            text_parts.append(bookmark.title.lower())
+        if bookmark.tags:
+            if isinstance(bookmark.tags, list):
+                text_parts.extend([t.lower() for t in bookmark.tags])
+
+        full_text = " ".join(text_parts)
+
+        for folder, keywords in self.learned_patterns.items():
+            matching = sum(1 for kw in keywords if kw in full_text)
+            if matching >= 2:  # At least 2 keyword matches
+                return folder, "General"
+
+        # Fallback to parent implementation
+        return super()._determine_category(bookmark, content, ai_result, original_folder)

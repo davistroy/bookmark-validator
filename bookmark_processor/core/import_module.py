@@ -12,6 +12,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
+import pandas as pd
+
 from .chrome_html_parser import ChromeHTMLParser
 from .csv_handler import RaindropCSVHandler
 from .data_models import Bookmark
@@ -160,9 +162,11 @@ class MultiFormatImporter:
             True if valid raindrop.io CSV
         """
         try:
-            # Use the existing CSV handler validation
-            self.csv_handler.validate_export_format(str(file_path))
-            return True
+            # Try to load and validate the CSV using the handler
+            df = pd.read_csv(str(file_path), nrows=5)
+            # Check for required raindrop.io export columns
+            required_columns = {"url", "title", "folder", "tags", "created"}
+            return required_columns.issubset(set(df.columns))
         except CSVError:
             return False
         except Exception:

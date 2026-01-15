@@ -629,31 +629,39 @@ class ContentAnalyzer:
     def extract_metadata(self, url: str) -> Optional[BookmarkMetadata]:
         """
         Extract metadata from a URL (backward compatibility method).
-        
+
         Args:
             url: URL to extract metadata from
-            
+
         Returns:
             BookmarkMetadata object or None if extraction fails
         """
         try:
             content_data = self.analyze_content(url)
-            
-            if content_data.main_content == "Content extraction failed":
+
+            # Check for various error conditions
+            if content_data.main_content.startswith("Content extraction failed"):
                 return None
-                
+            if content_data.main_content.startswith("Request error:"):
+                return None
+            if content_data.main_content.startswith("Timeout after"):
+                return None
+            if content_data.main_content.startswith("Analysis error:"):
+                return None
+            if content_data.main_content.startswith("Non-HTML content:"):
+                return None
+
             # Convert ContentData to BookmarkMetadata
             metadata = BookmarkMetadata(
-                url=url,
                 title=content_data.title,
                 description=content_data.meta_description,
                 keywords=content_data.meta_keywords.split(", ") if content_data.meta_keywords else [],
                 author=None,  # Not extracted in current implementation
                 canonical_url=None  # Not extracted in current implementation
             )
-            
+
             return metadata
-            
+
         except Exception:
             return None
     
@@ -684,7 +692,6 @@ class ContentAnalyzer:
             canonical_url = canonical_link.get("href", "")
         
         return BookmarkMetadata(
-            url=url,
             title=title,
             description=description,
             keywords=keywords,

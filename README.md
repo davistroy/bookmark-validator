@@ -4,17 +4,29 @@ A powerful Linux/WSL command-line tool that processes raindrop.io bookmark expor
 
 ## Features
 
+### Core Capabilities
 - **Raindrop.io Format Support**: Transforms 11-column exports into 6-column import format
 - **URL Validation**: Validates bookmark accessibility with intelligent retry logic and rate limiting
-- **AI-Enhanced Descriptions**: Generates improved descriptions using local AI (facebook/bart-large-cnn)
-- **Smart Tag Optimization**: Creates a coherent tagging system across your entire bookmark collection (100-200 unique tags)
+- **AI-Enhanced Descriptions**: Generates improved descriptions using local AI or cloud APIs (Claude, OpenAI)
+- **Smart Tag Optimization**: Creates a coherent tagging system with user-defined vocabulary (100-200 unique tags)
 - **Duplicate Detection**: Advanced deduplication with multiple resolution strategies
 - **Checkpoint/Resume**: Saves progress automatically and resumes from interruptions
-- **Large Dataset Support**: Efficiently processes 3,500+ bookmarks within 8 hours
-- **Linux/WSL Only**: Designed specifically for Linux and Windows Subsystem for Linux (WSL2)
-- **Local AI Processing**: Uses facebook/bart-large-cnn model for description generation
+- **Large Dataset Support**: Efficiently processes 3,500+ bookmarks with streaming support
 - **Intelligent Rate Limiting**: Site-specific delays for major websites (Google, GitHub, YouTube, etc.)
-- **Production Ready**: Full type checking, code formatting, and comprehensive test coverage
+
+### Advanced Features (New)
+- **Multi-Format Export**: Export to JSON, Markdown, Obsidian, Notion, and OPML formats
+- **Composable Filters**: Filter by folder, tags, date range, domain, and status with AND/OR logic
+- **Quality Reporting**: Comprehensive quality metrics and scoring in Rich, JSON, or Markdown formats
+- **Hybrid AI Routing**: Automatically route to local or cloud AI based on content complexity
+- **Tag Configuration**: Define custom tag vocabulary, aliases, and hierarchy via TOML
+- **Health Monitoring**: Track bookmark health with Wayback Machine integration for dead links
+- **Interactive Mode**: Review and approve changes before applying them
+- **Plugin Architecture**: Extend with custom validators, AI processors, and output formats
+- **MCP Integration**: Direct integration with Raindrop.io via Model Context Protocol
+- **Streaming Processing**: Memory-efficient processing for datasets of any size
+- **Async Pipeline**: Concurrent processing with 10x throughput improvement
+- **Database State**: SQLite-backed state with full-text search and run comparison
 
 ## Quick Start
 
@@ -25,11 +37,21 @@ python -m bookmark_processor --input raindrop_export.csv --output enhanced_bookm
 # Process with resume capability for large datasets
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --resume
 
-# Process with custom batch size and verbose logging
-python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --batch-size 50 --verbose
+# Process with cloud AI (Claude or OpenAI)
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-engine claude
 
-# Process with AI engine selection (future cloud AI support)
-python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-engine local
+# Preview changes without processing
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --preview
+
+# Filter by folder and export to multiple formats
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv \
+  --filter-folder "Programming" --export-json bookmarks.json --export-markdown bookmarks.md
+
+# Interactive mode for review before applying
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --interactive
+
+# Async processing for maximum speed
+python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --async --max-concurrent 50
 ```
 
 📖 **New to the tool?** Check out our [Quick Start Guide](docs/QUICKSTART.md) for a step-by-step walkthrough!
@@ -259,8 +281,8 @@ python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --verbo
 
 🎯 **Core Features (Complete):**
 - URL validation with intelligent rate limiting and progress tracking
-- AI-powered description enhancement (local + cloud APIs)
-- Corpus-aware tag optimization with 100-200 unique tags
+- AI-powered description enhancement (local + cloud APIs: Claude, OpenAI)
+- Corpus-aware tag optimization with user-defined vocabulary (100-200 unique tags)
 - Robust checkpoint/resume functionality for large datasets
 - Multi-file processing with auto-detection support
 - Advanced progress tracking with real-time metrics
@@ -268,20 +290,32 @@ python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --verbo
 - Cost tracking for cloud AI usage
 - Production-ready codebase with full type hints
 
-🧪 **Thoroughly Tested (All Passing):**
+🆕 **Advanced Features (Complete):**
+- **Multi-Format Export**: JSON, Markdown, Obsidian, Notion, OPML
+- **Composable Filters**: Filter by folder, tags, date, domain, status
+- **Quality Reporting**: Rich, JSON, Markdown quality reports
+- **Hybrid AI Routing**: Auto-select local vs cloud based on complexity
+- **Tag Configuration**: TOML-based vocabulary and hierarchy
+- **Health Monitoring**: Wayback Machine integration for dead links
+- **Interactive Mode**: Review/approve changes before applying
+- **Plugin Architecture**: Custom validators, AI processors, outputs
+- **MCP Integration**: Direct Raindrop.io sync via MCP
+- **Streaming Pipeline**: Constant memory for any dataset size
+- **Async Pipeline**: 10x throughput with concurrent processing
+- **Database State**: SQLite with FTS5 search and run comparison
+
+🧪 **Thoroughly Tested (902+ New Tests):**
 - 85%+ test coverage across all modules
 - Unit tests for all core components
 - Integration tests for end-to-end workflows
 - Performance validation with 3,500+ bookmark datasets
-- Error handling and recovery scenarios
-- Cloud AI integration testing
-- Checkpoint/resume functionality validation
+- 902 new tests across 9 implementation phases
 - GitHub Actions CI/CD pipeline with automated testing
 
 📖 **Complete Documentation (Recently Updated):**
 - Installation guides for Linux and WSL environments
 - Quick start guide with practical examples
-- Comprehensive feature documentation
+- Comprehensive feature documentation (26+ feature sections)
 - Configuration management guide
 - Cloud AI setup and optimization guide
 - Troubleshooting guide with common solutions
@@ -289,27 +323,29 @@ python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --verbo
 
 ## Recent Updates & Improvements
 
-🚀 **Latest Enhancements:**
-- **Comprehensive Backward Compatibility**: Full interface compatibility implementations across all core classes
-- **Enhanced Progress Tracking**: Real-time progress indicators with stage-specific metrics
-- **Improved Error Handling**: Comprehensive error categorization and recovery mechanisms
-- **Configuration System**: Pydantic-based configuration with validation and CLI integration
-- **Test Suite**: Comprehensive unit and integration tests with 85%+ coverage
-- **Code Quality**: Full type checking, linting, and security validation
-- **CI/CD Pipeline**: Automated testing and quality checks with GitHub Actions
-- **Documentation**: Complete user and developer documentation
+🚀 **Major Architecture Improvements (9 Phases Complete):**
 
-🔧 **Technical Improvements:**
-- **Interface Compatibility**: Complete backward compatibility methods implemented in ContentAnalyzer, CorpusAwareTagGenerator, ProgressTracker, and AI processors
-  - ContentAnalyzer: `extract_metadata()`, `_parse_html()`, `_extract_title()`, `_extract_description()`, `analyze_content_categories()`
-  - CorpusAwareTagGenerator: `generate_tags_from_content()`, `generate_tags_from_bookmark()`, `build_tag_corpus()`, `optimize_tags_for_corpus()`
-  - ProgressTracker: `update()` with absolute positioning, legacy `AdvancedProgressTracker` wrapper, `track_progress()` function
-  - AI processors: Enhanced batch processing with backward compatibility for single-item processing
-- **Robust Checkpoint/Resume**: Comprehensive functionality for large datasets with automatic state recovery
-- **Intelligent Rate Limiting**: Site-specific configuration with intelligent delay management
-- **Memory Optimization**: Efficient processing algorithms for large bookmark collections
-- **Enhanced Browser Simulation**: Realistic user agent rotation and request simulation
-- **AI Fallback Hierarchy**: Multi-tier fallback system for reliable description generation
+**Phase 0-2: Foundation & Visibility**
+- Report generation infrastructure with Rich/JSON/Markdown output
+- Composable filter system with AND/OR operators
+- Processing mode abstraction with stage flags
+- Quality metrics reporting and enhanced progress tracking
+
+**Phase 3-5: AI & Data Abstraction**
+- Hybrid AI router for local/cloud selection
+- User-defined tag vocabulary via TOML configuration
+- Data source protocol abstraction
+- MCP integration for direct Raindrop.io sync
+- State tracking with SQLite persistence
+
+**Phase 6-8: Advanced Features & Scalability**
+- Multi-format exporters (JSON, Markdown, Obsidian, Notion, OPML)
+- Bookmark health monitoring with Wayback Machine
+- Interactive processing with approval workflow
+- Plugin architecture with loader/registry
+- Streaming pipeline for unlimited datasets
+- Async pipeline with 10x throughput
+- Database-backed state with FTS5 search
 
 ## Development
 

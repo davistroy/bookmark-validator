@@ -15,6 +15,10 @@ from bookmark_processor.core.url_validator import (
     URLValidator,
     ValidationResult,
 )
+from bookmark_processor.core.url_validator.helpers import (
+    is_valid_url_format,
+    should_skip_url,
+)
 from bookmark_processor.utils.browser_simulator import BrowserSimulator
 from bookmark_processor.utils.intelligent_rate_limiter import IntelligentRateLimiter
 from bookmark_processor.utils.retry_handler import RetryHandler
@@ -96,10 +100,10 @@ class TestURLValidator:
             del os.environ["BOOKMARK_PROCESSOR_TEST_MODE"]
 
         with (
-            patch("bookmark_processor.core.url_validator.IntelligentRateLimiter"),
-            patch("bookmark_processor.core.url_validator.BrowserSimulator"),
-            patch("bookmark_processor.core.url_validator.RetryHandler"),
-            patch("bookmark_processor.core.url_validator.SecurityValidator"),
+            patch("bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"),
+            patch("bookmark_processor.core.url_validator.validator.BrowserSimulator"),
+            patch("bookmark_processor.core.url_validator.validator.RetryHandler"),
+            patch("bookmark_processor.core.url_validator.validator.SecurityValidator"),
         ):
             validator = URLValidator(timeout=5, max_redirects=5, max_concurrent=10)
             yield validator
@@ -406,12 +410,12 @@ class TestURLValidator:
 
         for url in valid_urls:
             assert (
-                validator._is_valid_url_format(url) is True
+                is_valid_url_format(url) is True
             ), f"Should be valid: {url}"
 
         for url in invalid_urls:
             assert (
-                validator._is_valid_url_format(url) is False
+                is_valid_url_format(url) is False
             ), f"Should be invalid: {url}"
 
     def test_normalize_url(self, validator):
@@ -433,12 +437,12 @@ class TestURLValidator:
 
         for url in skip_urls:
             assert (
-                validator._should_skip_url(url) is True
+                should_skip_url(url) is True
             ), f"Should be skipped: {url}"
 
         for url in valid_urls:
             assert (
-                validator._should_skip_url(url) is False
+                should_skip_url(url) is False
             ), f"Should not be skipped: {url}"
 
     def test_get_validation_statistics(self, validator):

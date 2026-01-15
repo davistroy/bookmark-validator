@@ -586,8 +586,8 @@ class BookmarkProcessingPipeline:
 
                 # Store results
                 for result in batch_results:
-                    self.ai_results[result.original_url] = result
-                    self.checkpoint_manager.add_ai_result(result.original_url, result)
+                    self.ai_results[result.url] = result
+                    self.checkpoint_manager.add_ai_result(result.url, result)
 
                 # Update progress
                 if self.progress_tracker:
@@ -868,15 +868,28 @@ class BookmarkProcessingPipeline:
             content_data.__dict__.update(content_dict)
             self.content_data[url] = content_data
 
-        # Restore AI results
+        # Restore AI results - handle both Bookmark objects and AIProcessingResult dicts
         for url, ai_dict in state.ai_results.items():
-            ai_result = AIProcessingResult(
-                original_url=ai_dict["original_url"],
-                enhanced_description=ai_dict["enhanced_description"],
-                processing_method=ai_dict["processing_method"],
-                processing_time=ai_dict["processing_time"],
-            )
-            self.ai_results[url] = ai_result
+            # Check if this is a Bookmark dict (has 'url' key) or AIProcessingResult dict (has 'original_url' key)
+            if isinstance(ai_dict, dict):
+                if "original_url" in ai_dict:
+                    # Legacy AIProcessingResult format
+                    ai_result = AIProcessingResult(
+                        original_url=ai_dict["original_url"],
+                        enhanced_description=ai_dict["enhanced_description"],
+                        processing_method=ai_dict["processing_method"],
+                        processing_time=ai_dict["processing_time"],
+                    )
+                    self.ai_results[url] = ai_result
+                elif "url" in ai_dict:
+                    # New Bookmark format - store as dict for now
+                    self.ai_results[url] = ai_dict
+                else:
+                    # Unknown format - store as-is
+                    self.ai_results[url] = ai_dict
+            else:
+                # Non-dict value - store as-is
+                self.ai_results[url] = ai_dict
 
         # Restore tag assignments
         self.tag_assignments = state.tag_assignments.copy()

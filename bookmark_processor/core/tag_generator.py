@@ -1072,10 +1072,10 @@ class CorpusAwareTagGenerator:
     def finalize_tag_optimization(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
         """
         Finalize tag optimization across all bookmarks (backward compatibility method).
-        
+
         Args:
             bookmarks: List of bookmarks with optimized_tags
-            
+
         Returns:
             List of bookmarks with finalized tags
         """
@@ -1084,22 +1084,393 @@ class CorpusAwareTagGenerator:
         for bookmark in bookmarks:
             if hasattr(bookmark, 'optimized_tags') and bookmark.optimized_tags:
                 all_tags.update(bookmark.optimized_tags)
-        
+
         # Optimize the tag set to target count
         optimized_tag_set = self.optimize_tags_for_corpus(
             list(all_tags), self.target_tag_count
         )
         optimized_tag_set = set(optimized_tag_set)
-        
+
         # Update bookmarks to only use optimized tags
         for bookmark in bookmarks:
             if hasattr(bookmark, 'optimized_tags') and bookmark.optimized_tags:
                 # Filter to only include tags in optimized set
                 filtered_tags = [
-                    tag for tag in bookmark.optimized_tags 
+                    tag for tag in bookmark.optimized_tags
                     if tag in optimized_tag_set
                 ]
                 # Limit to max tags per bookmark
                 bookmark.optimized_tags = filtered_tags[:self.max_tags_per_bookmark]
-        
+
         return bookmarks
+
+
+# Import TagConfig for enhanced generator
+try:
+    from .tag_config import TagConfig, TagNormalizer, TagWithConfidence
+except ImportError:
+    TagConfig = None
+    TagNormalizer = None
+    TagWithConfidence = None
+
+
+class EnhancedTagGenerator(CorpusAwareTagGenerator):
+    """
+    Enhanced tag generation with hierarchy and user vocabulary support.
+
+    Features:
+    - Protected tag handling (never consolidated)
+    - Synonym resolution
+    - Tag hierarchy support
+    - Confidence scores in output
+    - User-defined vocabulary via TOML config
+    """
+
+    def __init__(
+        self,
+        config: Optional["TagConfig"] = None,
+        config_file: Optional[str] = None,
+        target_tag_count: int = 150,
+        max_tags_per_bookmark: int = 5,
+        min_tag_frequency: int = 2,
+        quality_threshold: float = 0.3,
+    ):
+        """
+        Initialize enhanced tag generator.
+
+        Args:
+            config: TagConfig instance
+            config_file: Path to TOML config file (alternative to config)
+            target_tag_count: Target number of unique tags
+            max_tags_per_bookmark: Maximum tags per bookmark
+            min_tag_frequency: Minimum frequency for tag inclusion
+            quality_threshold: Minimum quality score for tag inclusion
+        """
+        # Load config from file if provided
+        if config_file and TagConfig is not None:
+            config = TagConfig.from_toml_file(config_file)
+
+        # Use provided config or create default
+        if config is not None:
+            self.tag_config = config
+        elif TagConfig is not None:
+            self.tag_config = TagConfig(
+                target_unique_tags=target_tag_count,
+                max_tags_per_bookmark=max_tags_per_bookmark,
+                min_tag_frequency=min_tag_frequency,
+                quality_threshold=quality_threshold,
+            )
+        else:
+            self.tag_config = None
+
+        # Initialize parent with config values
+        if self.tag_config:
+            super().__init__(
+                target_tag_count=self.tag_config.target_unique_tags,
+                max_tags_per_bookmark=self.tag_config.max_tags_per_bookmark,
+                min_tag_frequency=self.tag_config.min_tag_frequency,
+                quality_threshold=self.tag_config.quality_threshold,
+            )
+        else:
+            super().__init__(
+                target_tag_count=target_tag_count,
+                max_tags_per_bookmark=max_tags_per_bookmark,
+                min_tag_frequency=min_tag_frequency,
+                quality_threshold=quality_threshold,
+            )
+
+        # Initialize normalizer if TagConfig is available
+        if TagNormalizer is not None and self.tag_config:
+            self.normalizer = TagNormalizer(self.tag_config)
+        else:
+            self.normalizer = None
+
+        logging.info(
+            f"Enhanced tag generator initialized "
+            f"(target={self.target_tag_count}, "
+            f"max_per_bookmark={self.max_tags_per_bookmark}, "
+            f"config={'loaded' if self.tag_config else 'default'})"
+        )
+
+    def normalize_tag(self, tag: str) -> str:
+        """
+        Normalize a tag using synonyms and configuration.
+
+        Args:
+            tag: Raw tag string
+
+        Returns:
+            Normalized tag
+        """
+        if self.normalizer:
+            return self.normalizer.normalize_tag(tag)
+
+        # Fallback to parent normalization
+        return self._normalize_tag(tag)
+
+    def apply_hierarchy(self, tag: str) -> str:
+        """
+        Apply hierarchy transformation to a tag.
+
+        Args:
+            tag: Tag to transform
+
+        Returns:
+            Hierarchical tag path (e.g., "technology/ai")
+        """
+        if self.normalizer:
+            return self.normalizer.apply_hierarchy(tag)
+        return self.normalize_tag(tag)
+
+    def is_protected(self, tag: str) -> bool:
+        """
+        Check if a tag is protected (should not be consolidated).
+
+        Args:
+            tag: Tag to check
+
+        Returns:
+            True if tag is protected
+        """
+        if self.normalizer:
+            return self.normalizer.is_protected(tag)
+
+        # Default protected tags
+        default_protected = {"important", "to-read", "reference", "archived", "favorite"}
+        return tag.strip().lower() in default_protected
+
+    def generate_with_confidence(
+        self,
+        bookmarks: List[Bookmark],
+        content_data_map: Optional[Dict[str, ContentData]] = None,
+        ai_results_map: Optional[Dict[str, AIProcessingResult]] = None,
+    ) -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Generate tags with confidence scores for each bookmark.
+
+        Args:
+            bookmarks: List of bookmarks to process
+            content_data_map: Optional content analysis data
+            ai_results_map: Optional AI processing results
+
+        Returns:
+            Dictionary mapping URL to list of (tag, confidence) tuples
+        """
+        if content_data_map is None:
+            content_data_map = {}
+        if ai_results_map is None:
+            ai_results_map = {}
+
+        # First, run normal corpus tag generation to get optimized tags
+        result = self.generate_corpus_tags(
+            bookmarks, content_data_map, ai_results_map
+        )
+
+        # Now generate confidence scores for each bookmark's tags
+        tags_with_confidence: Dict[str, List[Tuple[str, float]]] = {}
+
+        for bookmark in bookmarks:
+            url = bookmark.url
+            assigned_tags = result.tag_assignments.get(url, [])
+
+            # Calculate confidence for each tag
+            tag_scores: List[Tuple[str, float]] = []
+
+            for tag in assigned_tags:
+                confidence = self._calculate_tag_confidence(
+                    bookmark, tag, content_data_map
+                )
+
+                # Apply hierarchy if configured
+                hierarchical_tag = self.apply_hierarchy(tag)
+
+                tag_scores.append((hierarchical_tag, confidence))
+
+            # Sort by confidence and apply max limit
+            tag_scores.sort(key=lambda x: x[1], reverse=True)
+            tags_with_confidence[url] = tag_scores[:self.max_tags_per_bookmark]
+
+        return tags_with_confidence
+
+    def _calculate_tag_confidence(
+        self,
+        bookmark: Bookmark,
+        tag: str,
+        content_data_map: Dict[str, ContentData],
+    ) -> float:
+        """
+        Calculate confidence score for a tag on a bookmark.
+
+        Args:
+            bookmark: Bookmark being tagged
+            tag: Tag to score
+            content_data_map: Content data for context
+
+        Returns:
+            Confidence score (0.0 - 1.0)
+        """
+        confidence = 0.5  # Base confidence
+        tag_lower = tag.lower()
+
+        # Boost for protected tags (they're intentional)
+        if self.is_protected(tag):
+            confidence = max(confidence, 0.95)
+            return min(1.0, confidence)
+
+        # Boost for tags in title
+        if bookmark.title and tag_lower in bookmark.title.lower():
+            confidence += 0.2
+
+        # Boost for tags in URL
+        if tag_lower in bookmark.url.lower():
+            confidence += 0.15
+
+        # Boost for existing tags (user specified)
+        existing_tags_str = ""
+        if bookmark.tags:
+            if isinstance(bookmark.tags, list):
+                existing_tags_str = " ".join(bookmark.tags).lower()
+            else:
+                existing_tags_str = str(bookmark.tags).lower()
+
+        if tag_lower in existing_tags_str:
+            confidence += 0.25
+
+        # Boost for content categories match
+        content = content_data_map.get(bookmark.url)
+        if content:
+            if tag_lower in [c.lower() for c in content.content_categories]:
+                confidence += 0.2
+            if any(tag_lower in h.lower() for h in content.headings):
+                confidence += 0.1
+
+        # Boost based on tag frequency in corpus
+        if tag in self.tag_candidates:
+            freq = self.tag_candidates[tag].frequency
+            if freq >= 5:
+                confidence += 0.1
+            elif freq >= 10:
+                confidence += 0.15
+
+        return min(1.0, confidence)
+
+    def generate_corpus_tags_with_hierarchy(
+        self,
+        bookmarks: List[Bookmark],
+        content_data_map: Optional[Dict[str, ContentData]] = None,
+        ai_results_map: Optional[Dict[str, AIProcessingResult]] = None,
+        apply_hierarchy: bool = True,
+    ) -> TagOptimizationResult:
+        """
+        Generate optimized tags with optional hierarchy applied.
+
+        Args:
+            bookmarks: List of bookmarks
+            content_data_map: Optional content analysis data
+            ai_results_map: Optional AI processing results
+            apply_hierarchy: Whether to apply tag hierarchy
+
+        Returns:
+            TagOptimizationResult with hierarchical tags
+        """
+        # Get base result
+        result = self.generate_corpus_tags(
+            bookmarks, content_data_map, ai_results_map
+        )
+
+        if not apply_hierarchy:
+            return result
+
+        # Apply hierarchy to all tag assignments
+        hierarchical_assignments: Dict[str, List[str]] = {}
+
+        for url, tags in result.tag_assignments.items():
+            hierarchical_tags = []
+            for tag in tags:
+                if not self.is_protected(tag):
+                    hierarchical_tag = self.apply_hierarchy(tag)
+                    hierarchical_tags.append(hierarchical_tag)
+                else:
+                    hierarchical_tags.append(tag)
+            hierarchical_assignments[url] = hierarchical_tags
+
+        # Update optimized_tags list with hierarchy
+        hierarchical_optimized = []
+        for tag in result.optimized_tags:
+            if not self.is_protected(tag):
+                hierarchical_optimized.append(self.apply_hierarchy(tag))
+            else:
+                hierarchical_optimized.append(tag)
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_optimized = []
+        for tag in hierarchical_optimized:
+            if tag not in seen:
+                seen.add(tag)
+                unique_optimized.append(tag)
+
+        return TagOptimizationResult(
+            optimized_tags=unique_optimized,
+            tag_assignments=hierarchical_assignments,
+            total_unique_tags=len(unique_optimized),
+            coverage_percentage=result.coverage_percentage,
+            optimization_stats=result.optimization_stats,
+        )
+
+    def _clean_tags(self, tags: Set[str]) -> Set[str]:
+        """
+        Override parent to apply enhanced cleaning with normalization.
+
+        Args:
+            tags: Set of raw tags
+
+        Returns:
+            Set of cleaned tags
+        """
+        # First apply parent cleaning
+        cleaned = super()._clean_tags(tags)
+
+        # Then apply normalization
+        if self.normalizer:
+            final_tags = set()
+            for tag in cleaned:
+                normalized = self.normalizer.normalize_tag(tag)
+                if normalized:
+                    final_tags.add(normalized)
+            return final_tags
+
+        return cleaned
+
+    def get_protected_tags(self) -> Set[str]:
+        """
+        Get the set of protected tags.
+
+        Returns:
+            Set of protected tag names
+        """
+        if self.tag_config:
+            return self.tag_config.protected_tags.copy()
+        return {"important", "to-read", "reference", "archived", "favorite"}
+
+    def get_synonyms(self) -> Dict[str, str]:
+        """
+        Get the synonym mappings.
+
+        Returns:
+            Dictionary of synonym mappings
+        """
+        if self.tag_config:
+            return self.tag_config.synonyms.copy()
+        return {}
+
+    def get_hierarchy(self) -> Dict[str, str]:
+        """
+        Get the hierarchy mappings.
+
+        Returns:
+            Dictionary of hierarchy mappings
+        """
+        if self.tag_config:
+            return self.tag_config.hierarchy.copy()
+        return {}

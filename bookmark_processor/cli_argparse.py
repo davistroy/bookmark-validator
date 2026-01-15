@@ -199,6 +199,27 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             help="Strategy for resolving duplicates (default: highest_quality)",
         )
 
+        # Incremental processing options
+        parser.add_argument(
+            "--since-last-run",
+            action="store_true",
+            help="Only process bookmarks that haven't been processed before or "
+            "have changed since the last run. Uses a local SQLite database to "
+            "track processing state. Ideal for incremental updates to large "
+            "bookmark collections.",
+        )
+        parser.add_argument(
+            "--clear-state",
+            action="store_true",
+            help="Clear the processing state database before running. "
+            "Use with --since-last-run to reprocess all bookmarks.",
+        )
+        parser.add_argument(
+            "--state-db",
+            help="Custom path for the processing state database. "
+            "Default: .bookmark_processor_state.db in current directory.",
+        )
+
         # Folder generation options
         parser.add_argument(
             "--generate-folders",
@@ -291,6 +312,9 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
             "generate_chrome_html": args.chrome_html,
             "chrome_html_output": args.html_output,
             "html_title": args.html_title,
+            "since_last_run": args.since_last_run,
+            "clear_state": args.clear_state,
+            "state_db": args.state_db,
         }
 
     def process_arguments(self, validated_args: dict) -> Configuration:
@@ -543,6 +567,7 @@ For more information, visit: https://github.com/davistroy/bookmark-validator
                     print(
                         f"  Duplicate strategy: {validated_args['duplicate_strategy']}"
                     )
+                print(f"  Incremental mode: {validated_args['since_last_run']}")
 
             # Initialize and run the bookmark processor
             processor = BookmarkProcessor(config)

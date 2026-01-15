@@ -61,6 +61,11 @@ class AIProcessingResult:
     error_message: Optional[str] = None
     timestamp: datetime = field(default_factory=datetime.now)
 
+    @property
+    def url(self) -> str:
+        """Alias for original_url for compatibility with pipeline code."""
+        return self.original_url
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {

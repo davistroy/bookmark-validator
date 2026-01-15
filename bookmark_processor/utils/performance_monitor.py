@@ -8,7 +8,6 @@ for the bookmark processor application.
 import gc
 import json
 import os
-import resource
 import threading
 import tracemalloc
 from contextlib import contextmanager
@@ -16,6 +15,22 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Platform-specific imports
+try:
+    import resource
+    HAS_RESOURCE = True
+except ImportError:
+    # Windows doesn't have the resource module
+    HAS_RESOURCE = False
+    resource = None  # type: ignore
+
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
+    psutil = None  # type: ignore
 
 
 @dataclass
@@ -141,16 +156,22 @@ class PerformanceMonitor:
     def _collect_metrics(self):
         """Collect current performance metrics"""
         with self.lock:
-            # Memory metrics using resource module
+            # Memory metrics using psutil (cross-platform) or resource (Unix)
+            memory_mb = 0.0
             try:
-                memory_usage = resource.getrusage(resource.RUSAGE_SELF)
-                memory_mb = (
-                    memory_usage.ru_maxrss / 1024
-                )  # On Linux, ru_maxrss is in KB
-                if hasattr(resource, "getrusage") and os.name != "posix":
+                if HAS_PSUTIL:
+                    process = psutil.Process()
+                    memory_info = process.memory_info()
+                    memory_mb = memory_info.rss / (1024 * 1024)  # Convert bytes to MB
+                elif HAS_RESOURCE and resource is not None:
+                    memory_usage = resource.getrusage(resource.RUSAGE_SELF)
                     memory_mb = (
-                        memory_usage.ru_maxrss / 1024 / 1024
-                    )  # On Windows, it's in bytes
+                        memory_usage.ru_maxrss / 1024
+                    )  # On Linux, ru_maxrss is in KB
+                    if os.name != "posix":
+                        memory_mb = (
+                            memory_usage.ru_maxrss / 1024 / 1024
+                        )  # On Windows, it might be in bytes
                 self.memory_peak = max(self.memory_peak, memory_mb)
             except Exception:
                 memory_mb = 0.0
@@ -222,8 +243,14 @@ class PerformanceMonitor:
 
             # Calculate memory delta
             try:
-                memory_usage = resource.getrusage(resource.RUSAGE_SELF)
-                current_memory = memory_usage.ru_maxrss / 1024  # KB to MB
+                current_memory = 0.0
+                if HAS_PSUTIL:
+                    process = psutil.Process()
+                    memory_info = process.memory_info()
+                    current_memory = memory_info.rss / (1024 * 1024)  # bytes to MB
+                elif HAS_RESOURCE and resource is not None:
+                    memory_usage = resource.getrusage(resource.RUSAGE_SELF)
+                    current_memory = memory_usage.ru_maxrss / 1024  # KB to MB
                 start_memory = self.memory_peak - current_memory  # Approximation
             except Exception:
                 current_memory = 0.0
@@ -264,8 +291,14 @@ class PerformanceMonitor:
         with self.lock:
             elapsed_hours = self._get_elapsed_hours()
             try:
-                memory_usage = resource.getrusage(resource.RUSAGE_SELF)
-                memory_mb = memory_usage.ru_maxrss / 1024  # KB to MB
+                memory_mb = 0.0
+                if HAS_PSUTIL:
+                    process = psutil.Process()
+                    memory_info = process.memory_info()
+                    memory_mb = memory_info.rss / (1024 * 1024)  # bytes to MB
+                elif HAS_RESOURCE and resource is not None:
+                    memory_usage = resource.getrusage(resource.RUSAGE_SELF)
+                    memory_mb = memory_usage.ru_maxrss / 1024  # KB to MB
             except Exception:
                 memory_mb = 0.0
 
