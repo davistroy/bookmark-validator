@@ -2058,6 +2058,151 @@ if RICH_AVAILABLE:
             raise typer.Exit(1)
 
 
+# =========================================================================
+# Discovery Analysis Command
+# =========================================================================
+
+if RICH_AVAILABLE:
+
+    class AnalyzeOutputFormat(str, Enum):
+        """Output format for analyze command."""
+        text = "text"
+        json = "json"
+
+    @app.command()
+    def analyze(
+        input_file: Path = typer.Option(
+            ...,
+            "--input",
+            "-i",
+            help="Input CSV file (raindrop.io format) to analyze",
+        ),
+        output_file: Optional[Path] = typer.Option(
+            None,
+            "--output",
+            "-o",
+            help="Save analysis report to file",
+        ),
+        format: AnalyzeOutputFormat = typer.Option(
+            AnalyzeOutputFormat.text,
+            "--format",
+            "-f",
+            help="Output format: text or json",
+        ),
+        min_frequency: int = typer.Option(
+            3,
+            "--min-frequency",
+            help="Minimum term frequency to suggest (default: 3)",
+        ),
+        max_suggestions: int = typer.Option(
+            30,
+            "--max-suggestions",
+            help="Maximum suggestions per category (default: 30)",
+        ),
+        verbose: bool = typer.Option(
+            False,
+            "--verbose",
+            "-v",
+            help="Include additional details in report",
+        ),
+    ):
+        """
+        Analyze bookmarks to discover patterns and suggest improvements.
+
+        Scans your bookmark collection WITHOUT modifying it and identifies:
+        - High-frequency terms not in the built-in tag vocabulary
+        - Domains that could benefit from dedicated folders
+        - Patterns that suggest new category groupings
+        - Quality issues (missing tags, folders, etc.)
+
+        Use this to understand your collection and find opportunities
+        for better organization before running the full processor.
+
+        [bold]Examples:[/bold]
+
+            bookmark-processor analyze -i bookmarks.csv
+
+            bookmark-processor analyze -i bookmarks.csv -o report.json --format json
+
+            bookmark-processor analyze -i bookmarks.csv --min-frequency 5 --verbose
+        """
+        import json as json_module
+
+        try:
+            from bookmark_processor.core.csv_handler import RaindropCSVHandler
+            from bookmark_processor.core.discovery_analyzer import (
+                DiscoveryAnalyzer,
+                format_discovery_report,
+            )
+
+            # Load bookmarks
+            with console.status("[bold green]Loading bookmarks..."):
+                handler = RaindropCSVHandler()
+                bookmarks = handler.load_and_transform_csv(input_file)
+
+            console.print(f"[green]Loaded {len(bookmarks)} bookmarks[/green]")
+
+            # Run analysis
+            with console.status("[bold green]Analyzing patterns..."):
+                analyzer = DiscoveryAnalyzer(
+                    min_term_frequency=min_frequency,
+                    min_domain_frequency=2,
+                    max_suggestions=max_suggestions,
+                )
+                report = analyzer.analyze(bookmarks)
+
+            # Format output
+            if format == AnalyzeOutputFormat.json:
+                output_content = json_module.dumps(report.to_dict(), indent=2)
+            else:
+                output_content = format_discovery_report(report, verbose=verbose)
+
+            # Save or display
+            if output_file:
+                output_file.write_text(output_content)
+                console.print(
+                    Panel.fit(
+                        f"[green]Analysis complete![/green]\n"
+                        f"Report saved to: {output_file}",
+                        title="Success",
+                    )
+                )
+            else:
+                # Display to console
+                if format == AnalyzeOutputFormat.json:
+                    from rich.syntax import Syntax
+                    syntax = Syntax(output_content, "json", theme="monokai")
+                    console.print(syntax)
+                else:
+                    console.print(output_content)
+
+            # Summary panel
+            console.print(
+                Panel(
+                    f"[bold]Discovery Summary[/bold]\n\n"
+                    f"Total bookmarks:        {report.total_bookmarks}\n"
+                    f"New tag suggestions:    {len(report.new_tag_suggestions)}\n"
+                    f"Domains analyzed:       {report.total_domains}\n"
+                    f"Suggested new folders:  {len(report.suggested_new_folders)}\n"
+                    f"Bookmarks without tags: {report.bookmarks_without_tags}",
+                    title="Analysis Complete",
+                    border_style="green",
+                )
+            )
+
+            return 0
+
+        except FileNotFoundError as e:
+            console.print(f"[red]Error:[/red] File not found: {e}")
+            raise typer.Exit(1)
+        except Exception as e:
+            console.print(f"[red]Error:[/red] {e}")
+            if verbose:
+                import traceback
+                console.print(traceback.format_exc())
+            raise typer.Exit(1)
+
+
 # Helper functions for MCP CLI commands
 
 def _parse_since(since_str: str):
