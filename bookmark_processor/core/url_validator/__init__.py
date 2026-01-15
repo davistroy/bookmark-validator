@@ -65,9 +65,6 @@ class URLValidator(
     pass
 
 
-# Re-export EnhancedBatchProcessor for backward compatibility
-from ..batch_validator import EnhancedBatchProcessor
-
 # Re-export AsyncHttpClient for backward compatibility
 from ..async_http_client import AsyncHttpClient
 
@@ -84,6 +81,53 @@ from ..batch_types import (
 
 # Re-export error types
 from ...utils.error_handler import URLValidationError, ValidationError
+
+
+# Lazy import of EnhancedBatchProcessor to avoid circular import
+def _get_enhanced_batch_processor():
+    """Lazy import of EnhancedBatchProcessor."""
+    # Import at runtime to avoid circular dependency
+    import importlib.util
+    import sys
+    import os
+
+    # Get the path to batch_validator.py
+    core_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    batch_validator_path = os.path.join(core_dir, 'batch_validator.py')
+
+    # Check if already loaded
+    module_name = 'bookmark_processor.core._batch_validator'
+    if module_name in sys.modules:
+        return sys.modules[module_name].EnhancedBatchProcessor
+
+    # Load from file path with proper package info for relative imports
+    spec = importlib.util.spec_from_file_location(
+        module_name,
+        batch_validator_path,
+        submodule_search_locations=[]
+    )
+    if spec and spec.loader:
+        module = importlib.util.module_from_spec(spec)
+        # Set up module's package info so relative imports work
+        module.__package__ = 'bookmark_processor.core'
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        return module.EnhancedBatchProcessor
+
+    raise ImportError("Could not load EnhancedBatchProcessor")
+
+
+# Module-level __getattr__ for lazy loading
+_lazy_imports = {
+    "EnhancedBatchProcessor": _get_enhanced_batch_processor,
+}
+
+
+def __getattr__(name):
+    if name in _lazy_imports:
+        return _lazy_imports[name]()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     # Main class

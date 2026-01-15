@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch, MagicMock
 import pytest
 import pandas as pd
 
-from bookmark_processor.core.pipeline import BookmarkPipeline
+from bookmark_processor.core.pipeline import BookmarkProcessingPipeline
 from bookmark_processor.core.data_models import ProcessingResults
 from bookmark_processor.core.checkpoint_manager import CheckpointManager
 from tests.fixtures.generate_test_data import TestDataGenerator
@@ -131,7 +131,7 @@ def performance_pipeline(
     config.checkpoint["save_interval"] = 100
     config.checkpoint["checkpoint_dir"] = str(temp_dir / "checkpoints")
 
-    pipeline = BookmarkPipeline(config)
+    pipeline = BookmarkProcessingPipeline(config)
     return pipeline
 
 
@@ -599,7 +599,7 @@ def test_batch_size_impact(
         config.processing["batch_size"] = batch_size
         config.checkpoint["checkpoint_dir"] = str(temp_dir / f"checkpoints_{batch_size}")
 
-        pipeline = BookmarkPipeline(config)
+        pipeline = BookmarkProcessingPipeline(config)
         output_file = temp_dir / f"output_batch_{batch_size}.csv"
 
         # Time the processing

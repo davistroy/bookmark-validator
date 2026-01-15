@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .config import PipelineConfig
-    from .pipeline import BookmarkProcessingPipeline
+    from ..pipeline import BookmarkProcessingPipeline
 
 
 class PipelineFactory:
@@ -43,7 +43,7 @@ class PipelineFactory:
         from ..import_module import MultiFormatImporter
         from ..tag_generator import CorpusAwareTagGenerator
         from ..url_validator import URLValidator
-        from .pipeline import BookmarkProcessingPipeline
+        from ..pipeline import BookmarkProcessingPipeline
 
         # Create core components
         csv_handler = RaindropCSVHandler()
@@ -154,7 +154,7 @@ class PipelineFactory:
             ...     config, url_validator=mock_validator
             ... )
         """
-        from .pipeline import BookmarkProcessingPipeline
+        from ..pipeline import BookmarkProcessingPipeline
 
         # Create pipeline with defaults, then override with custom components
         default_pipeline = PipelineFactory.create(config)

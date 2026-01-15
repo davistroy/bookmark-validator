@@ -51,18 +51,55 @@ Input CSV (11 columns) → Bookmark objects → Processing Pipeline → Output C
 
 **Entry Points:**
 - `bookmark_processor/main.py` - CLI entry point
-- `bookmark_processor/cli.py` / `cli_argparse.py` - Command line interface
+- `bookmark_processor/cli.py` / `cli_argparse.py` - Command line interface with advanced options
 
 **Core Pipeline (`bookmark_processor/core/`):**
 - `pipeline.py` - `BookmarkProcessingPipeline` orchestrates all processing stages
+- `async_pipeline.py` - `AsyncPipelineExecutor` for concurrent processing (10x throughput)
 - `data_models.py` - `Bookmark`, `BookmarkMetadata`, `ProcessingStatus` dataclasses
 - `csv_handler.py` - `RaindropCSVHandler` for raindrop.io format I/O (11→6 columns)
 - `url_validator.py` - URL validation with retry logic and rate limiting
 - `content_analyzer.py` - Web content extraction and metadata parsing
 - `ai_processor.py` - `EnhancedAIProcessor` for description generation
-- `tag_generator.py` - `CorpusAwareTagGenerator` for optimized tagging (100-200 unique tags)
+- `ai_router.py` - `AIRouter` for hybrid local/cloud AI selection
+- `tag_generator.py` - `CorpusAwareTagGenerator` and `EnhancedTagGenerator` for optimized tagging
+- `tag_config.py` - `TagConfig` for user-defined vocabulary via TOML
+- `folder_generator.py` - `EnhancedFolderGenerator` with semantic folder suggestions
 - `checkpoint_manager.py` - Checkpoint/resume functionality for long processes
 - `duplicate_detector.py` - URL deduplication with multiple resolution strategies
+- `filters.py` - Composable `BookmarkFilter` system (folder, tag, date, domain, status)
+- `processing_modes.py` - `ProcessingStages` flags and `ProcessingMode` for granular control
+- `quality_reporter.py` - `QualityReporter` with metrics calculation
+- `interactive_processor.py` - `InteractiveProcessor` for approval workflows
+- `health_monitor.py` - `BookmarkHealthMonitor` with Wayback Machine integration
+- `database.py` - `BookmarkDatabase` with FTS5 search and run comparison
+
+**Data Sources (`bookmark_processor/core/data_sources/`):**
+- `protocol.py` - `BookmarkDataSource` protocol for abstraction
+- `csv_source.py` - `CSVDataSource` implementation
+- `state_tracker.py` - `ProcessingStateTracker` with SQLite persistence
+- `mcp_client.py` - `MCPClient` for MCP integration
+- `raindrop_mcp.py` - `RaindropMCPDataSource` for direct Raindrop.io sync
+
+**Streaming (`bookmark_processor/core/streaming/`):**
+- `reader.py` - `StreamingBookmarkReader` for generator-based reading
+- `writer.py` - `StreamingBookmarkWriter` for incremental writing
+- `pipeline.py` - `StreamingPipeline` for memory-efficient processing
+
+**Exporters (`bookmark_processor/core/exporters/`):**
+- `base.py` - `BookmarkExporter` ABC and `ExportResult`
+- `json_exporter.py` - JSON format export
+- `markdown_exporter.py` - Markdown format export
+- `obsidian_exporter.py` - Obsidian vault-compatible export
+- `notion_exporter.py` - Notion-compatible export
+- `opml_exporter.py` - OPML format for feed readers
+
+**Plugins (`bookmark_processor/plugins/`):**
+- `base.py` - `BookmarkPlugin`, `ValidatorPlugin`, `AIProcessorPlugin`, `OutputPlugin`
+- `loader.py` - `PluginLoader` for discovery
+- `registry.py` - `PluginRegistry` for management
+- `examples/paywall_detector.py` - Sample validator plugin
+- `examples/ollama_ai.py` - Sample AI plugin for Ollama
 
 **AI Backends (`bookmark_processor/core/`):**
 - `ai_factory.py` - Factory for creating AI processors
@@ -73,8 +110,11 @@ Input CSV (11 columns) → Bookmark objects → Processing Pipeline → Output C
 **Utilities (`bookmark_processor/utils/`):**
 - `intelligent_rate_limiter.py` - Site-specific rate limiting
 - `progress_tracker.py` - Progress bars and ETA estimation
+- `enhanced_progress.py` - `EnhancedProgressTracker` with multi-stage weighted ETA
 - `memory_optimizer.py` - Batch processing for memory efficiency
 - `browser_simulator.py` - User agent rotation
+- `report_generator.py` - `ReportGenerator` for Rich/JSON/Markdown output
+- `report_styles.py` - `ReportStyle` enum and style configuration
 
 ### Configuration
 - `bookmark_processor/config/pydantic_config.py` - Pydantic-based config with validation
@@ -102,6 +142,12 @@ Tags format: single tag unquoted, multiple tags quoted with commas (`"ai, resear
 4. **AI Fallback Hierarchy:** AI with existing content → existing excerpt → meta description → title-based
 5. **Tag Strategy:** Replaces original tags entirely; uses existing tags as context for AI generation
 6. **Memory Efficiency:** Batch processing with configurable batch sizes (default 100)
+7. **Protocol-Based Abstraction:** Data sources implement `BookmarkDataSource` protocol for flexibility
+8. **Composable Filters:** Filter chain with AND/OR operators for complex queries
+9. **Plugin Architecture:** Loader/registry pattern for extensibility
+10. **Streaming Pipeline:** Generator-based processing for constant memory usage
+11. **Async Concurrency:** Semaphore-controlled async for network-bound operations
+12. **SQLite State:** Database-backed state with FTS5 for search and history
 
 ## Testing
 

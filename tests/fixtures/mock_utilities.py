@@ -69,6 +69,11 @@ class MockResponse:
         if self._raise_for_status and self.status_code >= 400:
             raise requests.HTTPError(f"HTTP {self.status_code} Error")
 
+    def iter_content(self, chunk_size: int = 8192, decode_unicode: bool = False) -> Generator[str, None, None]:
+        """Iterate over the response content in chunks."""
+        # Return text content in a single chunk for simplicity
+        yield self.text
+
     def json(self):
         """Return JSON data (for API responses)."""
         return {"url": self.url, "status": "success", "data": "mock response"}

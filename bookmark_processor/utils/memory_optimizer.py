@@ -6,7 +6,6 @@ Includes batch processing, memory monitoring, and garbage collection strategies.
 """
 
 import gc
-import resource
 import sys
 import threading
 import time
@@ -14,6 +13,22 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable, Dict, Generic, Iterator, List, Optional, TypeVar
+
+# Platform-specific imports
+try:
+    import resource
+    HAS_RESOURCE = True
+except ImportError:
+    # Windows doesn't have the resource module
+    HAS_RESOURCE = False
+    resource = None  # type: ignore
+
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
+    psutil = None  # type: ignore
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -56,18 +71,27 @@ class MemoryMonitor:
     def get_current_usage_mb(self) -> float:
         """Get current memory usage in MB (alias for compatibility)"""
         try:
-            # Try to get RSS memory usage
-            usage = resource.getrusage(resource.RUSAGE_SELF)
-            # On Linux, ru_maxrss is in KB
-            memory_mb = usage.ru_maxrss / 1024
+            # Try psutil first (works on all platforms)
+            if HAS_PSUTIL:
+                process = psutil.Process()
+                memory_info = process.memory_info()
+                return memory_info.rss / (1024 * 1024)  # Convert bytes to MB
 
-            # On some systems, it might be in bytes
-            if memory_mb > 100000:  # Likely in bytes
-                memory_mb = memory_mb / 1024 / 1024
+            # Fall back to resource module (Unix only)
+            if HAS_RESOURCE and resource is not None:
+                usage = resource.getrusage(resource.RUSAGE_SELF)
+                # On Linux, ru_maxrss is in KB
+                memory_mb = usage.ru_maxrss / 1024
 
-            return memory_mb
-        except Exception:
+                # On some systems, it might be in bytes
+                if memory_mb > 100000:  # Likely in bytes
+                    memory_mb = memory_mb / 1024 / 1024
+
+                return memory_mb
+
             # Fallback: estimate from sys.getsizeof for major objects
+            return 0.0
+        except Exception:
             return 0.0
 
     def get_memory_stats(self) -> MemoryStats:
@@ -252,7 +276,6 @@ class StreamingProcessor:
         """Initialize streaming processor"""
         self.memory_monitor = memory_monitor or MemoryMonitor()
 
-    @contextmanager
     def stream_items(self, items: List[Any], chunk_size: int = 50):
         """
         Stream items in chunks to minimize memory usage
