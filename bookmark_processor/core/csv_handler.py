@@ -354,11 +354,13 @@ class RaindropCSVHandler:
                     "Empty URL found in row(s). All bookmarks must have valid URLs"
                 )
 
-            # Check for duplicate URLs
+            # Check for duplicate URLs (log warning but don't block)
             duplicates = df["url"].duplicated()
             if duplicates.any():
-                raise CSVValidationError(
-                    "Duplicate URLs found. All bookmark URLs must be unique"
+                dup_count = duplicates.sum()
+                self.logger.warning(
+                    f"Found {dup_count} duplicate URLs in CSV. "
+                    "Duplicate handling will be applied during processing."
                 )
 
         self.logger.info("CSV structure validation passed")

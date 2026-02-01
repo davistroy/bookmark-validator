@@ -753,7 +753,7 @@ class BookmarkProcessingPipeline:
             # Update tags
             tags = self.tag_assignments.get(bookmark.url, [])
             if tags:
-                enhanced_bookmark.tags = self._format_tags_for_export(tags)
+                enhanced_bookmark.optimized_tags = tags  # Store as list, not formatted string
 
             # Update folder with AI-generated folder if available
             if self.folder_assignments:

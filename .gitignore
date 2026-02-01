@@ -31,6 +31,17 @@ tasks/
 # User configuration with API keys
 bookmark_processor/config/user_config.ini
 user_config.ini
+user_config.toml
+
+# Data files and exports
+*.csv
+*.db
+!tests/**/*.csv
+raindrop_export*.csv
+enhanced_bookmarks*.csv
+
+# Temporary fetch scripts with credentials
+fetch_*.py
 
 # Python
 __pycache__/

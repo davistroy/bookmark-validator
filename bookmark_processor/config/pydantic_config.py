@@ -437,7 +437,7 @@ class ConfigurationManager:
             raise RuntimeError("Configuration not loaded")
 
         # Create new config data with CLI overrides
-        config_dict = self._config.dict()
+        config_dict = self._config.model_dump()
 
         # Update processing settings
         if "batch_size" in args:

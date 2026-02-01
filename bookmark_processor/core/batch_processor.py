@@ -195,6 +195,9 @@ class BatchProcessor:
         Returns:
             List of results for the batch
         """
+        # Get provider early so it's available in the except block
+        provider = self.ai_manager.get_current_provider()
+
         try:
             # Process bookmarks in the batch
             results = await self.ai_manager.generate_descriptions_batch(
@@ -202,7 +205,6 @@ class BatchProcessor:
             )
 
             # Track detailed costs if using cloud AI
-            provider = self.ai_manager.get_current_provider()
             if provider != "local":
                 for i, (description, metadata) in enumerate(results):
                     if metadata.get("success", False) and "cost_usd" in metadata:
