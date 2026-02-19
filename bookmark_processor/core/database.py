@@ -343,7 +343,7 @@ class BookmarkDatabase:
             ",".join(sorted(bookmark.tags)) if bookmark.tags else ""
         ]
         content = "|".join(content_parts)
-        return hashlib.md5(content.encode("utf-8", errors="surrogatepass")).hexdigest()
+        return hashlib.md5(content.encode("utf-8", errors="surrogatepass"), usedforsecurity=False).hexdigest()
 
     # ============ Query Methods ============
 

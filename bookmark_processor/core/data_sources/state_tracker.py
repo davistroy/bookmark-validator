@@ -143,7 +143,7 @@ class ProcessingStateTracker:
         ]
         content = "|".join(content_parts)
         # Use surrogatepass to handle any malformed unicode
-        return hashlib.md5(content.encode("utf-8", errors="surrogatepass")).hexdigest()
+        return hashlib.md5(content.encode("utf-8", errors="surrogatepass"), usedforsecurity=False).hexdigest()
 
     def mark_processed(
         self,
@@ -250,7 +250,7 @@ class ProcessingStateTracker:
                 # Get existing hashes from database
                 placeholders = ",".join("?" * len(bookmark_hashes))
                 cursor = conn.execute(
-                    f"SELECT url, content_hash FROM processed_bookmarks WHERE url IN ({placeholders})",
+                    f"SELECT url, content_hash FROM processed_bookmarks WHERE url IN ({placeholders})",  # nosec B608 - parameterized query with ? placeholders
                     list(bookmark_hashes.keys())
                 )
 

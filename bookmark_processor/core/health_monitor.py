@@ -512,7 +512,7 @@ class BookmarkHealthMonitor:
             response = await client.get(bookmark.url)
             content = response.text[:10000]  # Only hash first 10KB
 
-            current_hash = hashlib.md5(content.encode()).hexdigest()
+            current_hash = hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
 
             return current_hash != stored_hash
 

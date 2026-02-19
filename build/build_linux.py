@@ -111,9 +111,8 @@ a = Analysis(
     pathex=[str(project_root)],
     binaries=[],
     datas=[
-        (str(project_root / "bookmark_processor" / "config" / "default_config.ini"), "bookmark_processor/config"),
-        (str(project_root / "bookmark_processor" / "data" / "*.txt"), "bookmark_processor/data"),
-        (str(project_root / "bookmark_processor" / "data" / "*.json"), "bookmark_processor/data"),
+        (str(project_root / "bookmark_processor" / "data" / "user_agents.txt"), "bookmark_processor/data"),
+        (str(project_root / "bookmark_processor" / "data" / "site_delays.json"), "bookmark_processor/data"),
     ],
     hiddenimports=[
         "bookmark_processor",

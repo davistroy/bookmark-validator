@@ -261,7 +261,7 @@ class OPMLExporter(BookmarkExporter):
 
         if self.pretty_print:
             # Use minidom for pretty printing
-            dom = minidom.parseString(rough_string)
+            dom = minidom.parseString(rough_string)  # nosec B318 - parsing self-generated XML
             pretty_xml = dom.toprettyxml(indent="  ", encoding=None)
 
             # Remove extra blank lines and XML declaration

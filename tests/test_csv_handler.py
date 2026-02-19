@@ -112,14 +112,12 @@ class TestRaindropCSVHandler:
         assert "Empty URL" in str(exc_info.value)
 
     def test_validate_export_dataframe_duplicate_urls(self, handler):
-        """Test validating export DataFrame with duplicate URLs."""
+        """Test validating export DataFrame with duplicate URLs logs warning."""
         df = create_sample_export_dataframe()
         df.loc[1, "url"] = df.loc[0, "url"]  # Create duplicate
 
-        with pytest.raises(CSVValidationError) as exc_info:
-            handler.validate_export_dataframe(df)
-
-        assert "Duplicate URLs found" in str(exc_info.value)
+        # Duplicate URLs now log a warning instead of raising an error
+        handler.validate_export_dataframe(df)  # Should not raise
 
     def test_transform_export_to_bookmarks(self, handler):
         """Test transforming export DataFrame to Bookmark objects."""

@@ -11,7 +11,7 @@ import sys
 import time
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 try:
     import typer
@@ -41,6 +41,9 @@ from bookmark_processor.utils.validation import (
     validate_max_retries,
     validate_output_file,
 )
+
+if TYPE_CHECKING:
+    from bookmark_processor.plugins import PluginRegistry
 
 
 # Create console for rich output
@@ -1916,7 +1919,7 @@ if RICH_AVAILABLE:
                 HealthMonitorError,
             )
             from bookmark_processor.core.data_sources.state_tracker import ProcessingStateTracker
-            from datetime import timedelta
+            from datetime import datetime, timedelta
 
             # Load bookmarks
             with console.status("[bold green]Loading bookmarks..."):
@@ -2249,7 +2252,7 @@ def _parse_since(since_str: str):
 
 def _display_bookmark_preview(bookmarks, console):
     """Display a preview of bookmarks."""
-    if not RICH_AVAILABLE:
+    if not RICH_AVAILABLE or console is None:
         for b in bookmarks:
             print(f"  - {b.title or b.url}")
         return
