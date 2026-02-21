@@ -207,7 +207,7 @@ class TestDescriptionMetrics:
         metrics = DescriptionMetrics(
             confidence_scores=[0.9, 0.8, 0.7, 0.6]
         )
-        assert metrics.average_confidence == 0.75
+        assert metrics.average_confidence == pytest.approx(0.75)
 
 
 # Tag Metrics Tests

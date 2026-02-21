@@ -217,9 +217,9 @@ class RaindropCSVHandler:
         """
         cleaned_df = df.copy()
 
-        # Clean string columns
+        # Clean string columns (handle both 'object' and pandas StringDtype)
         for col in cleaned_df.columns:
-            if cleaned_df[col].dtype == "object":
+            if pd.api.types.is_string_dtype(cleaned_df[col]):
                 cleaned_df[col] = cleaned_df[col].apply(
                     lambda x: str(x).strip() if pd.notnull(x) else ""
                 )

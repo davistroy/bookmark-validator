@@ -888,19 +888,14 @@ class TestCheckpointPerformanceAndScaling:
         checkpoint_manager.current_state.ai_results = ai_results
         checkpoint_manager.update_stage(ProcessingStage.AI_PROCESSING)
 
-        # Measure checkpoint file size
-        start_size = sum(
-            f.stat().st_size for f in Path(performance_config.checkpoint_dir).glob("*")
-        )
-
         checkpoint_manager.save_checkpoint(force=True)
 
-        end_size = sum(
+        # Measure total checkpoint file size after saving
+        checkpoint_file_size = sum(
             f.stat().st_size for f in Path(performance_config.checkpoint_dir).glob("*")
         )
-        checkpoint_file_size = end_size - start_size
 
-        # Verify reasonable file size (should be compressed)
+        # Verify checkpoint files exist and have reasonable size
         assert checkpoint_file_size > 0
         assert (
             checkpoint_file_size < 1024 * 1024
