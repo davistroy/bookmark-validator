@@ -226,15 +226,19 @@ python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-en
 - ✅ No internet required for AI processing
 - ✅ Consistent performance regardless of network
 
-### Future Cloud AI Support
+### Cloud AI Processing (Claude / OpenAI)
 
-The architecture supports cloud AI integration (currently being developed):
+Use cloud APIs for higher-quality description generation:
 
 ```bash
-# Future cloud AI support (in development)
+# Claude API
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-engine claude
+
+# OpenAI API
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --ai-engine openai
 ```
+
+Set your API key via environment variable (`ANTHROPIC_API_KEY` or `OPENAI_API_KEY`) before running.
 
 ## Configuration
 
@@ -251,7 +255,7 @@ python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --batch
 python -m bookmark_processor --input bookmarks.csv --output enhanced.csv --checkpoint-interval 25
 ```
 
-Configuration files and advanced settings will be available in future releases.
+See the [Configuration Reference](docs/CONFIGURATION.md) for all available settings and TOML configuration options.
 
 ## Troubleshooting
 
@@ -401,6 +405,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
 - **[WSL Setup Guide](docs/WSL_SETUP.md)** - Windows users start here
 - **[Configuration Reference](docs/CONFIGURATION.md)** - All options and settings
+- **[Cloud AI Guide](docs/CLOUD_AI_GUIDE.md)** - Claude and OpenAI integration setup
 - **[Feature Documentation](docs/FEATURES.md)** - Complete feature overview
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Solutions to common issues
 
@@ -412,4 +417,4 @@ For issues, questions, or contributions:
 
 ---
 
-**Note**: This tool processes bookmarks locally on your machine using the facebook/bart-large-cnn model for AI descriptions. No data is sent to external services except for URL validation requests to the target websites. All AI processing happens offline for complete privacy.
+**Note**: By default, this tool processes bookmarks locally using the facebook/bart-large-cnn model. When using `--ai-engine local`, no data is sent to external services except URL validation requests. When using cloud AI (`--ai-engine claude` or `--ai-engine openai`), bookmark content is sent to the respective API for description generation.

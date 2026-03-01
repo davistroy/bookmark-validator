@@ -23,6 +23,10 @@ node_modules/
 
 # OS specific
 .DS_Store
+Thumbs.db
+desktop.ini
+nul
+NUL
 
 # Task files
 tasks.json
@@ -75,16 +79,6 @@ htmlcov/
 
 # Backup files
 *.backup
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
 
 # Temporary files
 *.tmp
