@@ -1,3 +1,7 @@
+> **ARCHIVED (2026-07):** This repository is archived. It was a dead prototype with a red CI (failing lint/build checks) that was never brought back to green, and is not under active development.
+>
+> **CodeQL lessons-learned:** A CodeQL scan surfaced 77 alerts before archival. 75 were a single copy-pasted pattern, `py/incomplete-url-substring-sanitization` — URLs were validated with substring checks like `"example.com" in url` instead of parsing the hostname, concentrated in test fixtures/helpers. The other two were `py/clear-text-logging-sensitive-data` (`api_key_validator.py`) and `py/bad-tag-filter` (`content_analyzer.py`). Takeaways for future work: parse hostnames instead of substring-matching URLs, never log key material (even partially), and don't regex-filter HTML — use a real parser.
+
 # Bookmark Validation and Enhancement Tool
 
 A powerful Linux/WSL command-line tool that processes raindrop.io bookmark exports to validate URLs, generate AI-enhanced descriptions, and create an optimized tagging system. Perfect for users with large bookmark collections who want to clean, enhance, and better organize their digital bookmarks.
