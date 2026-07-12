@@ -17,7 +17,10 @@ from bookmark_processor.utils.validators.url import (
     validate_url_format,
     create_url_validator,
 )
-from bookmark_processor.utils.validators.base import ValidationResult, ValidationSeverity
+from bookmark_processor.utils.validators.base import (
+    ValidationResult,
+    ValidationSeverity,
+)
 
 
 class TestURLValidator:
@@ -109,11 +112,9 @@ class TestURLValidator:
         mock_value = Mock()
         mock_value.__str__ = Mock(return_value="https://example.com")
 
-        with patch.object(validator, 'security_validator') as mock_security:
+        with patch.object(validator, "security_validator") as mock_security:
             mock_security.validate_url_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate(mock_value)
 
@@ -144,16 +145,12 @@ class TestURLValidator:
         assert result.sanitized_value.startswith("https://")
         # Should have a warning about missing scheme
         assert any(
-            issue.severity == ValidationSeverity.WARNING
-            for issue in result.issues
+            issue.severity == ValidationSeverity.WARNING for issue in result.issues
         )
 
     def test_validate_disallowed_scheme(self):
         """Test validation rejects disallowed scheme"""
-        validator = URLValidator(
-            allowed_schemes=["https"],
-            security_check=False
-        )
+        validator = URLValidator(allowed_schemes=["https"], security_check=False)
         result = validator.validate("http://example.com")
 
         assert result.is_valid is False
@@ -162,8 +159,7 @@ class TestURLValidator:
     def test_validate_ftp_scheme_when_allowed(self):
         """Test validation allows FTP scheme when configured"""
         validator = URLValidator(
-            allowed_schemes=["http", "https", "ftp"],
-            security_check=False
+            allowed_schemes=["http", "https", "ftp"], security_check=False
         )
         result = validator.validate("ftp://files.example.com")
 
@@ -175,17 +171,21 @@ class TestURLValidator:
         result = validator.validate("https:///path/to/file")
 
         assert result.is_valid is False
-        assert any("domain" in str(issue.message).lower() or "hostname" in str(issue.message).lower() for issue in result.issues)
+        assert any(
+            "domain" in str(issue.message).lower()
+            or "hostname" in str(issue.message).lower()
+            for issue in result.issues
+        )
 
     def test_validate_url_with_security_check_safe(self):
         """Test validation with security check that passes"""
         validator = URLValidator(security_check=True)
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://example.com")
 
@@ -196,18 +196,19 @@ class TestURLValidator:
         """Test validation with security check that fails"""
         validator = URLValidator(security_check=True)
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
                 is_safe=False,
                 issues=["Suspicious pattern detected"],
-                blocked_reason="Security violation"
+                blocked_reason="Security violation",
             )
             result = validator.validate("https://malicious.example.com")
 
         assert result.is_valid is False
         assert any(
-            issue.severity == ValidationSeverity.CRITICAL
-            for issue in result.issues
+            issue.severity == ValidationSeverity.CRITICAL for issue in result.issues
         )
         assert "security_issues" in result.metadata
 
@@ -215,27 +216,23 @@ class TestURLValidator:
         """Test validation with security warnings (safe but with issues)"""
         validator = URLValidator(security_check=True)
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=["Non-standard port used"],
-                blocked_reason=None
+                is_safe=True, issues=["Non-standard port used"], blocked_reason=None
             )
             result = validator.validate("https://example.com:8080")
 
         assert result.is_valid is True
         assert any(
-            issue.severity == ValidationSeverity.WARNING
-            for issue in result.issues
+            issue.severity == ValidationSeverity.WARNING for issue in result.issues
         )
         assert "security_issues" in result.metadata
 
     def test_validate_url_normalization_lowercase_domain(self):
         """Test URL normalization lowercases domain"""
-        validator = URLValidator(
-            security_check=False,
-            normalize_url=True
-        )
+        validator = URLValidator(security_check=False, normalize_url=True)
         result = validator.validate("https://EXAMPLE.COM/Path")
 
         assert result.is_valid is True
@@ -245,10 +242,7 @@ class TestURLValidator:
 
     def test_validate_url_normalization_trailing_slash(self):
         """Test URL normalization handles trailing slash"""
-        validator = URLValidator(
-            security_check=False,
-            normalize_url=True
-        )
+        validator = URLValidator(security_check=False, normalize_url=True)
 
         # Path with trailing slash should have it removed
         result = validator.validate("https://example.com/path/")
@@ -263,40 +257,28 @@ class TestURLValidator:
 
     def test_validate_url_normalization_no_path(self):
         """Test URL normalization adds slash when no path"""
-        validator = URLValidator(
-            security_check=False,
-            normalize_url=True
-        )
+        validator = URLValidator(security_check=False, normalize_url=True)
         result = validator.validate("https://example.com")
 
         assert result.sanitized_value == "https://example.com/"
 
     def test_validate_url_normalization_with_query(self):
         """Test URL normalization preserves query string"""
-        validator = URLValidator(
-            security_check=False,
-            normalize_url=True
-        )
+        validator = URLValidator(security_check=False, normalize_url=True)
         result = validator.validate("https://example.com/search?q=test&page=1")
 
         assert "?q=test&page=1" in result.sanitized_value
 
     def test_validate_url_normalization_with_fragment(self):
         """Test URL normalization preserves fragment"""
-        validator = URLValidator(
-            security_check=False,
-            normalize_url=True
-        )
+        validator = URLValidator(security_check=False, normalize_url=True)
         result = validator.validate("https://example.com/page#section")
 
         assert "#section" in result.sanitized_value
 
     def test_validate_url_normalization_disabled(self):
         """Test URL is not normalized when disabled"""
-        validator = URLValidator(
-            security_check=False,
-            normalize_url=False
-        )
+        validator = URLValidator(security_check=False, normalize_url=False)
         result = validator.validate("https://EXAMPLE.COM/Path/")
 
         # Original URL should be preserved (after stripping)
@@ -304,14 +286,11 @@ class TestURLValidator:
 
     def test_validate_url_normalization_error_handling(self):
         """Test URL normalization handles errors gracefully"""
-        validator = URLValidator(
-            security_check=False,
-            normalize_url=True
-        )
+        validator = URLValidator(security_check=False, normalize_url=True)
 
         # Inject an error during normalization by mocking urlparse
         # to raise during second call (after scheme addition)
-        with patch('bookmark_processor.utils.validators.url.urlparse') as mock_urlparse:
+        with patch("bookmark_processor.utils.validators.url.urlparse") as mock_urlparse:
             # First call succeeds (initial parsing)
             first_result = Mock()
             first_result.scheme = "https"
@@ -327,7 +306,9 @@ class TestURLValidator:
 
             # When accessing .lower() on netloc, simulate an exception
             type(first_result).netloc = property(
-                lambda self: Mock(lower=Mock(side_effect=Exception("Normalization error")))
+                lambda self: Mock(
+                    lower=Mock(side_effect=Exception("Normalization error"))
+                )
             )
 
             # This should handle the exception and add a warning
@@ -335,10 +316,14 @@ class TestURLValidator:
 
         # Even if normalization fails, the URL should still be valid
         # (just with a warning)
-        assert any(
-            issue.severity == ValidationSeverity.WARNING and "normalization" in str(issue.message).lower()
-            for issue in result.issues
-        ) or result.is_valid
+        assert (
+            any(
+                issue.severity == ValidationSeverity.WARNING
+                and "normalization" in str(issue.message).lower()
+                for issue in result.issues
+            )
+            or result.is_valid
+        )
 
 
 class TestBookmarkURLValidator:
@@ -359,35 +344,33 @@ class TestBookmarkURLValidator:
         """Test validation warns about localhost URLs"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://localhost/path")
 
         assert result.is_valid is True
-        assert any(
-            "localhost" in str(issue.message).lower()
-            for issue in result.issues
-        )
+        assert any("localhost" in str(issue.message).lower() for issue in result.issues)
 
     def test_validate_127_0_0_1_url(self):
         """Test validation warns about 127.0.0.1 URLs"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://127.0.0.1/api")
 
         assert result.is_valid is True
         assert any(
-            "localhost" in str(issue.message).lower() or "127.0.0.1" in str(issue.message).lower()
+            "localhost" in str(issue.message).lower()
+            or "127.0.0.1" in str(issue.message).lower()
             for issue in result.issues
         )
 
@@ -395,17 +378,18 @@ class TestBookmarkURLValidator:
         """Test validation warns about 0.0.0.0 URLs"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://0.0.0.0/app")
 
         assert result.is_valid is True
         assert any(
-            "localhost" in str(issue.message).lower() or "development" in str(issue.message).lower()
+            "localhost" in str(issue.message).lower()
+            or "development" in str(issue.message).lower()
             for issue in result.issues
         )
 
@@ -414,37 +398,35 @@ class TestBookmarkURLValidator:
         """Test validation warns about common development ports"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate(f"https://example.com:{port}/app")
 
         assert result.is_valid is True
         assert any(
-            "development port" in str(issue.message).lower()
-            for issue in result.issues
+            "development port" in str(issue.message).lower() for issue in result.issues
         )
 
     def test_validate_non_development_port(self):
         """Test validation does not warn about standard ports"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://example.com:443/secure")
 
         assert result.is_valid is True
         # Should not have development port warning
         assert not any(
-            "development port" in str(issue.message).lower()
-            for issue in result.issues
+            "development port" in str(issue.message).lower() for issue in result.issues
         )
 
     def test_validate_very_long_url(self):
@@ -452,68 +434,64 @@ class TestBookmarkURLValidator:
         validator = BookmarkURLValidator()
         long_path = "a" * 600
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate(f"https://example.com/{long_path}")
 
         assert result.is_valid is True
-        assert any(
-            "long" in str(issue.message).lower()
-            for issue in result.issues
-        )
+        assert any("long" in str(issue.message).lower() for issue in result.issues)
 
     def test_validate_normal_length_url(self):
         """Test validation does not warn about normal length URLs"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://example.com/normal/path")
 
         # Should not have length warning
         assert not any(
-            "long" in str(issue.message).lower() and "char" in str(issue.message).lower()
+            "long" in str(issue.message).lower()
+            and "char" in str(issue.message).lower()
             for issue in result.issues
         )
 
-    @pytest.mark.parametrize("tracking_param", [
-        "utm_source", "utm_medium", "utm_campaign", "fbclid", "gclid"
-    ])
+    @pytest.mark.parametrize(
+        "tracking_param",
+        ["utm_source", "utm_medium", "utm_campaign", "fbclid", "gclid"],
+    )
     def test_validate_tracking_parameters(self, tracking_param):
         """Test validation detects tracking parameters"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate(f"https://example.com?{tracking_param}=test123")
 
         assert result.is_valid is True
-        assert any(
-            "tracking" in str(issue.message).lower()
-            for issue in result.issues
-        )
+        assert any("tracking" in str(issue.message).lower() for issue in result.issues)
 
     def test_validate_multiple_tracking_parameters(self):
         """Test validation detects multiple tracking parameters"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate(
                 "https://example.com?utm_source=google&utm_medium=cpc&fbclid=abc123"
@@ -522,8 +500,7 @@ class TestBookmarkURLValidator:
         assert result.is_valid is True
         # Should mention tracking parameters
         tracking_issues = [
-            issue for issue in result.issues
-            if "tracking" in str(issue.message).lower()
+            issue for issue in result.issues if "tracking" in str(issue.message).lower()
         ]
         assert len(tracking_issues) > 0
         # Should list multiple parameters
@@ -535,36 +512,32 @@ class TestBookmarkURLValidator:
         validator = BookmarkURLValidator()
         long_fragment = "a" * 60
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate(f"https://example.com/page#{long_fragment}")
 
         assert result.is_valid is True
-        assert any(
-            "fragment" in str(issue.message).lower()
-            for issue in result.issues
-        )
+        assert any("fragment" in str(issue.message).lower() for issue in result.issues)
 
     def test_validate_normal_fragment(self):
         """Test validation does not warn about normal fragments"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://example.com/page#section-1")
 
         # Should not have fragment warning for short fragments
         assert not any(
-            "fragment" in str(issue.message).lower()
-            for issue in result.issues
+            "fragment" in str(issue.message).lower() for issue in result.issues
         )
 
     def test_validate_invalid_url_from_parent(self):
@@ -587,11 +560,11 @@ class TestBookmarkURLValidator:
         """Test validation handles URL parsing exceptions gracefully"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
 
             # URL that might cause parsing issues but is still processable
@@ -657,8 +630,8 @@ class TestValidateUrlFormat:
     def test_non_string_value(self):
         """Test non-string value returns False"""
         assert validate_url_format(12345) is False
-        assert validate_url_format(['http://example.com']) is False
-        assert validate_url_format({'url': 'http://example.com'}) is False
+        assert validate_url_format(["http://example.com"]) is False
+        assert validate_url_format({"url": "http://example.com"}) is False
 
     def test_javascript_scheme(self):
         """Test javascript: scheme returns False"""
@@ -769,11 +742,11 @@ class TestCreateUrlValidator:
         assert result.is_valid is False
 
         # Should pass for valid URL (with mocked security)
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://example.com")
         assert result.is_valid is True
@@ -865,19 +838,16 @@ class TestBookmarkURLValidatorEdgeCases:
         """Test validation handles mixed case localhost"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate("https://LocalHost/path")
 
         # Should still detect localhost regardless of case
-        assert any(
-            "localhost" in str(issue.message).lower()
-            for issue in result.issues
-        )
+        assert any("localhost" in str(issue.message).lower() for issue in result.issues)
 
     def test_validate_url_just_under_length_limit(self):
         """Test URL at 500 characters is not flagged"""
@@ -889,17 +859,18 @@ class TestBookmarkURLValidatorEdgeCases:
 
         # Ensure it's <= 500
         if len(url) <= 500:
-            with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+            with patch.object(
+                validator.security_validator, "validate_url_security"
+            ) as mock_security:
                 mock_security.return_value = Mock(
-                    is_safe=True,
-                    issues=[],
-                    blocked_reason=None
+                    is_safe=True, issues=[], blocked_reason=None
                 )
                 result = validator.validate(url)
 
             # Should not have length warning
             assert not any(
-                "long" in str(issue.message).lower() and "char" in str(issue.message).lower()
+                "long" in str(issue.message).lower()
+                and "char" in str(issue.message).lower()
                 for issue in result.issues
             )
 
@@ -910,35 +881,33 @@ class TestBookmarkURLValidatorEdgeCases:
         path_length = 501 - len(base_url)
         url = f"{base_url}{'a' * path_length}"
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
             result = validator.validate(url)
 
-        assert any(
-            "long" in str(issue.message).lower()
-            for issue in result.issues
-        )
+        assert any("long" in str(issue.message).lower() for issue in result.issues)
 
     def test_validate_url_with_no_tracking_but_similar_params(self):
         """Test URL with parameters similar to tracking but not tracking"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
-            result = validator.validate("https://example.com?source=internal&medium=email")
+            result = validator.validate(
+                "https://example.com?source=internal&medium=email"
+            )
 
         # These are not the exact tracking parameters
         tracking_issues = [
-            issue for issue in result.issues
-            if "tracking" in str(issue.message).lower()
+            issue for issue in result.issues if "tracking" in str(issue.message).lower()
         ]
         assert len(tracking_issues) == 0
 
@@ -975,12 +944,14 @@ class TestURLValidatorUncoveredBranches:
         # This covers lines 75-77
         validator = URLValidator(security_check=False)
 
-        with patch('bookmark_processor.utils.validators.url.urlparse') as mock_urlparse:
+        with patch("bookmark_processor.utils.validators.url.urlparse") as mock_urlparse:
             mock_urlparse.side_effect = Exception("Parsing error")
             result = validator.validate("https://example.com")
 
         assert result.is_valid is False
-        assert any("Invalid URL format" in str(issue.message) for issue in result.issues)
+        assert any(
+            "Invalid URL format" in str(issue.message) for issue in result.issues
+        )
 
     def test_validate_urlparse_exception_after_adding_scheme(self):
         """Test handling of urlparse exception after adding https:// scheme"""
@@ -1002,11 +973,17 @@ class TestURLValidatorUncoveredBranches:
                 # Second call (after scheme added) raises exception
                 raise Exception("Parsing error after scheme addition")
 
-        with patch('bookmark_processor.utils.validators.url.urlparse', side_effect=mock_urlparse_side_effect):
+        with patch(
+            "bookmark_processor.utils.validators.url.urlparse",
+            side_effect=mock_urlparse_side_effect,
+        ):
             result = validator.validate("example.com")
 
         assert result.is_valid is False
-        assert any("Invalid URL after adding scheme" in str(issue.message) for issue in result.issues)
+        assert any(
+            "Invalid URL after adding scheme" in str(issue.message)
+            for issue in result.issues
+        )
 
     def test_bookmark_validator_exception_in_additional_checks(self):
         """Test BookmarkURLValidator handles exception in additional checks"""
@@ -1020,11 +997,11 @@ class TestURLValidatorUncoveredBranches:
         # raise an exception when called again in BookmarkURLValidator.validate
 
         # First, do normal validation to get a valid result
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
 
             # Use a URL that will pass parent validation
@@ -1045,7 +1022,10 @@ class TestURLValidatorUncoveredBranches:
                 # raise an exception to trigger lines 209-210
                 raise ValueError("Simulated urlparse failure in bookmark validation")
 
-            with patch('bookmark_processor.utils.validators.url.urlparse', side_effect=controlled_urlparse):
+            with patch(
+                "bookmark_processor.utils.validators.url.urlparse",
+                side_effect=controlled_urlparse,
+            ):
                 result = validator.validate("https://example.com/test")
 
         # Should still be valid because the exception in lines 209-210 is caught
@@ -1061,11 +1041,11 @@ class TestURLValidatorUncoveredBranches:
 
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
 
             # Mock the result from parent to have a sanitized_value
@@ -1082,12 +1062,21 @@ class TestURLValidatorUncoveredBranches:
                     return real_urlparse(url)
                 # Third call - return a mock that raises on attribute access
                 mock_parsed = Mock()
-                mock_parsed.netloc = property(lambda self: (_ for _ in ()).throw(Exception("netloc access failed")))
+                mock_parsed.netloc = property(
+                    lambda self: (_ for _ in ()).throw(
+                        Exception("netloc access failed")
+                    )
+                )
                 # Make it raise when netloc.lower() is called
-                type(mock_parsed).netloc = property(lambda s: (_ for _ in ()).throw(RuntimeError("Boom")))
+                type(mock_parsed).netloc = property(
+                    lambda s: (_ for _ in ()).throw(RuntimeError("Boom"))
+                )
                 return mock_parsed
 
-            with patch('bookmark_processor.utils.validators.url.urlparse', side_effect=controlled_urlparse):
+            with patch(
+                "bookmark_processor.utils.validators.url.urlparse",
+                side_effect=controlled_urlparse,
+            ):
                 result = validator.validate("https://example.com/path")
 
         # Should still be valid - exception is caught silently
@@ -1121,7 +1110,11 @@ class TestURLValidatorUncoveredBranches:
         result = validator.validate(EmptyStringable())
 
         assert result.is_valid is False
-        assert any("empty" in str(issue.message).lower() or "cannot be empty" in str(issue.message).lower() for issue in result.issues)
+        assert any(
+            "empty" in str(issue.message).lower()
+            or "cannot be empty" in str(issue.message).lower()
+            for issue in result.issues
+        )
 
 
 class TestIntegration:
@@ -1131,13 +1124,15 @@ class TestIntegration:
         """Test complete validation flow for a valid URL"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=[],
-                blocked_reason=None
+                is_safe=True, issues=[], blocked_reason=None
             )
-            result = validator.validate("https://www.example.com/article/123?ref=home#comments")
+            result = validator.validate(
+                "https://www.example.com/article/123?ref=home#comments"
+            )
 
         assert result.is_valid is True
         assert result.sanitized_value is not None
@@ -1147,11 +1142,11 @@ class TestIntegration:
         """Test complete validation flow for a problematic but valid URL"""
         validator = BookmarkURLValidator()
 
-        with patch.object(validator.security_validator, 'validate_url_security') as mock_security:
+        with patch.object(
+            validator.security_validator, "validate_url_security"
+        ) as mock_security:
             mock_security.return_value = Mock(
-                is_safe=True,
-                issues=["Non-standard port"],
-                blocked_reason=None
+                is_safe=True, issues=["Non-standard port"], blocked_reason=None
             )
             # URL with tracking params, dev port, and long fragment
             long_frag = "a" * 60

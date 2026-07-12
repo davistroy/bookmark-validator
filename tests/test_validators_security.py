@@ -81,30 +81,36 @@ class TestSecurityValidatorSchemeValidation:
         result = validator.validate_url_security("https://example.com")
         assert result.is_safe is True
 
-    @pytest.mark.parametrize("scheme", [
-        "file",
-        "ftp",
-        "javascript",
-        "data",
-        "vbscript",
-        "mailto",
-        "tel",
-        "sms",
-        "callto",
-        "webcal",
-        "chrome",
-        "chrome-extension",
-        "moz-extension",
-        "about",
-        "blob",
-    ])
+    @pytest.mark.parametrize(
+        "scheme",
+        [
+            "file",
+            "ftp",
+            "javascript",
+            "data",
+            "vbscript",
+            "mailto",
+            "tel",
+            "sms",
+            "callto",
+            "webcal",
+            "chrome",
+            "chrome-extension",
+            "moz-extension",
+            "about",
+            "blob",
+        ],
+    )
     def test_blocked_schemes(self, validator, scheme):
         """Test that dangerous schemes are blocked"""
         url = f"{scheme}://malicious.content"
         result = validator.validate_url_security(url)
         assert result.is_safe is False
         assert result.risk_level == "critical"
-        assert "blocked" in result.blocked_reason.lower() or "allowed" in result.blocked_reason.lower()
+        assert (
+            "blocked" in result.blocked_reason.lower()
+            or "allowed" in result.blocked_reason.lower()
+        )
 
     def test_missing_scheme(self, validator):
         """Test URL without scheme is blocked"""
@@ -128,22 +134,25 @@ class TestSecurityValidatorHostnameValidation:
 
     def test_valid_public_hostname(self, validator):
         """Test valid public hostname is allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
             result = validator.validate_url_security("https://google.com")
             assert result.is_safe is True
 
-    @pytest.mark.parametrize("blocked_host", [
-        "localhost",
-        "0.0.0.0",
-        "0",
-        "local",
-        "metadata.google.internal",
-        "instance-data",
-        "169.254.169.254",
-    ])
+    @pytest.mark.parametrize(
+        "blocked_host",
+        [
+            "localhost",
+            "0.0.0.0",
+            "0",
+            "local",
+            "metadata.google.internal",
+            "instance-data",
+            "169.254.169.254",
+        ],
+    )
     def test_blocked_hostnames(self, validator, blocked_host):
         """Test that blocked hostnames are rejected"""
         url = f"https://{blocked_host}/metadata"
@@ -151,29 +160,38 @@ class TestSecurityValidatorHostnameValidation:
         assert result.is_safe is False
         assert result.risk_level == "critical"
 
-    @pytest.mark.parametrize("private_ip", [
-        "10.0.0.1",
-        "10.255.255.255",
-        "172.16.0.1",
-        "172.31.255.255",
-        "192.168.0.1",
-        "192.168.255.255",
-        "127.0.0.1",
-        "127.0.0.255",
-        "169.254.1.1",
-    ])
+    @pytest.mark.parametrize(
+        "private_ip",
+        [
+            "10.0.0.1",
+            "10.255.255.255",
+            "172.16.0.1",
+            "172.31.255.255",
+            "192.168.0.1",
+            "192.168.255.255",
+            "127.0.0.1",
+            "127.0.0.255",
+            "169.254.1.1",
+        ],
+    )
     def test_private_ip_addresses_blocked(self, validator, private_ip):
         """Test that private IP addresses are blocked"""
         url = f"https://{private_ip}/api"
         result = validator.validate_url_security(url)
         assert result.is_safe is False
-        assert "private" in result.blocked_reason.lower() or "internal" in result.blocked_reason.lower()
+        assert (
+            "private" in result.blocked_reason.lower()
+            or "internal" in result.blocked_reason.lower()
+        )
 
-    @pytest.mark.parametrize("ipv6", [
-        "::1",
-        "fc00::1",
-        "fe80::1",
-    ])
+    @pytest.mark.parametrize(
+        "ipv6",
+        [
+            "::1",
+            "fc00::1",
+            "fe80::1",
+        ],
+    )
     def test_private_ipv6_addresses_blocked(self, validator, ipv6):
         """Test that private IPv6 addresses are blocked"""
         url = f"https://[{ipv6}]/api"
@@ -210,7 +228,7 @@ class TestSecurityValidatorPortValidation:
     @pytest.mark.parametrize("port", [80, 443, 8080, 8443])
     def test_standard_ports_allowed(self, validator, port):
         """Test standard HTTP ports are allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -220,7 +238,7 @@ class TestSecurityValidatorPortValidation:
 
     def test_non_standard_port_allowed_with_warning(self, validator):
         """Test non-standard ports are allowed with low risk"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -232,7 +250,7 @@ class TestSecurityValidatorPortValidation:
 
     def test_no_port_specified(self, validator):
         """Test URL without explicit port is allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -249,7 +267,7 @@ class TestSecurityValidatorPathValidation:
 
     def test_normal_path_allowed(self, validator):
         """Test normal URL path is allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -279,7 +297,7 @@ class TestSecurityValidatorPathValidation:
 
     def test_very_long_path_warning(self, validator):
         """Test very long path generates warning but is allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -291,7 +309,7 @@ class TestSecurityValidatorPathValidation:
 
     def test_empty_path_allowed(self, validator):
         """Test empty path is allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -308,7 +326,7 @@ class TestSecurityValidatorQueryValidation:
 
     def test_normal_query_params_allowed(self, validator):
         """Test normal query parameters are allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -333,7 +351,7 @@ class TestSecurityValidatorQueryValidation:
 
     def test_very_long_query_value_warning(self, validator):
         """Test very long query parameter value generates warning"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -345,7 +363,7 @@ class TestSecurityValidatorQueryValidation:
 
     def test_no_query_string_allowed(self, validator):
         """Test URL without query string is allowed"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -365,13 +383,19 @@ class TestSecurityValidatorSuspiciousPatterns:
         url = "https://example.com/%2e%2e%2f/etc/passwd"
         result = validator.validate_url_security(url)
         # Pattern detection should flag this
-        assert any("suspicious" in issue.lower() for issue in result.issues) or not result.is_safe
+        assert (
+            any("suspicious" in issue.lower() for issue in result.issues)
+            or not result.is_safe
+        )
 
     def test_double_url_encoded_traversal_detected(self, validator):
         """Test double URL-encoded directory traversal is detected"""
         url = "https://example.com/%252e%252e%252f/etc/passwd"
         result = validator.validate_url_security(url)
-        assert any("suspicious" in issue.lower() for issue in result.issues) or not result.is_safe
+        assert (
+            any("suspicious" in issue.lower() for issue in result.issues)
+            or not result.is_safe
+        )
 
     def test_credentials_in_url_detected(self, validator):
         """Test username:password in URL is detected"""
@@ -400,9 +424,9 @@ class TestSecurityValidatorDNSValidation:
 
     def test_dns_resolves_to_private_ip_blocked(self, validator):
         """Test hostname resolving to private IP is blocked"""
-        with patch('socket.getaddrinfo') as mock_getaddrinfo:
+        with patch("socket.getaddrinfo") as mock_getaddrinfo:
             mock_getaddrinfo.return_value = [
-                (socket.AF_INET, socket.SOCK_STREAM, 0, '', ('10.0.0.1', 80))
+                (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("10.0.0.1", 80))
             ]
             result = validator.validate_url_security("https://internal.example.com/api")
             assert result.is_safe is False
@@ -410,27 +434,29 @@ class TestSecurityValidatorDNSValidation:
 
     def test_dns_resolves_to_loopback_blocked(self, validator):
         """Test hostname resolving to loopback is blocked"""
-        with patch('socket.getaddrinfo') as mock_getaddrinfo:
+        with patch("socket.getaddrinfo") as mock_getaddrinfo:
             mock_getaddrinfo.return_value = [
-                (socket.AF_INET, socket.SOCK_STREAM, 0, '', ('127.0.0.1', 80))
+                (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("127.0.0.1", 80))
             ]
             result = validator.validate_url_security("https://rebind.example.com/api")
             assert result.is_safe is False
 
     def test_dns_resolution_failure_safe(self, validator):
         """Test DNS resolution failure is considered safe (SSRF prevention)"""
-        with patch('socket.getaddrinfo') as mock_getaddrinfo:
+        with patch("socket.getaddrinfo") as mock_getaddrinfo:
             mock_getaddrinfo.side_effect = socket.gaierror("DNS resolution failed")
-            result = validator.validate_url_security("https://nonexistent.example.com/api")
+            result = validator.validate_url_security(
+                "https://nonexistent.example.com/api"
+            )
             # DNS failure is actually safe for SSRF prevention
             assert result.is_safe is True
             assert "DNS resolution failed" in str(result.issues)
 
     def test_dns_resolves_to_public_ip_allowed(self, validator):
         """Test hostname resolving to public IP is allowed"""
-        with patch('socket.getaddrinfo') as mock_getaddrinfo:
+        with patch("socket.getaddrinfo") as mock_getaddrinfo:
             mock_getaddrinfo.return_value = [
-                (socket.AF_INET, socket.SOCK_STREAM, 0, '', ('93.184.216.34', 80))
+                (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("93.184.216.34", 80))
             ]
             result = validator.validate_url_security("https://example.com/api")
             assert result.is_safe is True
@@ -466,11 +492,14 @@ class TestSecurityValidatorEdgeCases:
         long_url = "https://example.com/" + "a" * 2100
         result = validator.validate_url_security(long_url)
         assert result.is_safe is False
-        assert "maximum length" in result.blocked_reason.lower() or "exceeds" in result.blocked_reason.lower()
+        assert (
+            "maximum length" in result.blocked_reason.lower()
+            or "exceeds" in result.blocked_reason.lower()
+        )
 
     def test_whitespace_url_trimmed(self, validator):
         """Test whitespace is trimmed from URL"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -479,12 +508,14 @@ class TestSecurityValidatorEdgeCases:
 
     def test_unicode_in_url(self, validator):
         """Test unicode characters in URL"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
             # International domain names
-            result = validator.validate_url_security("https://example.com/path?q=caf\u00e9")
+            result = validator.validate_url_security(
+                "https://example.com/path?q=caf\u00e9"
+            )
             # Should not crash and handle gracefully
             assert result is not None
 
@@ -553,7 +584,7 @@ class TestSecurityValidatorIsSafeForProcessing:
 
     def test_safe_url_returns_true(self, validator):
         """Test safe URL returns True"""
-        with patch.object(validator, '_validate_dns_resolution') as mock_dns:
+        with patch.object(validator, "_validate_dns_resolution") as mock_dns:
             mock_dns.return_value = SecurityValidationResult(
                 is_safe=True, risk_level="safe", issues=[]
             )
@@ -582,13 +613,16 @@ class TestSecurityValidatorRiskPriority:
     def validator(self):
         return SecurityValidator()
 
-    @pytest.mark.parametrize("risk1,risk2,expected", [
-        ("safe", "low", "low"),
-        ("low", "medium", "medium"),
-        ("medium", "high", "high"),
-        ("high", "critical", "critical"),
-        ("safe", "critical", "critical"),
-    ])
+    @pytest.mark.parametrize(
+        "risk1,risk2,expected",
+        [
+            ("safe", "low", "low"),
+            ("low", "medium", "medium"),
+            ("medium", "high", "high"),
+            ("high", "critical", "critical"),
+            ("safe", "critical", "critical"),
+        ],
+    )
     def test_risk_priority_comparison(self, validator, risk1, risk2, expected):
         """Test risk priority comparison returns higher risk"""
         result = max(risk1, risk2, key=validator._risk_priority)
@@ -607,8 +641,14 @@ class TestSecurityValidatorClassAttributes:
         """Test all dangerous schemes are in blocked list"""
         validator = SecurityValidator()
         dangerous_schemes = {
-            "file", "javascript", "data", "vbscript",
-            "chrome", "chrome-extension", "about", "blob"
+            "file",
+            "javascript",
+            "data",
+            "vbscript",
+            "chrome",
+            "chrome-extension",
+            "about",
+            "blob",
         }
         for scheme in dangerous_schemes:
             assert scheme in validator.BLOCKED_SCHEMES
@@ -649,9 +689,9 @@ class TestSecurityValidatorIntegration:
 
     def test_complete_validation_flow_safe_url(self, validator):
         """Test complete validation flow for safe URL"""
-        with patch('socket.getaddrinfo') as mock_getaddrinfo:
+        with patch("socket.getaddrinfo") as mock_getaddrinfo:
             mock_getaddrinfo.return_value = [
-                (socket.AF_INET, socket.SOCK_STREAM, 0, '', ('93.184.216.34', 80))
+                (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("93.184.216.34", 80))
             ]
             result = validator.validate_url_security(
                 "https://example.com/api/v1/users?page=1&limit=10"
@@ -662,7 +702,9 @@ class TestSecurityValidatorIntegration:
 
     def test_complete_validation_flow_ssrf_attempt(self, validator):
         """Test complete validation flow for SSRF attempt"""
-        result = validator.validate_url_security("https://169.254.169.254/latest/meta-data")
+        result = validator.validate_url_security(
+            "https://169.254.169.254/latest/meta-data"
+        )
         assert result.is_safe is False
         assert result.risk_level == "critical"
         assert result.blocked_reason is not None
@@ -673,4 +715,6 @@ class TestSecurityValidatorIntegration:
         # Should be blocked or flagged
         assert result is not None
         # Either blocked or has issues
-        assert not result.is_safe or len(result.issues) > 0 or result.risk_level != "safe"
+        assert (
+            not result.is_safe or len(result.issues) > 0 or result.risk_level != "safe"
+        )

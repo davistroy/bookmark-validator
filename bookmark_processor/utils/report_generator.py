@@ -114,7 +114,9 @@ class ReportGenerator:
             self._console = Console()
         return self._console
 
-    def set_title(self, title: str, subtitle: Optional[str] = None) -> "ReportGenerator":
+    def set_title(
+        self, title: str, subtitle: Optional[str] = None
+    ) -> "ReportGenerator":
         """
         Set the report title and optional subtitle.
 
@@ -220,7 +222,9 @@ class ReportGenerator:
         )
         return self.add_section(section)
 
-    def add_warning(self, message: str, icon: Optional[str] = "warning") -> "ReportGenerator":
+    def add_warning(
+        self, message: str, icon: Optional[str] = "warning"
+    ) -> "ReportGenerator":
         """
         Add a warning message.
 
@@ -388,7 +392,9 @@ class ReportGenerator:
         items = list(metrics.items())
         for i, (key, value) in enumerate(items):
             is_last = i == len(items) - 1
-            connector = tree_chars.tree_last_connector if is_last else tree_chars.tree_connector
+            connector = (
+                tree_chars.tree_last_connector if is_last else tree_chars.tree_connector
+            )
 
             # Format value with color if it's a percentage
             if isinstance(value, str) and "%" in value:
@@ -667,9 +673,7 @@ class ReportGenerator:
 
             if isinstance(value, dict):
                 lines.append(f"{indent}{prefix}{connector} {key}")
-                self._render_plain_tree(
-                    lines, value, indent, prefix + continuation
-                )
+                self._render_plain_tree(lines, value, indent, prefix + continuation)
             else:
                 lines.append(f"{indent}{prefix}{connector} {key}: {value}")
 
@@ -747,7 +751,9 @@ class ReportGenerator:
                 title_text = self.title
                 if self.subtitle:
                     title_text = f"{self.title}\n{self.subtitle}"
-                console.print(Panel(title_text, style=RICH_COLORS["header"], expand=False))
+                console.print(
+                    Panel(title_text, style=RICH_COLORS["header"], expand=False)
+                )
                 console.print()
 
             # Print each section

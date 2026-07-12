@@ -16,7 +16,6 @@ import aiohttp
 from bookmark_processor.core.async_http_client import AsyncHttpClient
 from bookmark_processor.core.batch_types import ValidationResult, BatchResult
 
-
 # =============================================================================
 # Test Fixtures
 # =============================================================================
@@ -80,15 +79,19 @@ def mock_security_validator():
 def mock_browser_simulator():
     """Create a mock browser simulator."""
     simulator = MagicMock()
-    simulator.get_headers = MagicMock(return_value={
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        "Accept": "text/html,application/xhtml+xml",
-    })
+    simulator.get_headers = MagicMock(
+        return_value={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Accept": "text/html,application/xhtml+xml",
+        }
+    )
     return simulator
 
 
 @pytest.fixture
-def client_with_mocks(mock_rate_limiter, mock_security_validator, mock_browser_simulator):
+def client_with_mocks(
+    mock_rate_limiter, mock_security_validator, mock_browser_simulator
+):
     """Create an AsyncHttpClient with all mocked dependencies."""
     return AsyncHttpClient(
         timeout=30.0,
@@ -574,7 +577,9 @@ class TestURLValidationMocked:
 
         mock_session = MagicMock()
         mock_session.head = MagicMock(return_value=AsyncMock())
-        mock_session.head.return_value.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_session.head.return_value.__aenter__ = AsyncMock(
+            return_value=mock_response
+        )
         mock_session.head.return_value.__aexit__ = AsyncMock(return_value=None)
 
         client._async_session = mock_session
@@ -596,7 +601,9 @@ class TestURLValidationMocked:
 
         mock_session = MagicMock()
         mock_session.head = MagicMock(return_value=AsyncMock())
-        mock_session.head.return_value.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_session.head.return_value.__aenter__ = AsyncMock(
+            return_value=mock_response
+        )
         mock_session.head.return_value.__aexit__ = AsyncMock(return_value=None)
 
         client._async_session = mock_session
@@ -617,7 +624,9 @@ class TestURLValidationMocked:
 
         mock_session = MagicMock()
         mock_session.head = MagicMock(return_value=AsyncMock())
-        mock_session.head.return_value.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_session.head.return_value.__aenter__ = AsyncMock(
+            return_value=mock_response
+        )
         mock_session.head.return_value.__aexit__ = AsyncMock(return_value=None)
 
         client._async_session = mock_session
@@ -758,10 +767,7 @@ class TestBatchValidation:
     async def test_validate_batch_single_url(self, client):
         """Test batch validation with single URL."""
         with patch.dict(os.environ, {"BOOKMARK_PROCESSOR_TEST_MODE": "true"}):
-            result = await client.validate_batch(
-                ["https://example.com"],
-                "batch-001"
-            )
+            result = await client.validate_batch(["https://example.com"], "batch-001")
             assert result.batch_id == "batch-001"
             assert result.items_processed == 1
             assert result.items_successful == 1
@@ -882,7 +888,9 @@ class TestBrowserSimulatorIntegration:
 
         mock_session = MagicMock()
         mock_session.head = MagicMock(return_value=AsyncMock())
-        mock_session.head.return_value.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_session.head.return_value.__aenter__ = AsyncMock(
+            return_value=mock_response
+        )
         mock_session.head.return_value.__aexit__ = AsyncMock(return_value=None)
 
         client_with_mocks._async_session = mock_session

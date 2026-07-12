@@ -796,18 +796,14 @@ class CSVFieldValidator:
         missing_columns = [col for col in expected_columns if col not in row_data]
         if missing_columns:
             result.add_error(
-                f"Missing required columns: {', '.join(missing_columns)}",
-                "columns"
+                f"Missing required columns: {', '.join(missing_columns)}", "columns"
             )
 
         # Check for extra columns
-        extra_columns = [
-            col for col in row_data.keys() if col not in expected_columns
-        ]
+        extra_columns = [col for col in row_data.keys() if col not in expected_columns]
         if extra_columns:
             result.add_warning(
-                f"Unexpected columns found: {', '.join(extra_columns)}",
-                "columns"
+                f"Unexpected columns found: {', '.join(extra_columns)}", "columns"
             )
 
         # Validate individual fields using field validators

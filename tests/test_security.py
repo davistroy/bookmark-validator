@@ -102,12 +102,19 @@ class TestSecurityValidator:
             # URLs with directory traversal should either be blocked or flagged with issues
             if "../" in url or "..\\" in url:
                 # Literal traversal sequences are blocked
-                assert not result.is_safe, f"Directory traversal should be detected: {url}"
+                assert (
+                    not result.is_safe
+                ), f"Directory traversal should be detected: {url}"
             else:
                 # Encoded traversal is detected as suspicious pattern (medium risk)
-                assert len(result.issues) > 0 or not result.is_safe, f"Directory traversal should be flagged: {url}"
+                assert (
+                    len(result.issues) > 0 or not result.is_safe
+                ), f"Directory traversal should be flagged: {url}"
                 if result.issues:
-                    assert any("pattern" in issue.lower() or "traversal" in issue.lower() for issue in result.issues)
+                    assert any(
+                        "pattern" in issue.lower() or "traversal" in issue.lower()
+                        for issue in result.issues
+                    )
 
     def test_url_length_limits(self):
         """Test URL length validation"""
@@ -136,7 +143,10 @@ class TestSecurityValidator:
         """Test URL sanitization functionality"""
         test_cases = [
             ("http://example.com/../admin", "https://example.com/admin"),
-            ("javascript:alert('xss')", "https://"),  # Invalid schemes get converted to https with attempt to extract parts
+            (
+                "javascript:alert('xss')",
+                "https://",
+            ),  # Invalid schemes get converted to https with attempt to extract parts
             ("", ""),
         ]
 
@@ -144,7 +154,9 @@ class TestSecurityValidator:
             sanitized = self.validator.sanitize_url(input_url)
             if expected_pattern:
                 # Check if sanitized URL contains expected pattern or starts with https
-                assert expected_pattern in sanitized or sanitized.startswith("https://"), f"Expected {expected_pattern} in {sanitized}"
+                assert expected_pattern in sanitized or sanitized.startswith(
+                    "https://"
+                ), f"Expected {expected_pattern} in {sanitized}"
             else:
                 assert sanitized == ""
 
@@ -172,7 +184,9 @@ class TestSecureLogger:
         sanitized = self.logger.sanitize_data(test_data)
 
         # Check that sensitive values are redacted (using actual redaction patterns)
-        assert "***API_KEY_REDACTED***" in str(sanitized.get("api_key", "")) or "***REDACTED***" in str(sanitized.get("api_key", ""))
+        assert "***API_KEY_REDACTED***" in str(
+            sanitized.get("api_key", "")
+        ) or "***REDACTED***" in str(sanitized.get("api_key", ""))
         assert "***EMAIL_REDACTED***" in str(sanitized)
         assert "***PHONE_REDACTED***" in str(sanitized)
         assert "***SSN_REDACTED***" in str(sanitized)
@@ -286,6 +300,7 @@ class TestURLValidatorSecurity:
     def setup_method(self):
         """Setup for each test"""
         import os
+
         # Disable test mode for security tests to ensure real validation
         self.original_test_mode = os.environ.get("BOOKMARK_PROCESSOR_TEST_MODE")
         if self.original_test_mode:
@@ -338,6 +353,7 @@ class TestURLValidatorSecurity:
     def teardown_method(self):
         """Cleanup after each test"""
         import os
+
         # Restore test mode if it was originally set
         if hasattr(self, "original_test_mode") and self.original_test_mode:
             os.environ["BOOKMARK_PROCESSOR_TEST_MODE"] = self.original_test_mode
@@ -352,6 +368,7 @@ class TestPenetrationTests:
     def setup_method(self):
         """Setup for penetration tests"""
         import os
+
         # Disable test mode for penetration tests to ensure real validation
         self.original_test_mode = os.environ.get("BOOKMARK_PROCESSOR_TEST_MODE")
         if self.original_test_mode:
@@ -385,11 +402,14 @@ class TestPenetrationTests:
             # Hex-encoded IPs (0x7f000001) bypass security validation but still fail
             # to connect, so they return connection_error instead of security_error
             if "0x" in payload:
-                assert result.error_type in ["security_error", "connection_error"], \
-                    f"Hex-encoded SSRF payload should be blocked: {payload}"
+                assert result.error_type in [
+                    "security_error",
+                    "connection_error",
+                ], f"Hex-encoded SSRF payload should be blocked: {payload}"
             else:
-                assert result.error_type == "security_error", \
-                    f"SSRF payload should return security_error: {payload}"
+                assert (
+                    result.error_type == "security_error"
+                ), f"SSRF payload should return security_error: {payload}"
 
     def test_injection_prevention(self):
         """Test injection attack prevention"""
@@ -420,13 +440,21 @@ class TestPenetrationTests:
             result = self.security_validator.validate_url_security(payload)
             # URLs with literal directory traversal should be blocked
             if "../" in payload or "..\\" in payload:
-                assert not result.is_safe, f"Directory traversal should be blocked: {payload}"
+                assert (
+                    not result.is_safe
+                ), f"Directory traversal should be blocked: {payload}"
             else:
                 # Encoded or obfuscated traversal is detected as suspicious (medium risk with issues)
-                assert len(result.issues) > 0 or not result.is_safe, f"Directory traversal should be flagged: {payload}"
+                assert (
+                    len(result.issues) > 0 or not result.is_safe
+                ), f"Directory traversal should be flagged: {payload}"
                 if result.is_safe and result.issues:
                     # If marked safe but has issues, should be medium risk or higher
-                    assert result.risk_level in ["medium", "high", "critical"], f"Should have elevated risk level for {payload}"
+                    assert result.risk_level in [
+                        "medium",
+                        "high",
+                        "critical",
+                    ], f"Should have elevated risk level for {payload}"
 
     def test_url_manipulation_prevention(self):
         """Test URL manipulation attack prevention"""
@@ -445,6 +473,7 @@ class TestPenetrationTests:
     def teardown_method(self):
         """Cleanup after penetration tests"""
         import os
+
         # Restore test mode if it was originally set
         if hasattr(self, "original_test_mode") and self.original_test_mode:
             os.environ["BOOKMARK_PROCESSOR_TEST_MODE"] = self.original_test_mode

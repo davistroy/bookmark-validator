@@ -79,9 +79,7 @@ class PipelineFactory:
         )
 
         # Create duplicate detector if enabled
-        duplicate_detector = (
-            DuplicateDetector() if config.detect_duplicates else None
-        )
+        duplicate_detector = DuplicateDetector() if config.detect_duplicates else None
 
         # Create folder generator if enabled
         folder_generator = (

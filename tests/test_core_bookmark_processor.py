@@ -14,7 +14,10 @@ import pytest
 
 from bookmark_processor.config.configuration import Configuration
 from bookmark_processor.core.batch_processor import BatchProcessor
-from bookmark_processor.core.bookmark_processor import BookmarkProcessor, ProcessingResults
+from bookmark_processor.core.bookmark_processor import (
+    BookmarkProcessor,
+    ProcessingResults,
+)
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.pipeline import BookmarkProcessingPipeline
 from bookmark_processor.core.pipeline.config import PipelineConfig, PipelineResults
@@ -56,7 +59,7 @@ class TestBookmarkProcessor:
         sample_df.to_csv(input_file, index=False)
 
         # Mock the pipeline to avoid actual processing
-        with patch.object(BookmarkProcessingPipeline, 'execute') as mock_execute:
+        with patch.object(BookmarkProcessingPipeline, "execute") as mock_execute:
             mock_execute.return_value = PipelineResults(
                 total_bookmarks=5,
                 valid_bookmarks=4,
@@ -172,10 +175,9 @@ class TestBatchProcessor:
         bookmarks = create_sample_bookmark_objects()[:2]
 
         # Since process_bookmarks is async, we need to mock it properly
-        with patch.object(processor, '_process_batch') as mock_batch:
+        with patch.object(processor, "_process_batch") as mock_batch:
             mock_batch.return_value = [
-                ("Enhanced description", {"success": True})
-                for _ in bookmarks
+                ("Enhanced description", {"success": True}) for _ in bookmarks
             ]
 
             results, stats = await processor.process_bookmarks(bookmarks)
@@ -294,8 +296,7 @@ class TestBookmarkProcessingPipeline:
         # Mock URL validation
         pipeline.url_validator = Mock()
         pipeline.url_validator.validate_batch.return_value = [
-            Mock(is_valid=True, status_code=200)
-            for _ in range(len(sample_df))
+            Mock(is_valid=True, status_code=200) for _ in range(len(sample_df))
         ]
 
         # Verify the pipeline is configured correctly

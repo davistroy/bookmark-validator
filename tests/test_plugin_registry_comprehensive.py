@@ -34,7 +34,6 @@ from bookmark_processor.plugins.registry import (
     reset_registry,
 )
 
-
 # ============================================================================
 # Test Plugin Classes
 # ============================================================================
@@ -168,7 +167,9 @@ class MockTagGeneratorPlugin(TagGeneratorPlugin):
     def version(self) -> str:
         return "1.0.0"
 
-    def generate_tags(self, bookmark, content: str, existing_tags: List[str]) -> List[str]:
+    def generate_tags(
+        self, bookmark, content: str, existing_tags: List[str]
+    ) -> List[str]:
         return ["tag1", "tag2"]
 
     def on_pre_tag_generation(self, *args, **kwargs):

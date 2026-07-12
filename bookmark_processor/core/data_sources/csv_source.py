@@ -51,7 +51,7 @@ class CSVDataSource(AbstractBookmarkDataSource):
         self,
         input_path: Union[str, Path],
         output_path: Union[str, Path],
-        csv_handler: Optional[RaindropCSVHandler] = None
+        csv_handler: Optional[RaindropCSVHandler] = None,
     ):
         """
         Initialize the CSV data source.
@@ -93,13 +93,13 @@ class CSVDataSource(AbstractBookmarkDataSource):
             raise DataSourceReadError(
                 f"CSV file not found: {self.input_path}",
                 source_name=self.source_name,
-                original_error=e
+                original_error=e,
             )
         except Exception as e:
             raise DataSourceReadError(
                 f"Failed to load CSV file: {self.input_path}",
                 source_name=self.source_name,
-                original_error=e
+                original_error=e,
             )
 
     def _build_url_index(self) -> None:
@@ -146,8 +146,7 @@ class CSVDataSource(AbstractBookmarkDataSource):
         return None
 
     def fetch_bookmarks(
-        self,
-        filters: Optional[Dict[str, Any]] = None
+        self, filters: Optional[Dict[str, Any]] = None
     ) -> List[Bookmark]:
         """
         Fetch bookmarks from the CSV file.
@@ -222,10 +221,7 @@ class CSVDataSource(AbstractBookmarkDataSource):
         self._modified = True
         return True
 
-    def bulk_update(
-        self,
-        bookmarks: List[Bookmark]
-    ) -> BulkUpdateResult:
+    def bulk_update(self, bookmarks: List[Bookmark]) -> BulkUpdateResult:
         """
         Bulk update multiple bookmarks.
 
@@ -249,16 +245,12 @@ class CSVDataSource(AbstractBookmarkDataSource):
                 succeeded += 1
             else:
                 failed += 1
-                errors.append({
-                    "url": bookmark.url,
-                    "error": "Bookmark not found in source"
-                })
+                errors.append(
+                    {"url": bookmark.url, "error": "Bookmark not found in source"}
+                )
 
         return BulkUpdateResult(
-            total=len(bookmarks),
-            succeeded=succeeded,
-            failed=failed,
-            errors=errors
+            total=len(bookmarks), succeeded=succeeded, failed=failed, errors=errors
         )
 
     def add_bookmark(self, bookmark: Bookmark) -> bool:
@@ -330,11 +322,13 @@ class CSVDataSource(AbstractBookmarkDataSource):
         if self._bookmarks is None:
             raise DataSourceValidationError(
                 "No bookmarks to save - load bookmarks first",
-                source_name=self.source_name
+                source_name=self.source_name,
             )
 
         try:
-            self.logger.info(f"Saving {len(self._bookmarks)} bookmarks to {self.output_path}")
+            self.logger.info(
+                f"Saving {len(self._bookmarks)} bookmarks to {self.output_path}"
+            )
             self.handler.save_import_csv(self._bookmarks, self.output_path)
             self._modified = False
             self.logger.info(f"Successfully saved to {self.output_path}")
@@ -343,7 +337,7 @@ class CSVDataSource(AbstractBookmarkDataSource):
             raise DataSourceWriteError(
                 f"Failed to save CSV file: {self.output_path}",
                 source_name=self.source_name,
-                original_error=e
+                original_error=e,
             )
 
     def get_bookmark_count(self) -> int:

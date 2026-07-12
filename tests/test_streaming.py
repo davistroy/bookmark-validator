@@ -26,7 +26,6 @@ from bookmark_processor.core.streaming import (
 )
 from bookmark_processor.core.streaming.writer import AppendingBookmarkWriter
 
-
 # ============ Fixtures ============
 
 
@@ -34,10 +33,58 @@ from bookmark_processor.core.streaming.writer import AppendingBookmarkWriter
 def sample_csv_content():
     """Sample CSV content in raindrop.io export format."""
     return [
-        ["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"],
-        ["1", "Test Site 1", "Note 1", "Excerpt 1", "https://example.com/1", "Tech", "test, example", "2024-01-01T00:00:00Z", "", "", "false"],
-        ["2", "Test Site 2", "Note 2", "Excerpt 2", "https://example.com/2", "Tech/AI", "ai, ml", "2024-01-02T00:00:00Z", "", "", "true"],
-        ["3", "Test Site 3", "", "", "https://example.com/3", "Science", "science", "2024-01-03T00:00:00Z", "", "", "false"],
+        [
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
+        ],
+        [
+            "1",
+            "Test Site 1",
+            "Note 1",
+            "Excerpt 1",
+            "https://example.com/1",
+            "Tech",
+            "test, example",
+            "2024-01-01T00:00:00Z",
+            "",
+            "",
+            "false",
+        ],
+        [
+            "2",
+            "Test Site 2",
+            "Note 2",
+            "Excerpt 2",
+            "https://example.com/2",
+            "Tech/AI",
+            "ai, ml",
+            "2024-01-02T00:00:00Z",
+            "",
+            "",
+            "true",
+        ],
+        [
+            "3",
+            "Test Site 3",
+            "",
+            "",
+            "https://example.com/3",
+            "Science",
+            "science",
+            "2024-01-03T00:00:00Z",
+            "",
+            "",
+            "false",
+        ],
     ]
 
 
@@ -57,21 +104,37 @@ def large_csv_file(tmp_path):
     csv_file = tmp_path / "large_bookmarks.csv"
     with open(csv_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"])
+        writer.writerow(
+            [
+                "id",
+                "title",
+                "note",
+                "excerpt",
+                "url",
+                "folder",
+                "tags",
+                "created",
+                "cover",
+                "highlights",
+                "favorite",
+            ]
+        )
         for i in range(250):
-            writer.writerow([
-                str(i),
-                f"Test Site {i}",
-                f"Note {i}",
-                f"Excerpt {i}",
-                f"https://example.com/{i}",
-                f"Folder{i % 5}",
-                f"tag{i % 10}",
-                "2024-01-01T00:00:00Z",
-                "",
-                "",
-                "false"
-            ])
+            writer.writerow(
+                [
+                    str(i),
+                    f"Test Site {i}",
+                    f"Note {i}",
+                    f"Excerpt {i}",
+                    f"https://example.com/{i}",
+                    f"Folder{i % 5}",
+                    f"tag{i % 10}",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "",
+                    "false",
+                ]
+            )
     return csv_file
 
 
@@ -85,7 +148,7 @@ def sample_bookmarks():
             title="Test Site 1",
             note="Note 1",
             folder="Tech",
-            tags=["test", "example"]
+            tags=["test", "example"],
         ),
         Bookmark(
             id="2",
@@ -93,14 +156,14 @@ def sample_bookmarks():
             title="Test Site 2",
             note="Note 2",
             folder="Tech/AI",
-            tags=["ai", "ml"]
+            tags=["ai", "ml"],
         ),
         Bookmark(
             id="3",
             url="https://example.com/3",
             title="Test Site 3",
             folder="Science",
-            tags=["science"]
+            tags=["science"],
         ),
     ]
 
@@ -239,12 +302,38 @@ class TestStreamingBookmarkReader:
         csv_file = tmp_path / "invalid.csv"
         with open(csv_file, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerows([
-                ["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"],
-                ["1", "Valid", "", "", "https://valid.com", "", "", "", "", "", ""],
-                ["2", "Invalid", "", "", "", "", "", "", "", "", ""],  # Missing URL
-                ["3", "Valid 2", "", "", "https://valid2.com", "", "", "", "", "", ""],
-            ])
+            writer.writerows(
+                [
+                    [
+                        "id",
+                        "title",
+                        "note",
+                        "excerpt",
+                        "url",
+                        "folder",
+                        "tags",
+                        "created",
+                        "cover",
+                        "highlights",
+                        "favorite",
+                    ],
+                    ["1", "Valid", "", "", "https://valid.com", "", "", "", "", "", ""],
+                    ["2", "Invalid", "", "", "", "", "", "", "", "", ""],  # Missing URL
+                    [
+                        "3",
+                        "Valid 2",
+                        "",
+                        "",
+                        "https://valid2.com",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                    ],
+                ]
+            )
 
         reader = StreamingBookmarkReader(csv_file, skip_invalid=True)
         bookmarks = list(reader.stream())
@@ -427,14 +516,15 @@ class TestStreamingPipeline:
     def test_init(self, sample_csv_file, tmp_path):
         """Test pipeline initialization."""
         config = StreamingPipelineConfig(
-            input_file=sample_csv_file,
-            output_file=tmp_path / "output.csv"
+            input_file=sample_csv_file, output_file=tmp_path / "output.csv"
         )
         pipeline = StreamingPipeline(config)
 
         assert pipeline.config == config
 
-    @patch('bookmark_processor.core.streaming.pipeline.StreamingPipeline._get_url_validator')
+    @patch(
+        "bookmark_processor.core.streaming.pipeline.StreamingPipeline._get_url_validator"
+    )
     def test_execute_basic(self, mock_validator, sample_csv_file, tmp_path):
         """Test basic pipeline execution."""
         # Mock validator to always return valid
@@ -446,15 +536,17 @@ class TestStreamingPipeline:
             input_file=sample_csv_file,
             output_file=tmp_path / "output.csv",
             ai_enabled=False,
-            use_state_tracker=False
+            use_state_tracker=False,
         )
         pipeline = StreamingPipeline(config)
 
         # Mock other components
         pipeline._get_content_analyzer = MagicMock(return_value=None)
-        pipeline._get_tag_generator = MagicMock(return_value=MagicMock(
-            generate_for_single_bookmark=MagicMock(return_value=["test"])
-        ))
+        pipeline._get_tag_generator = MagicMock(
+            return_value=MagicMock(
+                generate_for_single_bookmark=MagicMock(return_value=["test"])
+            )
+        )
 
         results = pipeline.execute()
 
@@ -467,7 +559,7 @@ class TestStreamingPipeline:
             input_file=sample_csv_file,
             output_file=tmp_path / "output.csv",
             ai_enabled=False,
-            use_state_tracker=False
+            use_state_tracker=False,
         )
 
         reader = StreamingBookmarkReader(sample_csv_file)
@@ -489,8 +581,7 @@ class TestStreamingPipeline:
     def test_statistics(self, sample_csv_file, tmp_path):
         """Test statistics collection."""
         config = StreamingPipelineConfig(
-            input_file=sample_csv_file,
-            output_file=tmp_path / "output.csv"
+            input_file=sample_csv_file, output_file=tmp_path / "output.csv"
         )
         pipeline = StreamingPipeline(config)
         stats = pipeline.get_statistics()
@@ -501,8 +592,7 @@ class TestStreamingPipeline:
     def test_repr(self, sample_csv_file, tmp_path):
         """Test string representation."""
         config = StreamingPipelineConfig(
-            input_file=sample_csv_file,
-            output_file=tmp_path / "output.csv"
+            input_file=sample_csv_file, output_file=tmp_path / "output.csv"
         )
         pipeline = StreamingPipeline(config)
 

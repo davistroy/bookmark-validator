@@ -111,8 +111,7 @@ class PaywallDetectorPlugin(ValidatorPlugin):
             for pattern in self.PAYWALL_CONTENT_PATTERNS
         ]
         self._compiled_bypass = [
-            re.compile(pattern, re.IGNORECASE)
-            for pattern in self.BYPASS_PATTERNS
+            re.compile(pattern, re.IGNORECASE) for pattern in self.BYPASS_PATTERNS
         ]
 
         # Add custom domains from config
@@ -128,9 +127,7 @@ class PaywallDetectorPlugin(ValidatorPlugin):
             f"tracked domains"
         )
 
-    def validate(
-        self, url: str, content: Optional[str] = None
-    ) -> ValidationResult:
+    def validate(self, url: str, content: Optional[str] = None) -> ValidationResult:
         """
         Validate a URL for paywall indicators.
 
@@ -235,9 +232,7 @@ class PaywallDetectorPlugin(ValidatorPlugin):
         except Exception:
             return False
 
-    def _check_content(
-        self, content: str
-    ) -> tuple[bool, float, List[str]]:
+    def _check_content(self, content: str) -> tuple[bool, float, List[str]]:
         """
         Check content for paywall indicators.
 

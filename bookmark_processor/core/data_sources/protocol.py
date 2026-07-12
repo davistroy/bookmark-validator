@@ -70,8 +70,7 @@ class BookmarkDataSource(Protocol):
 
     @abstractmethod
     def fetch_bookmarks(
-        self,
-        filters: Optional[Dict[str, Any]] = None
+        self, filters: Optional[Dict[str, Any]] = None
     ) -> List[Bookmark]:
         """
         Fetch bookmarks from the data source.
@@ -109,10 +108,7 @@ class BookmarkDataSource(Protocol):
         ...
 
     @abstractmethod
-    def bulk_update(
-        self,
-        bookmarks: List[Bookmark]
-    ) -> BulkUpdateResult:
+    def bulk_update(self, bookmarks: List[Bookmark]) -> BulkUpdateResult:
         """
         Bulk update multiple bookmarks.
 
@@ -166,8 +162,7 @@ class AbstractBookmarkDataSource(ABC):
 
     @abstractmethod
     def fetch_bookmarks(
-        self,
-        filters: Optional[Dict[str, Any]] = None
+        self, filters: Optional[Dict[str, Any]] = None
     ) -> List[Bookmark]:
         """Fetch bookmarks from the data source."""
         pass
@@ -177,10 +172,7 @@ class AbstractBookmarkDataSource(ABC):
         """Update a single bookmark."""
         pass
 
-    def bulk_update(
-        self,
-        bookmarks: List[Bookmark]
-    ) -> BulkUpdateResult:
+    def bulk_update(self, bookmarks: List[Bookmark]) -> BulkUpdateResult:
         """
         Default bulk update implementation using individual updates.
 
@@ -197,22 +189,15 @@ class AbstractBookmarkDataSource(ABC):
                     succeeded += 1
                 else:
                     failed += 1
-                    errors.append({
-                        "url": bookmark.url,
-                        "error": "Update returned False"
-                    })
+                    errors.append(
+                        {"url": bookmark.url, "error": "Update returned False"}
+                    )
             except Exception as e:
                 failed += 1
-                errors.append({
-                    "url": bookmark.url,
-                    "error": str(e)
-                })
+                errors.append({"url": bookmark.url, "error": str(e)})
 
         return BulkUpdateResult(
-            total=len(bookmarks),
-            succeeded=succeeded,
-            failed=failed,
-            errors=errors
+            total=len(bookmarks), succeeded=succeeded, failed=failed, errors=errors
         )
 
     @property
@@ -242,7 +227,7 @@ class DataSourceError(Exception):
         self,
         message: str,
         source_name: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         self.message = message
         self.source_name = source_name
@@ -255,25 +240,31 @@ class DataSourceError(Exception):
             parts.append(f"[{self.source_name}]")
         parts.append(self.message)
         if self.original_error:
-            parts.append(f"(Caused by: {type(self.original_error).__name__}: {self.original_error})")
+            parts.append(
+                f"(Caused by: {type(self.original_error).__name__}: {self.original_error})"
+            )
         return " ".join(parts)
 
 
 class DataSourceConnectionError(DataSourceError):
     """Exception raised when connection to data source fails."""
+
     pass
 
 
 class DataSourceReadError(DataSourceError):
     """Exception raised when reading from data source fails."""
+
     pass
 
 
 class DataSourceWriteError(DataSourceError):
     """Exception raised when writing to data source fails."""
+
     pass
 
 
 class DataSourceValidationError(DataSourceError):
     """Exception raised when data validation fails."""
+
     pass

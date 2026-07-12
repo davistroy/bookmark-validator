@@ -20,18 +20,16 @@ class ProcessingStages(Flag):
     """
 
     NONE = 0
-    VALIDATION = auto()      # URL validation
-    CONTENT = auto()         # Content extraction
-    AI = auto()              # AI description generation
-    TAGS = auto()            # Tag optimization
-    FOLDERS = auto()         # Folder organization
+    VALIDATION = auto()  # URL validation
+    CONTENT = auto()  # Content extraction
+    AI = auto()  # AI description generation
+    TAGS = auto()  # Tag optimization
+    FOLDERS = auto()  # Folder organization
 
     @classmethod
     def get_all(cls) -> "ProcessingStages":
         """All processing stages."""
-        return (
-            cls.VALIDATION | cls.CONTENT | cls.AI | cls.TAGS | cls.FOLDERS
-        )
+        return cls.VALIDATION | cls.CONTENT | cls.AI | cls.TAGS | cls.FOLDERS
 
     @classmethod
     def get_validate_only(cls) -> "ProcessingStages":
@@ -266,7 +264,13 @@ class ProcessingMode:
             ProcessingMode configured from the arguments
         """
         # Start with all stages
-        stages = ProcessingStages.VALIDATION | ProcessingStages.CONTENT | ProcessingStages.AI | ProcessingStages.TAGS | ProcessingStages.FOLDERS
+        stages = (
+            ProcessingStages.VALIDATION
+            | ProcessingStages.CONTENT
+            | ProcessingStages.AI
+            | ProcessingStages.TAGS
+            | ProcessingStages.FOLDERS
+        )
 
         # Handle exclusive modes first
         if args.get("tags_only"):
@@ -350,7 +354,12 @@ class ProcessingMode:
         Returns:
             ProcessingMode with AI disabled
         """
-        stages = ProcessingStages.VALIDATION | ProcessingStages.CONTENT | ProcessingStages.TAGS | ProcessingStages.FOLDERS
+        stages = (
+            ProcessingStages.VALIDATION
+            | ProcessingStages.CONTENT
+            | ProcessingStages.TAGS
+            | ProcessingStages.FOLDERS
+        )
         return cls(stages=stages)
 
     def copy(self, **overrides) -> "ProcessingMode":
@@ -368,7 +377,9 @@ class ProcessingMode:
             preview_count=overrides.get("preview_count", self.preview_count),
             dry_run=overrides.get("dry_run", self.dry_run),
             verbose=overrides.get("verbose", self.verbose),
-            continue_on_error=overrides.get("continue_on_error", self.continue_on_error),
+            continue_on_error=overrides.get(
+                "continue_on_error", self.continue_on_error
+            ),
         )
 
     def to_dict(self) -> Dict[str, Any]:

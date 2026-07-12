@@ -75,17 +75,26 @@ def sample_csv_file(sample_bookmarks, tmp_path) -> Path:
     csv_path = tmp_path / "test_bookmarks.csv"
     # Write a simple CSV file
     with open(csv_path, "w") as f:
-        f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
+        f.write(
+            "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+        )
         for i, b in enumerate(sample_bookmarks):
-            tags_str = f'"{", ".join(b.tags)}"' if len(b.tags) > 1 else (b.tags[0] if b.tags else "")
+            tags_str = (
+                f'"{", ".join(b.tags)}"'
+                if len(b.tags) > 1
+                else (b.tags[0] if b.tags else "")
+            )
             created_str = b.created.isoformat() if b.created else ""
-            f.write(f'{i},{b.title},,"{b.excerpt}",{b.url},{b.folder},{tags_str},{created_str},,,false\n')
+            f.write(
+                f'{i},{b.title},,"{b.excerpt}",{b.url},{b.folder},{tags_str},{created_str},,,false\n'
+            )
     return csv_path
 
 
 # ============================================================================
 # Phase 1.1: Preview/Dry-Run Mode Tests
 # ============================================================================
+
 
 class TestPreviewMode:
     """Test preview mode functionality."""
@@ -162,10 +171,12 @@ class TestDryRunMode:
 
     def test_combined_preview_and_dry_run(self):
         """Test combining preview and dry-run modes."""
-        mode = ProcessingMode.from_cli_args({
-            "preview": 10,
-            "dry_run": True,
-        })
+        mode = ProcessingMode.from_cli_args(
+            {
+                "preview": 10,
+                "dry_run": True,
+            }
+        )
 
         assert mode.is_preview
         assert mode.preview_count == 10
@@ -176,6 +187,7 @@ class TestDryRunMode:
 # ============================================================================
 # Phase 1.2: Smart Filtering Tests
 # ============================================================================
+
 
 class TestFilterChainFromCLIArgs:
     """Test FilterChain creation from CLI arguments."""
@@ -259,11 +271,13 @@ class TestFilterChainFromCLIArgs:
 
     def test_multiple_filters_combined(self):
         """Test multiple filter args create combined chain."""
-        chain = FilterChain.from_cli_args({
-            "filter_folder": "Tech/*",
-            "filter_tag": "python",
-            "filter_domain": "github.com",
-        })
+        chain = FilterChain.from_cli_args(
+            {
+                "filter_folder": "Tech/*",
+                "filter_tag": "python",
+                "filter_domain": "github.com",
+            }
+        )
 
         assert len(chain) == 3
 
@@ -310,14 +324,20 @@ class TestSmartFilteringIntegration:
         # Should match bookmarks created in first half of 2024
         for b in filtered:
             assert b.created is not None
-            assert datetime(2024, 1, 1) <= b.created <= datetime(2024, 6, 30, 23, 59, 59, 999999)
+            assert (
+                datetime(2024, 1, 1)
+                <= b.created
+                <= datetime(2024, 6, 30, 23, 59, 59, 999999)
+            )
 
     def test_combined_filters_and_logic(self, sample_bookmarks):
         """Test that multiple filters use AND logic by default."""
-        chain = FilterChain.from_cli_args({
-            "filter_folder": "Tech/*",
-            "filter_tag": "python",
-        })
+        chain = FilterChain.from_cli_args(
+            {
+                "filter_folder": "Tech/*",
+                "filter_tag": "python",
+            }
+        )
         filtered = chain.apply(sample_bookmarks)
 
         # Should match Tech folder AND python tag
@@ -353,6 +373,7 @@ class TestSmartFilteringIntegration:
 # ============================================================================
 # Phase 1.3: Granular Processing Control Tests
 # ============================================================================
+
 
 class TestGranularProcessingControl:
     """Test granular processing control options."""
@@ -418,10 +439,12 @@ class TestGranularProcessingControl:
 
     def test_multiple_skip_options(self):
         """Test multiple skip options can be combined."""
-        mode = ProcessingMode.from_cli_args({
-            "skip_validation": True,
-            "skip_ai": True,
-        })
+        mode = ProcessingMode.from_cli_args(
+            {
+                "skip_validation": True,
+                "skip_ai": True,
+            }
+        )
 
         assert not mode.should_validate
         assert mode.should_extract_content
@@ -474,10 +497,12 @@ class TestProcessingStagesConfiguration:
 
     def test_stage_list_for_custom_stages(self):
         """Test stage_list returns correct stages."""
-        mode = ProcessingMode.from_cli_args({
-            "skip_ai": True,
-            "skip_folders": True,
-        })
+        mode = ProcessingMode.from_cli_args(
+            {
+                "skip_ai": True,
+                "skip_folders": True,
+            }
+        )
         stages = mode.stages.stage_list
 
         assert "validation" in stages
@@ -498,6 +523,7 @@ class TestProcessingStagesConfiguration:
 # Combined Feature Tests
 # ============================================================================
 
+
 class TestCombinedFeatures:
     """Test combinations of Phase 1 features."""
 
@@ -517,10 +543,12 @@ class TestCombinedFeatures:
 
     def test_dry_run_with_filters(self, sample_bookmarks):
         """Test dry-run mode with filters shows correct counts."""
-        chain = FilterChain.from_cli_args({
-            "filter_tag": "python",
-            "filter_domain": "github.com",
-        })
+        chain = FilterChain.from_cli_args(
+            {
+                "filter_tag": "python",
+                "filter_domain": "github.com",
+            }
+        )
 
         total = len(sample_bookmarks)
         filtered = chain.apply(sample_bookmarks)
@@ -547,14 +575,16 @@ class TestCombinedFeatures:
     def test_preview_dry_run_filters_combined(self, sample_bookmarks):
         """Test all three feature categories combined."""
         chain = FilterChain.from_cli_args({"filter_domain": "github.com,gitlab.com"})
-        mode = ProcessingMode.from_cli_args({
-            "preview": 1,
-            "dry_run": True,
-            "skip_ai": True,
-        })
+        mode = ProcessingMode.from_cli_args(
+            {
+                "preview": 1,
+                "dry_run": True,
+                "skip_ai": True,
+            }
+        )
 
         filtered = chain.apply(sample_bookmarks)
-        preview_result = filtered[:mode.preview_count]
+        preview_result = filtered[: mode.preview_count]
 
         assert len(preview_result) == 1
         assert mode.is_preview
@@ -565,6 +595,7 @@ class TestCombinedFeatures:
 # ============================================================================
 # CLI Integration Tests (Mocked)
 # ============================================================================
+
 
 class TestCLIIntegration:
     """Test CLI integration with mocked dependencies."""
@@ -586,7 +617,11 @@ class TestCLIIntegration:
         exclusive_options = [tags_only, folders_only, validate_only]
         exclusive_count = sum(exclusive_options)
 
-        with pytest.raises(ValidationError) if exclusive_count > 1 else pytest.warns(None):
+        with (
+            pytest.raises(ValidationError)
+            if exclusive_count > 1
+            else pytest.warns(None)
+        ):
             if exclusive_count > 1:
                 raise ValidationError(
                     "Options --tags-only, --folders-only, and --validate-only are mutually exclusive."
@@ -636,6 +671,7 @@ class TestCLIIntegration:
 # Edge Cases and Error Handling
 # ============================================================================
 
+
 class TestEdgeCases:
     """Test edge cases and error handling."""
 
@@ -683,11 +719,13 @@ class TestEdgeCases:
 
     def test_processing_mode_to_dict(self):
         """Test ProcessingMode serialization."""
-        mode = ProcessingMode.from_cli_args({
-            "preview": 5,
-            "dry_run": True,
-            "skip_ai": True,
-        })
+        mode = ProcessingMode.from_cli_args(
+            {
+                "preview": 5,
+                "dry_run": True,
+                "skip_ai": True,
+            }
+        )
 
         result = mode.to_dict()
 

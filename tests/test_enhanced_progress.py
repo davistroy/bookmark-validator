@@ -22,7 +22,6 @@ from bookmark_processor.utils.enhanced_progress import (
     RICH_AVAILABLE,
 )
 
-
 # Fixtures
 
 
@@ -298,8 +297,13 @@ class TestEnhancedProgressTracker:
         """Test starting a stage using enum."""
         started_tracker.start_stage(ProcessingStage.URL_VALIDATION, 1000)
 
-        assert started_tracker.current_stage_name == ProcessingStage.URL_VALIDATION.value
-        assert started_tracker.stages[ProcessingStage.URL_VALIDATION.value].status == StageStatus.IN_PROGRESS
+        assert (
+            started_tracker.current_stage_name == ProcessingStage.URL_VALIDATION.value
+        )
+        assert (
+            started_tracker.stages[ProcessingStage.URL_VALIDATION.value].status
+            == StageStatus.IN_PROGRESS
+        )
 
     def test_start_stage_by_string(self, started_tracker):
         """Test starting a stage using string."""
@@ -423,7 +427,7 @@ class TestRendering:
     def test_render_progress_plain(self, in_progress_tracker):
         """Test plain text rendering."""
         # Force plain rendering by mocking RICH_AVAILABLE
-        with patch('bookmark_processor.utils.enhanced_progress.RICH_AVAILABLE', False):
+        with patch("bookmark_processor.utils.enhanced_progress.RICH_AVAILABLE", False):
             output = in_progress_tracker._render_plain_progress()
 
             assert "PROCESSING STATUS" in output
@@ -434,7 +438,7 @@ class TestRendering:
         """Test rendering with current item set."""
         in_progress_tracker.set_current_item("https://test.com/page", 123)
 
-        with patch('bookmark_processor.utils.enhanced_progress.RICH_AVAILABLE', False):
+        with patch("bookmark_processor.utils.enhanced_progress.RICH_AVAILABLE", False):
             output = in_progress_tracker._render_plain_progress()
 
             assert "Current:" in output
@@ -717,7 +721,10 @@ class TestIntegration:
         assert summary["total_bookmarks"] == 50
         assert summary["total_errors"] == 2
         assert ProcessingStage.URL_VALIDATION.value in summary["stages"]
-        assert summary["stages"][ProcessingStage.URL_VALIDATION.value]["status"] == "completed"
+        assert (
+            summary["stages"][ProcessingStage.URL_VALIDATION.value]["status"]
+            == "completed"
+        )
 
 
 # Marker for test categorization

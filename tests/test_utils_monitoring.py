@@ -230,6 +230,7 @@ class TestProgressTracker:
         tracker = ProgressTracker(total_items=100, show_progress_bar=False)
 
         from bookmark_processor.utils.progress_tracker import ProcessingStage
+
         tracker.start_stage(ProcessingStage.VALIDATING_URLS)
 
         assert tracker.current_stage == ProcessingStage.VALIDATING_URLS
@@ -278,9 +279,12 @@ class TestProgressTracker:
 
     def test_get_status_summary(self):
         """Test status summary generation."""
-        tracker = ProgressTracker(total_items=100, show_progress_bar=False, verbose=False)
+        tracker = ProgressTracker(
+            total_items=100, show_progress_bar=False, verbose=False
+        )
 
         from bookmark_processor.utils.progress_tracker import ProcessingStage
+
         tracker.start_stage(ProcessingStage.VALIDATING_URLS)
         tracker.update(60)
 
@@ -310,7 +314,7 @@ class TestPerformanceMetrics:
             processing_time_seconds=60.0,
             items_processed=10,
             active_threads=2,
-            gc_collections={"gen_0": 1, "gen_1": 0, "gen_2": 0}
+            gc_collections={"gen_0": 1, "gen_1": 0, "gen_2": 0},
         )
 
         assert metrics.memory_usage_mb == 100.0
@@ -476,7 +480,8 @@ class TestCostTracker:
     def test_init(self):
         """Test CostTracker initialization."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
@@ -487,12 +492,14 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
     def test_record_api_usage_claude(self):
         """Test recording Claude API usage."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
@@ -521,12 +528,14 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
     def test_record_api_usage_openai(self):
         """Test recording OpenAI API usage."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
@@ -545,12 +554,14 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
     def test_get_cost_by_provider(self):
         """Test getting cost breakdown by provider."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
@@ -569,12 +580,14 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
     def test_get_cost_by_model(self):
         """Test getting cost breakdown by model."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
@@ -585,9 +598,13 @@ class TestCostTracker:
 
         # Calculate cost by model for current session
         session_start = tracker.session_start_time
-        session_records = [r for r in tracker.cost_records if r.timestamp >= session_start]
+        session_records = [
+            r for r in tracker.cost_records if r.timestamp >= session_start
+        ]
 
-        sonnet_cost = sum(r.cost_usd for r in session_records if r.model == "claude-3-sonnet")
+        sonnet_cost = sum(
+            r.cost_usd for r in session_records if r.model == "claude-3-sonnet"
+        )
         gpt4_cost = sum(r.cost_usd for r in session_records if r.model == "gpt-4")
 
         assert abs(sonnet_cost - 0.08) < 0.001  # 0.05 + 0.03
@@ -595,15 +612,19 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
     def test_should_warn_about_cost(self):
         """Test cost warning threshold."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
-        tracker = CostTracker(confirmation_interval=0.10, warning_threshold=0.10, cost_log_file=temp_file)
+        tracker = CostTracker(
+            confirmation_interval=0.10, warning_threshold=0.10, cost_log_file=temp_file
+        )
 
         # Below threshold
         tracker.add_cost_record("claude", "claude-3-sonnet", 1000, 500, 0.05)
@@ -615,14 +636,13 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
     def test_estimate_cost_claude(self):
         """Test cost estimation for Claude."""
         estimate = CostEstimate(
-            total_items=1000,
-            estimated_tokens_per_item=150,
-            cost_per_token=0.000003
+            total_items=1000, estimated_tokens_per_item=150, cost_per_token=0.000003
         )
 
         assert estimate.estimated_total_cost > 0
@@ -631,9 +651,7 @@ class TestCostTracker:
     def test_estimate_cost_openai(self):
         """Test cost estimation for OpenAI."""
         estimate = CostEstimate(
-            total_items=1000,
-            estimated_tokens_per_item=150,
-            cost_per_token=0.000006
+            total_items=1000, estimated_tokens_per_item=150, cost_per_token=0.000006
         )
 
         assert estimate.estimated_total_cost > 0
@@ -642,7 +660,8 @@ class TestCostTracker:
     def test_get_usage_summary(self):
         """Test getting usage summary."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
@@ -661,12 +680,14 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
     def test_reset_tracking(self):
         """Test resetting cost tracking."""
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             temp_file = f.name
 
         tracker = CostTracker(confirmation_interval=10.0, cost_log_file=temp_file)
@@ -684,6 +705,7 @@ class TestCostTracker:
 
         # Clean up
         import os
+
         os.unlink(temp_file)
 
 

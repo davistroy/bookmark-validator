@@ -17,7 +17,6 @@ from bookmark_processor.core.openai_api_client import OpenAIAPIClient
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.structured_output import BookmarkEnhancement
 
-
 # ============================================================================
 # Test Fixtures
 # ============================================================================
@@ -139,7 +138,9 @@ class TestMessageCreation:
         assert len(messages) == 2
         assert messages[0]["role"] == "system"
         assert messages[1]["role"] == "user"
-        assert "JSON" in messages[0]["content"] or "json" in messages[0]["content"].lower()
+        assert (
+            "JSON" in messages[0]["content"] or "json" in messages[0]["content"].lower()
+        )
 
     def test_create_bookmark_prompt_unstructured(self, openai_client, sample_bookmark):
         """Test message creation without structured output."""
@@ -283,7 +284,11 @@ class TestGenerateDescription:
 
         mock_response = {
             "choices": [
-                {"message": {"content": "A great machine learning resource for beginners"}}
+                {
+                    "message": {
+                        "content": "A great machine learning resource for beginners"
+                    }
+                }
             ],
             "usage": {"prompt_tokens": 100, "completion_tokens": 20},
         }
@@ -308,7 +313,10 @@ class TestGenerateDescription:
         """Test handling of empty response."""
         openai_client.rate_limiter = mock_rate_limiter
 
-        mock_response = {"choices": [], "usage": {"prompt_tokens": 100, "completion_tokens": 0}}
+        mock_response = {
+            "choices": [],
+            "usage": {"prompt_tokens": 100, "completion_tokens": 0},
+        }
 
         with patch.object(
             openai_client, "_make_request", new_callable=AsyncMock
@@ -443,7 +451,11 @@ class TestGenerateDescriptionsBatch:
 
         mock_response = {
             "choices": [
-                {"message": {"content": "\n".join([f"{i+1}. Desc {i}" for i in range(20)])}}
+                {
+                    "message": {
+                        "content": "\n".join([f"{i+1}. Desc {i}" for i in range(20)])
+                    }
+                }
             ],
             "usage": {"prompt_tokens": 500, "completion_tokens": 200},
         }
@@ -827,7 +839,11 @@ class TestEdgeCases:
 
         mock_response = {
             "choices": [
-                {"message": {"content": "\n".join([f"{i+1}. Desc {i}" for i in range(20)])}}
+                {
+                    "message": {
+                        "content": "\n".join([f"{i+1}. Desc {i}" for i in range(20)])
+                    }
+                }
             ],
             "usage": {"prompt_tokens": 500, "completion_tokens": 200},
         }
@@ -854,7 +870,9 @@ class TestIntegration:
     """Integration-like tests for OpenAIAPIClient."""
 
     @pytest.mark.asyncio
-    async def test_full_flow_with_context_manager(self, sample_bookmark, mock_rate_limiter):
+    async def test_full_flow_with_context_manager(
+        self, sample_bookmark, mock_rate_limiter
+    ):
         """Test full flow using async context manager."""
         client = OpenAIAPIClient(api_key="test-key")
         client.rate_limiter = mock_rate_limiter
@@ -883,7 +901,9 @@ class TestIntegration:
             ) as mock_request:
                 mock_request.return_value = mock_response
 
-                description, metadata = await client.generate_description(sample_bookmark)
+                description, metadata = await client.generate_description(
+                    sample_bookmark
+                )
 
         assert description == "Test description"
         assert metadata["provider"] == "openai"

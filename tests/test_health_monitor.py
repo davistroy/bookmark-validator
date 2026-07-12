@@ -18,7 +18,6 @@ import pytest
 
 from bookmark_processor.core.data_models import Bookmark
 
-
 # Check if httpx is available for health monitoring
 try:
     import httpx
@@ -29,6 +28,7 @@ try:
         HealthMonitorError,
         WaybackMachineClient,
     )
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
@@ -42,14 +42,14 @@ except ImportError:
 
 # Skip all tests if httpx is not available
 pytestmark = pytest.mark.skipif(
-    not HTTPX_AVAILABLE,
-    reason="httpx is required for health monitoring tests"
+    not HTTPX_AVAILABLE, reason="httpx is required for health monitoring tests"
 )
 
 
 # =========================================================================
 # Fixtures
 # =========================================================================
+
 
 @pytest.fixture
 def sample_bookmarks() -> List[Bookmark]:
@@ -94,6 +94,7 @@ def temp_output_dir(tmp_path) -> Path:
 # HealthCheckResult Tests
 # =========================================================================
 
+
 class TestHealthCheckResult:
     """Tests for HealthCheckResult dataclass."""
 
@@ -103,7 +104,7 @@ class TestHealthCheckResult:
             url="https://example.com",
             status="healthy",
             http_status=200,
-            response_time=0.5
+            response_time=0.5,
         )
 
         assert result.url == "https://example.com"
@@ -117,7 +118,7 @@ class TestHealthCheckResult:
             url="https://example.com",
             status="dead",
             http_status=404,
-            error_message="Not Found"
+            error_message="Not Found",
         )
 
         assert result.status == "dead"
@@ -130,7 +131,7 @@ class TestHealthCheckResult:
             url="https://example.com",
             status="redirected",
             http_status=301,
-            redirect_url="https://www.example.com"
+            redirect_url="https://www.example.com",
         )
 
         assert result.status == "redirected"
@@ -141,7 +142,7 @@ class TestHealthCheckResult:
         result = HealthCheckResult(
             url="https://example.com",
             status="timeout",
-            error_message="Request timed out"
+            error_message="Request timed out",
         )
 
         assert result.status == "timeout"
@@ -150,8 +151,7 @@ class TestHealthCheckResult:
     def test_str_representation(self):
         """Test string representation."""
         result = HealthCheckResult(
-            url="https://example.com/very/long/path/to/resource",
-            status="healthy"
+            url="https://example.com/very/long/path/to/resource", status="healthy"
         )
 
         str_repr = str(result)
@@ -161,6 +161,7 @@ class TestHealthCheckResult:
 # =========================================================================
 # HealthReport Tests
 # =========================================================================
+
 
 class TestHealthReport:
     """Tests for HealthReport dataclass."""
@@ -182,7 +183,7 @@ class TestHealthReport:
             newly_dead=1,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         assert report.total == 2
@@ -201,7 +202,7 @@ class TestHealthReport:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         assert report.healthy_percentage == 70.0
@@ -218,7 +219,7 @@ class TestHealthReport:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         assert report.healthy_percentage == 0.0
@@ -241,7 +242,7 @@ class TestHealthReport:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         problematic = report.problematic
@@ -253,24 +254,20 @@ class TestHealthReport:
 # BookmarkHealthMonitor Tests
 # =========================================================================
 
+
 class TestBookmarkHealthMonitor:
     """Tests for BookmarkHealthMonitor."""
 
     def test_init(self):
         """Test monitor initialization."""
-        monitor = BookmarkHealthMonitor(
-            max_concurrent=10,
-            timeout=15.0
-        )
+        monitor = BookmarkHealthMonitor(max_concurrent=10, timeout=15.0)
 
         assert monitor.max_concurrent == 10
         assert monitor.timeout == 15.0
 
     def test_init_with_archive(self):
         """Test monitor initialization with archiving enabled."""
-        monitor = BookmarkHealthMonitor(
-            archive_dead=True
-        )
+        monitor = BookmarkHealthMonitor(archive_dead=True)
 
         assert monitor.archive_dead is True
         assert monitor.wayback is not None
@@ -295,10 +292,14 @@ class TestBookmarkHealthMonitor:
         mock_response.status_code = 200
         mock_response.history = []
 
-        with patch.object(httpx.AsyncClient, 'head', new_callable=AsyncMock) as mock_head:
+        with patch.object(
+            httpx.AsyncClient, "head", new_callable=AsyncMock
+        ) as mock_head:
             mock_head.return_value = mock_response
 
-            with patch.object(httpx.AsyncClient, '__aenter__', new_callable=AsyncMock) as mock_enter:
+            with patch.object(
+                httpx.AsyncClient, "__aenter__", new_callable=AsyncMock
+            ) as mock_enter:
                 mock_client = MagicMock()
                 mock_client.head = mock_head
                 mock_client.get = AsyncMock(return_value=mock_response)
@@ -328,7 +329,7 @@ class TestBookmarkHealthMonitor:
             recovered=0,
             archived=0,
             results=results,
-            duration_seconds=1.5
+            duration_seconds=1.5,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -355,7 +356,7 @@ class TestBookmarkHealthMonitor:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -372,7 +373,9 @@ class TestBookmarkHealthMonitor:
         import json
 
         results = [
-            HealthCheckResult(url="https://example.com", status="healthy", http_status=200),
+            HealthCheckResult(
+                url="https://example.com", status="healthy", http_status=200
+            ),
         ]
 
         report = HealthReport(
@@ -385,7 +388,7 @@ class TestBookmarkHealthMonitor:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -403,8 +406,12 @@ class TestBookmarkHealthMonitor:
         import csv
 
         results = [
-            HealthCheckResult(url="https://example.com", status="healthy", http_status=200),
-            HealthCheckResult(url="https://dead.example.com", status="dead", http_status=404),
+            HealthCheckResult(
+                url="https://example.com", status="healthy", http_status=200
+            ),
+            HealthCheckResult(
+                url="https://dead.example.com", status="dead", http_status=404
+            ),
         ]
 
         report = HealthReport(
@@ -417,7 +424,7 @@ class TestBookmarkHealthMonitor:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -439,6 +446,7 @@ class TestBookmarkHealthMonitor:
 # WaybackMachineClient Tests
 # =========================================================================
 
+
 class TestWaybackMachineClient:
     """Tests for WaybackMachineClient."""
 
@@ -458,12 +466,12 @@ class TestWaybackMachineClient:
             "archived_snapshots": {
                 "closest": {
                     "available": True,
-                    "url": "https://web.archive.org/web/20240101/https://example.com"
+                    "url": "https://web.archive.org/web/20240101/https://example.com",
                 }
             }
         }
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -484,7 +492,7 @@ class TestWaybackMachineClient:
         mock_response.status_code = 200
         mock_response.json.return_value = {"archived_snapshots": {}}
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -500,6 +508,7 @@ class TestWaybackMachineClient:
 # =========================================================================
 # Integration Tests
 # =========================================================================
+
 
 @pytest.mark.integration
 @pytest.mark.network
@@ -523,7 +532,9 @@ class TestHealthMonitorIntegration:
         """Test checking a non-existent domain."""
         monitor = BookmarkHealthMonitor(timeout=5.0)
 
-        result = await monitor.check_single_url("https://this-domain-definitely-does-not-exist-12345.com")
+        result = await monitor.check_single_url(
+            "https://this-domain-definitely-does-not-exist-12345.com"
+        )
 
         # Should be dead or error
         assert result.status in ["dead", "error", "timeout"]
@@ -531,10 +542,7 @@ class TestHealthMonitorIntegration:
     @pytest.mark.asyncio
     async def test_check_multiple_bookmarks(self, sample_bookmarks):
         """Test checking multiple bookmarks."""
-        monitor = BookmarkHealthMonitor(
-            max_concurrent=5,
-            timeout=10.0
-        )
+        monitor = BookmarkHealthMonitor(max_concurrent=5, timeout=10.0)
 
         # Create bookmarks with test URLs
         test_bookmarks = [
@@ -551,6 +559,7 @@ class TestHealthMonitorIntegration:
 # =========================================================================
 # Edge Cases and Error Handling
 # =========================================================================
+
 
 class TestHealthMonitorEdgeCases:
     """Tests for edge cases and error handling."""
@@ -587,15 +596,15 @@ class TestHealthMonitorEdgeCases:
             Bookmark(url="https://example.com", title="Test 1"),
         ]
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(
-                url="https://example.com",
-                status="healthy"
+                url="https://example.com", status="healthy"
             )
 
             report = await monitor.check_health(
-                test_bookmarks,
-                progress_callback=callback
+                test_bookmarks, progress_callback=callback
             )
 
         # Callback should have been called
@@ -607,15 +616,13 @@ class TestHealthMonitorEdgeCases:
         monitor = BookmarkHealthMonitor()
 
         # Without state tracker, all bookmarks should be checked
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
-            mock_check.return_value = HealthCheckResult(
-                url="test",
-                status="healthy"
-            )
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
+            mock_check.return_value = HealthCheckResult(url="test", status="healthy")
 
             report = await monitor.check_health(
-                sample_bookmarks,
-                stale_after=timedelta(days=7)
+                sample_bookmarks, stale_after=timedelta(days=7)
             )
 
         # All bookmarks should be checked since no state tracker
@@ -627,7 +634,7 @@ class TestHealthMonitorEdgeCases:
             HealthCheckResult(
                 url="https://dead.example.com",
                 status="dead",
-                wayback_url="https://web.archive.org/web/20240101/https://dead.example.com"
+                wayback_url="https://web.archive.org/web/20240101/https://dead.example.com",
             ),
         ]
 
@@ -641,7 +648,7 @@ class TestHealthMonitorEdgeCases:
             newly_dead=1,
             recovered=0,
             archived=1,
-            results=results
+            results=results,
         )
 
         assert report.archived == 1
@@ -659,7 +666,7 @@ class TestHealthMonitorEdgeCases:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         str_repr = str(report)

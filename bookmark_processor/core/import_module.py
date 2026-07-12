@@ -225,7 +225,9 @@ class MultiFormatImporter:
             return bookmarks
 
         except ChromeHTMLError as e:
-            raise BookmarkImportError(f"Failed to import Chrome HTML file: {str(e)}") from e
+            raise BookmarkImportError(
+                f"Failed to import Chrome HTML file: {str(e)}"
+            ) from e
 
     def get_file_info(self, file_path: Union[str, Path]) -> dict:
         """

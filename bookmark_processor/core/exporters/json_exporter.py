@@ -32,7 +32,7 @@ class JSONExporter(BookmarkExporter):
         include_metadata: bool = True,
         ensure_ascii: bool = False,
         sort_keys: bool = False,
-        compact: bool = False
+        compact: bool = False,
     ):
         """
         Initialize the JSON exporter.
@@ -59,11 +59,7 @@ class JSONExporter(BookmarkExporter):
     def file_extension(self) -> str:
         return "json"
 
-    def export(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
-    ) -> ExportResult:
+    def export(self, bookmarks: List[Bookmark], output_path: Path) -> ExportResult:
         """
         Export bookmarks to a JSON file.
 
@@ -80,10 +76,7 @@ class JSONExporter(BookmarkExporter):
         warnings = self.validate_bookmarks(bookmarks)
 
         if not bookmarks:
-            raise ExportError(
-                "No bookmarks to export",
-                format_name=self.format_name
-            )
+            raise ExportError("No bookmarks to export", format_name=self.format_name)
 
         # Prepare output path
         path = self.prepare_output_path(output_path)
@@ -104,7 +97,7 @@ class JSONExporter(BookmarkExporter):
                     indent=self.indent,
                     ensure_ascii=self.ensure_ascii,
                     sort_keys=self.sort_keys,
-                    default=str  # Handle datetime and other types
+                    default=str,  # Handle datetime and other types
                 )
 
             self.logger.info(f"Exported {len(bookmarks)} bookmarks to {path}")
@@ -116,9 +109,9 @@ class JSONExporter(BookmarkExporter):
                 additional_info={
                     "include_metadata": self.include_metadata,
                     "compact": self.compact,
-                    "file_size": path.stat().st_size
+                    "file_size": path.stat().st_size,
                 },
-                warnings=warnings
+                warnings=warnings,
             )
 
         except PermissionError as e:
@@ -126,14 +119,14 @@ class JSONExporter(BookmarkExporter):
                 f"Permission denied writing to {path}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
         except Exception as e:
             raise ExportError(
                 f"Failed to export JSON: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
 
     def _build_export_data(self, bookmarks: List[Bookmark]) -> Dict[str, Any]:
@@ -201,9 +194,7 @@ class JSONExporter(BookmarkExporter):
         }
 
     def export_minimal(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
+        self, bookmarks: List[Bookmark], output_path: Path
     ) -> ExportResult:
         """
         Export bookmarks with minimal data (URL, title, tags only).
@@ -221,23 +212,21 @@ class JSONExporter(BookmarkExporter):
             path = path.with_suffix(".json")
 
         minimal_data = [
-            {
-                "url": b.url,
-                "title": b.get_effective_title(),
-                "tags": b.get_final_tags()
-            }
+            {"url": b.url, "title": b.get_effective_title(), "tags": b.get_final_tags()}
             for b in bookmarks
         ]
 
         try:
             with open(path, "w", encoding="utf-8") as f:
-                json.dump(minimal_data, f, indent=self.indent, ensure_ascii=self.ensure_ascii)
+                json.dump(
+                    minimal_data, f, indent=self.indent, ensure_ascii=self.ensure_ascii
+                )
 
             return ExportResult(
                 path=path,
                 count=len(bookmarks),
                 format_name=f"{self.format_name} (minimal)",
-                additional_info={"minimal": True}
+                additional_info={"minimal": True},
             )
 
         except Exception as e:
@@ -245,5 +234,5 @@ class JSONExporter(BookmarkExporter):
                 f"Failed to export minimal JSON: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )

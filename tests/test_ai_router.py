@@ -250,7 +250,9 @@ class TestAIRouter:
         assert decision.engine == "cloud"
         assert "documentation" in decision.reason.lower()
 
-    def test_route_hybrid_low_confidence_escalation(self, sample_bookmark, sample_content):
+    def test_route_hybrid_low_confidence_escalation(
+        self, sample_bookmark, sample_content
+    ):
         """Test hybrid mode escalates low confidence to cloud."""
         config = HybridAIConfig(mode="hybrid", escalation_threshold=0.7)
         mock_cloud = MagicMock()
@@ -388,7 +390,11 @@ class TestAIRouterIntegration:
     def test_process_batch(self, sample_bookmark):
         """Test batch processing."""
         bookmarks = [
-            Bookmark(url=f"https://example.com/{i}", title=f"Article {i}", created=datetime.now())
+            Bookmark(
+                url=f"https://example.com/{i}",
+                title=f"Article {i}",
+                created=datetime.now(),
+            )
             for i in range(5)
         ]
 
@@ -406,7 +412,11 @@ class TestAIRouterIntegration:
     def test_process_batch_with_progress_callback(self, sample_bookmark):
         """Test batch processing with progress callback."""
         bookmarks = [
-            Bookmark(url=f"https://example.com/{i}", title=f"Article {i}", created=datetime.now())
+            Bookmark(
+                url=f"https://example.com/{i}",
+                title=f"Article {i}",
+                created=datetime.now(),
+            )
             for i in range(3)
         ]
 
@@ -414,6 +424,7 @@ class TestAIRouterIntegration:
         mock_local.process_bookmark.side_effect = lambda b: b
 
         progress_calls = []
+
         def progress_callback(current, total):
             progress_calls.append((current, total))
 

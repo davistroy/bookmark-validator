@@ -69,9 +69,7 @@ class TestMarkingBookmarksProcessed:
         bookmark = Bookmark(url="http://test.com", title="Test")
 
         tracker.mark_processed(
-            bookmark,
-            content_hash="custom_hash_value",
-            ai_engine="openai"
+            bookmark, content_hash="custom_hash_value", ai_engine="openai"
         )
 
         info = tracker.get_processed_info("http://test.com")
@@ -86,7 +84,7 @@ class TestMarkingBookmarksProcessed:
             title="Test Title",
             folder="Test/Folder",
             tags=["tag1", "tag2"],
-            enhanced_description="Enhanced description"
+            enhanced_description="Enhanced description",
         )
         bookmark.optimized_tags = ["optimized1", "optimized2"]
 
@@ -155,7 +153,7 @@ class TestNeedsProcessing:
             note="Note",
             excerpt="Excerpt",
             folder="Folder",
-            tags=["tag1", "tag2"]
+            tags=["tag1", "tag2"],
         )
 
         tracker.mark_processed(bookmark, ai_engine="local")
@@ -176,13 +174,13 @@ class TestNeedsProcessing:
                 note="Note",
                 excerpt="Excerpt",
                 folder="Folder",
-                tags=["tag1", "tag2"]
+                tags=["tag1", "tag2"],
             )
             setattr(test_bookmark, field, new_value)
 
-            assert tracker.needs_processing(test_bookmark) is True, (
-                f"Change to {field} should trigger reprocessing"
-            )
+            assert (
+                tracker.needs_processing(test_bookmark) is True
+            ), f"Change to {field} should trigger reprocessing"
 
 
 class TestGetUnprocessed:
@@ -255,10 +253,7 @@ class TestProcessingRuns:
         """Test starting a processing run."""
         tracker = ProcessingStateTracker(temp_dir / "state.db")
 
-        run_id = tracker.start_processing_run(
-            source="CSV File",
-            config_hash="abc123"
-        )
+        run_id = tracker.start_processing_run(source="CSV File", config_hash="abc123")
 
         assert run_id > 0
         assert tracker._current_run_id == run_id
@@ -269,10 +264,7 @@ class TestProcessingRuns:
 
         run_id = tracker.start_processing_run(source="CSV File")
         tracker.complete_processing_run(
-            run_id=run_id,
-            total_processed=100,
-            total_succeeded=95,
-            total_failed=5
+            run_id=run_id, total_processed=100, total_succeeded=95, total_failed=5
         )
 
         last_run = tracker.get_last_run()
@@ -465,7 +457,7 @@ class TestExportImport:
                     "description": "Test description",
                     "tags": "tag1,tag2",
                     "folder": "Test",
-                    "title": "Test Title"
+                    "title": "Test Title",
                 }
             ],
             "processing_runs": [
@@ -476,9 +468,9 @@ class TestExportImport:
                     "total_processed": 100,
                     "total_succeeded": 95,
                     "total_failed": 5,
-                    "config_hash": "xyz789"
+                    "config_hash": "xyz789",
                 }
-            ]
+            ],
         }
 
         import_path = temp_dir / "import.json"
@@ -506,9 +498,7 @@ class TestExportImport:
 
         for i in range(3):
             bookmark = Bookmark(
-                url=f"http://test{i}.com",
-                title=f"Test {i}",
-                tags=[f"tag{i}"]
+                url=f"http://test{i}.com", title=f"Test {i}", tags=[f"tag{i}"]
             )
             tracker1.mark_processed(bookmark, ai_engine="local")
 
@@ -542,7 +532,7 @@ class TestEdgeCases:
         bookmark = Bookmark(
             url="http://test.com/\u00e9\u00e0\u00fc",
             title="\u4e2d\u6587\u6807\u9898",  # Chinese characters
-            note="Emoji test with special chars: \u00e9\u00e0\u00fc"  # Valid unicode
+            note="Emoji test with special chars: \u00e9\u00e0\u00fc",  # Valid unicode
         )
 
         tracker.mark_processed(bookmark, ai_engine="local")
@@ -618,11 +608,7 @@ class TestIntegration:
             bookmark.enhanced_description = f"Processed: {bookmark.title}"
             tracker.mark_processed(bookmark, ai_engine="claude")
 
-        tracker.complete_processing_run(
-            run1_id,
-            total_processed=3,
-            total_succeeded=3
-        )
+        tracker.complete_processing_run(run1_id, total_processed=3, total_succeeded=3)
 
         # Second run - same bookmarks, none should need processing
         run2_id = tracker.start_processing_run(source="CSV")
@@ -631,9 +617,7 @@ class TestIntegration:
         assert len(unprocessed) == 0
 
         # Third run - add new bookmark and modify existing
-        third_batch = first_batch + [
-            Bookmark(url="http://d.com", title="D")  # New
-        ]
+        third_batch = first_batch + [Bookmark(url="http://d.com", title="D")]  # New
         third_batch[0].title = "A Modified"  # Modified
 
         run3_id = tracker.start_processing_run(source="CSV")

@@ -22,7 +22,6 @@ from bookmark_processor.core.interactive_processor import (
 )
 from bookmark_processor.core.ai_processor import AIProcessingResult
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
@@ -197,7 +196,10 @@ class TestProposedChanges:
         result = sample_proposed_changes.to_dict()
         assert isinstance(result, dict)
         assert result["url"] == sample_proposed_changes.url
-        assert result["description_confidence"] == sample_proposed_changes.description_confidence
+        assert (
+            result["description_confidence"]
+            == sample_proposed_changes.description_confidence
+        )
         assert "overall_confidence" in result
 
 
@@ -261,7 +263,9 @@ class TestInteractiveProcessor:
         processor = InteractiveProcessor(confirm_threshold=0.7)
         assert processor.confirm_threshold == 0.7
 
-    def test_propose_changes(self, interactive_processor, sample_bookmark, sample_ai_result):
+    def test_propose_changes(
+        self, interactive_processor, sample_bookmark, sample_ai_result
+    ):
         """Test proposing changes for a bookmark."""
         changes = interactive_processor.propose_changes(
             bookmark=sample_bookmark,
@@ -283,7 +287,9 @@ class TestInteractiveProcessor:
             ai_result=None,
         )
 
-        assert changes.proposed_description == sample_bookmark.get_effective_description()
+        assert (
+            changes.proposed_description == sample_bookmark.get_effective_description()
+        )
         assert changes.description_confidence == 1.0
         assert changes.description_method == "unchanged"
 
@@ -307,7 +313,9 @@ class TestInteractiveProcessor:
 class TestActionHandling:
     """Tests for action handling."""
 
-    def test_apply_accept_all(self, interactive_processor, sample_bookmark, sample_proposed_changes):
+    def test_apply_accept_all(
+        self, interactive_processor, sample_bookmark, sample_proposed_changes
+    ):
         """Test accepting all changes."""
         # Use internal method to apply action
         result = interactive_processor._apply_action(
@@ -323,7 +331,9 @@ class TestActionHandling:
         assert "folder" in result.changes_applied
         assert result.was_modified is True
 
-    def test_apply_description_only(self, interactive_processor, sample_bookmark, sample_proposed_changes):
+    def test_apply_description_only(
+        self, interactive_processor, sample_bookmark, sample_proposed_changes
+    ):
         """Test accepting description only."""
         result = interactive_processor._apply_action(
             bookmark=sample_bookmark,
@@ -335,7 +345,9 @@ class TestActionHandling:
         assert "tags" not in result.changes_applied
         assert "folder" not in result.changes_applied
 
-    def test_apply_tags_only(self, interactive_processor, sample_bookmark, sample_proposed_changes):
+    def test_apply_tags_only(
+        self, interactive_processor, sample_bookmark, sample_proposed_changes
+    ):
         """Test accepting tags only."""
         result = interactive_processor._apply_action(
             bookmark=sample_bookmark,
@@ -346,7 +358,9 @@ class TestActionHandling:
         assert "tags" in result.changes_applied
         assert "description" not in result.changes_applied
 
-    def test_apply_folder_only(self, interactive_processor, sample_bookmark, sample_proposed_changes):
+    def test_apply_folder_only(
+        self, interactive_processor, sample_bookmark, sample_proposed_changes
+    ):
         """Test accepting folder only."""
         result = interactive_processor._apply_action(
             bookmark=sample_bookmark,
@@ -358,7 +372,9 @@ class TestActionHandling:
         assert "description" not in result.changes_applied
         assert "tags" not in result.changes_applied
 
-    def test_apply_skip(self, interactive_processor, sample_bookmark, sample_proposed_changes):
+    def test_apply_skip(
+        self, interactive_processor, sample_bookmark, sample_proposed_changes
+    ):
         """Test skipping a bookmark."""
         result = interactive_processor._apply_action(
             bookmark=sample_bookmark,
@@ -439,7 +455,9 @@ class TestStatisticsUpdate:
 class TestAutoAccept:
     """Tests for auto-accept functionality."""
 
-    def test_auto_accept_above_threshold(self, sample_bookmark, sample_proposed_changes):
+    def test_auto_accept_above_threshold(
+        self, sample_bookmark, sample_proposed_changes
+    ):
         """Test auto-accept when confidence is above threshold."""
         processor = InteractiveProcessor(confirm_threshold=0.5)
 
@@ -450,7 +468,9 @@ class TestAutoAccept:
         assert result.action_taken == InteractiveAction.ACCEPT_ALL
         assert result.was_modified is True
 
-    def test_auto_accept_preserves_original_state(self, sample_bookmark, sample_proposed_changes):
+    def test_auto_accept_preserves_original_state(
+        self, sample_bookmark, sample_proposed_changes
+    ):
         """Test that auto-accept preserves original state for undo."""
         processor = InteractiveProcessor(confirm_threshold=0.5)
         result = processor._auto_accept(sample_bookmark, sample_proposed_changes)
@@ -468,7 +488,9 @@ class TestAutoAccept:
 class TestUndo:
     """Tests for undo functionality."""
 
-    def test_undo_restores_state(self, interactive_processor, sample_bookmark, sample_proposed_changes):
+    def test_undo_restores_state(
+        self, interactive_processor, sample_bookmark, sample_proposed_changes
+    ):
         """Test undo restores bookmark to previous state."""
         # Apply changes
         result = interactive_processor._apply_action(
@@ -486,7 +508,10 @@ class TestUndo:
         )
 
         # Verify changes applied
-        assert sample_bookmark.enhanced_description == sample_proposed_changes.proposed_description
+        assert (
+            sample_bookmark.enhanced_description
+            == sample_proposed_changes.proposed_description
+        )
 
         # Undo
         interactive_processor._undo_last()
@@ -578,8 +603,10 @@ class TestInteractiveProcessorIntegration:
         results = interactive_processor.process_interactive([])
         assert results == []
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
-    def test_process_with_skip_all(self, mock_prompt, interactive_processor, sample_bookmarks):
+    @patch.object(InteractiveProcessor, "_prompt_action")
+    def test_process_with_skip_all(
+        self, mock_prompt, interactive_processor, sample_bookmarks
+    ):
         """Test processing with skip action for all."""
         mock_prompt.return_value = InteractiveAction.SKIP
 
@@ -610,8 +637,10 @@ class TestInteractiveProcessorIntegration:
             assert result.action_taken == InteractiveAction.SKIP
             assert result.was_modified is False
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
-    def test_process_with_quit(self, mock_prompt, interactive_processor, sample_bookmarks):
+    @patch.object(InteractiveProcessor, "_prompt_action")
+    def test_process_with_quit(
+        self, mock_prompt, interactive_processor, sample_bookmarks
+    ):
         """Test processing with quit action - verifies QUIT breaks the loop."""
         # First call returns QUIT, which should stop processing
         mock_prompt.return_value = InteractiveAction.QUIT

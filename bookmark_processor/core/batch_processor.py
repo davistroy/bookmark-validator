@@ -295,10 +295,7 @@ class BatchProcessor:
         if session_cost > 0:
             print("\n💰 Cost Analysis:")
             print(f"  💵 Session Cost: ${session_cost:.4f}")
-            print(
-                f"  📊 Cost/Hour: "
-                f"${session_info.get('cost_per_hour', 0.0):.4f}"
-            )
+            print(f"  📊 Cost/Hour: " f"${session_info.get('cost_per_hour', 0.0):.4f}")
             print(
                 f"  📈 Success Rate: "
                 f"{session_info.get('success_rate_percent', 0.0):.1f}%"

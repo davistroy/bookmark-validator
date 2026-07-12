@@ -643,8 +643,7 @@ For more information: https://github.com/davistroy/bookmark-validator
         required=True,
         metavar="FILE",
         help=(
-            "Input CSV file (raindrop.io export format). "
-            "Must exist and be readable."
+            "Input CSV file (raindrop.io export format). " "Must exist and be readable."
         ),
     )
 
@@ -683,9 +682,7 @@ For more information: https://github.com/davistroy/bookmark-validator
         type=int,
         default=3,
         metavar="N",
-        help=(
-            "Maximum retry attempts for failed URLs (0-10, default: 3)."
-        ),
+        help=("Maximum retry attempts for failed URLs (0-10, default: 3)."),
     )
 
     # AI engine selection

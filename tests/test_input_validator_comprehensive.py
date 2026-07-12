@@ -33,7 +33,6 @@ from bookmark_processor.utils.input_validator import (
     create_url_validator,
 )
 
-
 # ============================================================================
 # ValidationSeverity Tests
 # ============================================================================
@@ -142,17 +141,13 @@ class TestValidationResult:
 
     def test_create_result_with_metadata(self):
         """Test creating a result with metadata."""
-        result = ValidationResult(
-            is_valid=True, metadata={"key": "value", "count": 42}
-        )
+        result = ValidationResult(is_valid=True, metadata={"key": "value", "count": 42})
         assert result.metadata == {"key": "value", "count": 42}
 
     def test_add_issue_info(self):
         """Test adding an info-level issue."""
         result = ValidationResult(is_valid=True)
-        result.add_issue(
-            ValidationSeverity.INFO, "Info message", field_name="field"
-        )
+        result.add_issue(ValidationSeverity.INFO, "Info message", field_name="field")
         assert len(result.issues) == 1
         assert result.issues[0].severity == ValidationSeverity.INFO
         assert result.is_valid is True  # Info doesn't affect validity
@@ -169,9 +164,7 @@ class TestValidationResult:
     def test_add_issue_error(self):
         """Test adding an error-level issue invalidates result."""
         result = ValidationResult(is_valid=True)
-        result.add_issue(
-            ValidationSeverity.ERROR, "Error message", field_name="field"
-        )
+        result.add_issue(ValidationSeverity.ERROR, "Error message", field_name="field")
         assert len(result.issues) == 1
         assert result.is_valid is False
 
@@ -744,9 +737,7 @@ class TestURLValidator:
 
     def test_validate_empty_url_required(self):
         """Test validating empty URL when required."""
-        validator = URLValidator(
-            field_name="test", required=True, security_check=False
-        )
+        validator = URLValidator(field_name="test", required=True, security_check=False)
         result = validator.validate("")
         assert result.is_valid is False
 
@@ -978,9 +969,7 @@ class TestCompositeValidator:
         """Test composite with multiple validators."""
         string_validator = StringValidator(field_name="test", min_length=3)
         second_validator = StringValidator(field_name="test", max_length=10)
-        composite = CompositeValidator(
-            validators=[string_validator, second_validator]
-        )
+        composite = CompositeValidator(validators=[string_validator, second_validator])
         result = composite.validate("hello")
         assert result.is_valid is True
 
@@ -988,9 +977,7 @@ class TestCompositeValidator:
         """Test when first validator fails."""
         string_validator = StringValidator(field_name="test", min_length=10)
         second_validator = StringValidator(field_name="test")
-        composite = CompositeValidator(
-            validators=[string_validator, second_validator]
-        )
+        composite = CompositeValidator(validators=[string_validator, second_validator])
         result = composite.validate("hi")
         assert result.is_valid is False
 
@@ -998,9 +985,7 @@ class TestCompositeValidator:
         """Test when second validator fails."""
         string_validator = StringValidator(field_name="test")
         second_validator = StringValidator(field_name="test", max_length=3)
-        composite = CompositeValidator(
-            validators=[string_validator, second_validator]
-        )
+        composite = CompositeValidator(validators=[string_validator, second_validator])
         result = composite.validate("hello")
         assert result.is_valid is False
 
@@ -1008,9 +993,7 @@ class TestCompositeValidator:
         """Test stop_on_error stops on first error."""
         first = StringValidator(field_name="test", min_length=10)
         second = StringValidator(field_name="test", min_length=20)
-        composite = CompositeValidator(
-            validators=[first, second], stop_on_error=True
-        )
+        composite = CompositeValidator(validators=[first, second], stop_on_error=True)
         result = composite.validate("hi")
         assert result.is_valid is False
         # Should only have one error from first validator
@@ -1020,9 +1003,7 @@ class TestCompositeValidator:
         """Test stop_on_error=False continues validation."""
         first = StringValidator(field_name="test", min_length=10)
         second = StringValidator(field_name="test", max_length=1)
-        composite = CompositeValidator(
-            validators=[first, second], stop_on_error=False
-        )
+        composite = CompositeValidator(validators=[first, second], stop_on_error=False)
         result = composite.validate("hello")
         assert result.is_valid is False
         # Should have errors from both validators
@@ -1354,6 +1335,7 @@ class TestValidatorBaseClass:
 
     def test_check_required_and_none_required_with_empty_dict(self):
         """Test _check_required_and_none with required field and empty dict."""
+
         # Create a custom validator to test dict handling
         class DictValidator(Validator):
             def validate(self, value):
@@ -1417,9 +1399,7 @@ class TestAdditionalCoverage:
     def test_url_validator_empty_string_required(self):
         """Test URL validation with empty string when required."""
         # Tests line 564
-        validator = URLValidator(
-            field_name="test", required=True, security_check=False
-        )
+        validator = URLValidator(field_name="test", required=True, security_check=False)
         result = validator.validate("")
         assert result.is_valid is False
         assert "empty" in str(result.get_errors()[0].message).lower()
@@ -1429,9 +1409,7 @@ class TestAdditionalCoverage:
         # Tests line 726
         # Create an item validator that will generate warnings (type conversion)
         item_validator = StringValidator(field_name="item")
-        validator = ListValidator(
-            field_name="test", item_validator=item_validator
-        )
+        validator = ListValidator(field_name="test", item_validator=item_validator)
         # Passing integers will cause conversion info (not warnings)
         # We need to create a scenario where item_result.get_warnings() returns items
         result = validator.validate([123, 456])
@@ -1451,9 +1429,7 @@ class TestAdditionalCoverage:
     def test_number_validator_none_after_check(self):
         """Test NumberValidator handles None correctly after basic check."""
         # Tests lines 366-367
-        validator = NumberValidator(
-            field_name="test", allow_none=True, required=False
-        )
+        validator = NumberValidator(field_name="test", allow_none=True, required=False)
         result = validator.validate(None)
         assert result.is_valid is True
         assert result.sanitized_value is None
@@ -1461,9 +1437,7 @@ class TestAdditionalCoverage:
     def test_list_validator_none_after_check(self):
         """Test ListValidator handles None correctly after basic check."""
         # Tests lines 678-679
-        validator = ListValidator(
-            field_name="test", allow_none=True, required=False
-        )
+        validator = ListValidator(field_name="test", allow_none=True, required=False)
         result = validator.validate(None)
         assert result.is_valid is True
         assert result.sanitized_value is None
@@ -1481,9 +1455,7 @@ class TestAdditionalCoverage:
     def test_string_validator_none_after_check(self):
         """Test StringValidator handles None correctly after basic check."""
         # Tests lines 282-283
-        validator = StringValidator(
-            field_name="test", allow_none=True, required=False
-        )
+        validator = StringValidator(field_name="test", allow_none=True, required=False)
         result = validator.validate(None)
         assert result.is_valid is True
         assert result.sanitized_value is None

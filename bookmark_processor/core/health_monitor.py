@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
@@ -110,6 +111,7 @@ class HealthReport:
 
 class HealthMonitorError(Exception):
     """Exception raised by health monitor operations."""
+
     pass
 
 
@@ -144,10 +146,7 @@ class WaybackMachineClient:
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    self.AVAILABILITY_API,
-                    params={"url": url}
-                )
+                response = await client.get(self.AVAILABILITY_API, params={"url": url})
 
                 if response.status_code == 200:
                     data = response.json()
@@ -177,8 +176,7 @@ class WaybackMachineClient:
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(
-                    f"{self.SAVE_API}{url}",
-                    follow_redirects=True
+                    f"{self.SAVE_API}{url}", follow_redirects=True
                 )
 
                 if response.status_code == 200:
@@ -219,7 +217,7 @@ class BookmarkHealthMonitor:
         max_concurrent: int = 20,
         timeout: float = 30.0,
         follow_redirects: bool = True,
-        max_redirects: int = 5
+        max_redirects: int = 5,
     ):
         """
         Initialize the health monitor.
@@ -258,7 +256,7 @@ class BookmarkHealthMonitor:
         self,
         bookmarks: List[Bookmark],
         stale_after: Optional[timedelta] = None,
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
     ) -> HealthReport:
         """
         Check the health of bookmarks.
@@ -275,9 +273,16 @@ class BookmarkHealthMonitor:
 
         if not bookmarks:
             return HealthReport(
-                total=0, healthy=0, redirected=0, dead=0, timeout=0,
-                content_changed=0, newly_dead=0, recovered=0, archived=0,
-                results=[]
+                total=0,
+                healthy=0,
+                redirected=0,
+                dead=0,
+                timeout=0,
+                content_changed=0,
+                newly_dead=0,
+                recovered=0,
+                archived=0,
+                results=[],
             )
 
         # Filter bookmarks if stale_after is specified
@@ -287,9 +292,16 @@ class BookmarkHealthMonitor:
         if not bookmarks:
             self.logger.info("No stale bookmarks to check")
             return HealthReport(
-                total=0, healthy=0, redirected=0, dead=0, timeout=0,
-                content_changed=0, newly_dead=0, recovered=0, archived=0,
-                results=[]
+                total=0,
+                healthy=0,
+                redirected=0,
+                dead=0,
+                timeout=0,
+                content_changed=0,
+                newly_dead=0,
+                recovered=0,
+                archived=0,
+                results=[],
             )
 
         self.logger.info(f"Checking health of {len(bookmarks)} bookmarks")
@@ -313,9 +325,7 @@ class BookmarkHealthMonitor:
         return report
 
     def _filter_stale(
-        self,
-        bookmarks: List[Bookmark],
-        stale_after: timedelta
+        self, bookmarks: List[Bookmark], stale_after: timedelta
     ) -> List[Bookmark]:
         """Filter to only bookmarks that need checking."""
         if not self.state_tracker:
@@ -348,9 +358,7 @@ class BookmarkHealthMonitor:
         pass
 
     async def _check_all(
-        self,
-        bookmarks: List[Bookmark],
-        progress_callback: Optional[callable] = None
+        self, bookmarks: List[Bookmark], progress_callback: Optional[callable] = None
     ) -> List[HealthCheckResult]:
         """Check all bookmarks concurrently."""
         tasks = [
@@ -365,11 +373,11 @@ class BookmarkHealthMonitor:
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 self.logger.error(f"Check failed: {result}")
-                processed_results.append(HealthCheckResult(
-                    url=bookmarks[i].url,
-                    status="error",
-                    error_message=str(result)
-                ))
+                processed_results.append(
+                    HealthCheckResult(
+                        url=bookmarks[i].url, status="error", error_message=str(result)
+                    )
+                )
             else:
                 processed_results.append(result)
 
@@ -380,7 +388,7 @@ class BookmarkHealthMonitor:
         bookmark: Bookmark,
         index: int,
         total: int,
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
     ) -> HealthCheckResult:
         """Check a single bookmark with semaphore limiting."""
         async with self._semaphore:
@@ -412,7 +420,7 @@ class BookmarkHealthMonitor:
                 timeout=self.timeout,
                 follow_redirects=self.follow_redirects,
                 max_redirects=self.max_redirects,
-                headers={"User-Agent": self.USER_AGENT}
+                headers={"User-Agent": self.USER_AGENT},
             ) as client:
                 # Use HEAD request first for efficiency
                 try:
@@ -434,7 +442,7 @@ class BookmarkHealthMonitor:
                             http_status=response.status_code,
                             redirect_url=redirect_url,
                             last_checked=datetime.now(),
-                            response_time=response_time
+                            response_time=response_time,
                         )
 
                 # Check status
@@ -450,7 +458,7 @@ class BookmarkHealthMonitor:
                         http_status=response.status_code,
                         content_changed=content_changed,
                         last_checked=datetime.now(),
-                        response_time=response_time
+                        response_time=response_time,
                     )
                 else:
                     return HealthCheckResult(
@@ -459,7 +467,7 @@ class BookmarkHealthMonitor:
                         http_status=response.status_code,
                         last_checked=datetime.now(),
                         response_time=response_time,
-                        error_message=f"HTTP {response.status_code}"
+                        error_message=f"HTTP {response.status_code}",
                     )
 
         except httpx.TimeoutException:
@@ -467,34 +475,32 @@ class BookmarkHealthMonitor:
                 url=url,
                 status="timeout",
                 last_checked=datetime.now(),
-                error_message="Request timed out"
+                error_message="Request timed out",
             )
         except httpx.TooManyRedirects:
             return HealthCheckResult(
                 url=url,
                 status="dead",
                 last_checked=datetime.now(),
-                error_message="Too many redirects"
+                error_message="Too many redirects",
             )
         except httpx.ConnectError as e:
             return HealthCheckResult(
                 url=url,
                 status="dead",
                 last_checked=datetime.now(),
-                error_message=f"Connection error: {e}"
+                error_message=f"Connection error: {e}",
             )
         except Exception as e:
             return HealthCheckResult(
                 url=url,
                 status="error",
                 last_checked=datetime.now(),
-                error_message=str(e)
+                error_message=str(e),
             )
 
     async def _check_content_changed(
-        self,
-        bookmark: Bookmark,
-        client: httpx.AsyncClient
+        self, bookmark: Bookmark, client: httpx.AsyncClient
     ) -> bool:
         """Check if the content of a page has changed."""
         if not self.state_tracker:
@@ -512,7 +518,9 @@ class BookmarkHealthMonitor:
             response = await client.get(bookmark.url)
             content = response.text[:10000]  # Only hash first 10KB
 
-            current_hash = hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
+            current_hash = hashlib.md5(
+                content.encode(), usedforsecurity=False
+            ).hexdigest()
 
             return current_hash != stored_hash
 
@@ -521,9 +529,7 @@ class BookmarkHealthMonitor:
             return False
 
     def _compile_report(
-        self,
-        results: List[HealthCheckResult],
-        start_time: datetime
+        self, results: List[HealthCheckResult], start_time: datetime
     ) -> HealthReport:
         """Compile results into a health report."""
         # Count statuses
@@ -533,7 +539,7 @@ class BookmarkHealthMonitor:
             "dead": 0,
             "timeout": 0,
             "content_changed": 0,
-            "error": 0
+            "error": 0,
         }
 
         for result in results:
@@ -568,7 +574,7 @@ class BookmarkHealthMonitor:
             recovered=recovered,
             archived=0,  # Updated after archiving
             results=results,
-            duration_seconds=duration
+            duration_seconds=duration,
         )
 
     async def _archive_dead_links(self, report: HealthReport) -> None:
@@ -633,7 +639,9 @@ class BookmarkHealthMonitor:
         lines.append("SUMMARY")
         lines.append("-" * 40)
         lines.append(f"Total checked:    {report.total}")
-        lines.append(f"Healthy:          {report.healthy} ({report.healthy_percentage:.1f}%)")
+        lines.append(
+            f"Healthy:          {report.healthy} ({report.healthy_percentage:.1f}%)"
+        )
         lines.append(f"Redirected:       {report.redirected}")
         lines.append(f"Dead/Broken:      {report.dead}")
         lines.append(f"Timeouts:         {report.timeout}")
@@ -655,7 +663,7 @@ class BookmarkHealthMonitor:
                     "timeout": "[TIMEOUT]",
                     "redirected": "[REDIRECT]",
                     "content_changed": "[CHANGED]",
-                    "error": "[ERROR]"
+                    "error": "[ERROR]",
                 }.get(result.status, "[?]")
 
                 lines.append(f"{status_emoji} {result.url[:60]}")
@@ -673,10 +681,7 @@ class BookmarkHealthMonitor:
         return "\n".join(lines)
 
     def save_report(
-        self,
-        report: HealthReport,
-        output_path: Path,
-        format: str = "text"
+        self, report: HealthReport, output_path: Path, format: str = "text"
     ) -> None:
         """
         Save the health report to a file.
@@ -706,7 +711,7 @@ class BookmarkHealthMonitor:
                     "timeout": report.timeout,
                     "content_changed": report.content_changed,
                     "checked_at": report.checked_at.isoformat(),
-                    "duration_seconds": report.duration_seconds
+                    "duration_seconds": report.duration_seconds,
                 },
                 "results": [
                     {
@@ -716,10 +721,10 @@ class BookmarkHealthMonitor:
                         "redirect_url": r.redirect_url,
                         "wayback_url": r.wayback_url,
                         "response_time": r.response_time,
-                        "error_message": r.error_message
+                        "error_message": r.error_message,
                     }
                     for r in report.results
-                ]
+                ],
             }
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, default=str)
@@ -727,15 +732,28 @@ class BookmarkHealthMonitor:
         elif format == "csv":
             with open(output_path, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow([
-                    "URL", "Status", "HTTP Status", "Redirect URL",
-                    "Wayback URL", "Response Time", "Error"
-                ])
+                writer.writerow(
+                    [
+                        "URL",
+                        "Status",
+                        "HTTP Status",
+                        "Redirect URL",
+                        "Wayback URL",
+                        "Response Time",
+                        "Error",
+                    ]
+                )
                 for r in report.results:
-                    writer.writerow([
-                        r.url, r.status, r.http_status or "",
-                        r.redirect_url or "", r.wayback_url or "",
-                        r.response_time or "", r.error_message or ""
-                    ])
+                    writer.writerow(
+                        [
+                            r.url,
+                            r.status,
+                            r.http_status or "",
+                            r.redirect_url or "",
+                            r.wayback_url or "",
+                            r.response_time or "",
+                            r.error_message or "",
+                        ]
+                    )
 
         self.logger.info(f"Saved health report to {output_path}")

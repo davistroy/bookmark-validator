@@ -22,10 +22,7 @@ class TestMCPClientBasics:
 
     def test_initialization(self):
         """Test MCPClient initialization."""
-        client = MCPClient(
-            server_url="http://localhost:3000",
-            timeout=30.0
-        )
+        client = MCPClient(server_url="http://localhost:3000", timeout=30.0)
 
         assert client.server_url == "http://localhost:3000"
         assert client.timeout == 30.0
@@ -35,8 +32,7 @@ class TestMCPClientBasics:
     def test_initialization_with_token(self):
         """Test MCPClient initialization with access token."""
         client = MCPClient(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         assert client.access_token == "test-token"
@@ -107,10 +103,7 @@ class TestMCPClientToolCalls:
             client = MCPClient("http://localhost:3000")
 
             async with client:
-                result = await client.call_tool(
-                    "test_tool",
-                    {"param1": "value1"}
-                )
+                result = await client.call_tool("test_tool", {"param1": "value1"})
 
             assert result == {"result": "success"}
 

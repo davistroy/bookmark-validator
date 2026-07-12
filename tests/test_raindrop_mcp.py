@@ -36,7 +36,9 @@ class MockMCPClient:
     async def __aexit__(self, *args):
         pass
 
-    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    async def call_tool(
+        self, tool_name: str, arguments: Dict[str, Any]
+    ) -> Dict[str, Any]:
         self.calls.append((tool_name, arguments))
         if tool_name in self.responses:
             return self.responses[tool_name]
@@ -52,8 +54,7 @@ class TestRaindropMCPDataSourceBasics:
     def test_initialization(self):
         """Test RaindropMCPDataSource initialization."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         assert source.server_url == "http://localhost:3000"
@@ -63,8 +64,7 @@ class TestRaindropMCPDataSourceBasics:
     def test_source_name(self):
         """Test source_name property."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         assert source.source_name == "Raindrop.io (MCP)"
@@ -72,8 +72,7 @@ class TestRaindropMCPDataSourceBasics:
     def test_supports_incremental(self):
         """Test supports_incremental property."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         assert source.supports_incremental is True
@@ -81,8 +80,7 @@ class TestRaindropMCPDataSourceBasics:
     def test_repr(self):
         """Test string representation."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         repr_str = repr(source)
@@ -97,20 +95,20 @@ class TestRaindropMCPDataSourceContextManager:
     async def test_context_manager_enter(self):
         """Test entering context manager connects to MCP server."""
         with patch.object(
-            RaindropMCPDataSource,
-            "_load_collections",
-            new_callable=AsyncMock
+            RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
         ):
             source = RaindropMCPDataSource(
-                server_url="http://localhost:3000",
-                access_token="test-token"
+                server_url="http://localhost:3000", access_token="test-token"
             )
 
             # Create mock client with async methods
             mock_http_client = AsyncMock()
             mock_http_client.aclose = AsyncMock()
 
-            with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+            with patch(
+                "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                return_value=mock_http_client,
+            ):
                 async with source:
                     assert source.is_connected is True
 
@@ -118,20 +116,20 @@ class TestRaindropMCPDataSourceContextManager:
     async def test_context_manager_exit(self):
         """Test exiting context manager disconnects."""
         with patch.object(
-            RaindropMCPDataSource,
-            "_load_collections",
-            new_callable=AsyncMock
+            RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
         ):
             source = RaindropMCPDataSource(
-                server_url="http://localhost:3000",
-                access_token="test-token"
+                server_url="http://localhost:3000", access_token="test-token"
             )
 
             # Create mock client with async methods
             mock_http_client = AsyncMock()
             mock_http_client.aclose = AsyncMock()
 
-            with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+            with patch(
+                "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                return_value=mock_http_client,
+            ):
                 async with source:
                     pass
 
@@ -163,19 +161,19 @@ class TestRaindropMCPDataSourceFetchBookmarks:
             MCPClient,
             "call_tool",
             new_callable=AsyncMock,
-            return_value={"raindrops": mock_bookmarks}
+            return_value={"raindrops": mock_bookmarks},
         ):
             with patch.object(
-                RaindropMCPDataSource,
-                "_load_collections",
-                new_callable=AsyncMock
+                RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
             ):
                 source = RaindropMCPDataSource(
-                    server_url="http://localhost:3000",
-                    access_token="test-token"
+                    server_url="http://localhost:3000", access_token="test-token"
                 )
 
-                with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+                with patch(
+                    "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                    return_value=mock_http_client,
+                ):
                     async with source:
                         bookmarks = await source.fetch_bookmarks()
 
@@ -194,20 +192,20 @@ class TestRaindropMCPDataSourceFetchBookmarks:
             MCPClient,
             "call_tool",
             new_callable=AsyncMock,
-            return_value={"raindrops": []}
+            return_value={"raindrops": []},
         ) as mock_call:
             with patch.object(
-                RaindropMCPDataSource,
-                "_load_collections",
-                new_callable=AsyncMock
+                RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
             ):
                 source = RaindropMCPDataSource(
-                    server_url="http://localhost:3000",
-                    access_token="test-token"
+                    server_url="http://localhost:3000", access_token="test-token"
                 )
                 source._collection_cache = {"tech": 123}
 
-                with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+                with patch(
+                    "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                    return_value=mock_http_client,
+                ):
                     async with source:
                         await source.fetch_bookmarks({"collection": "Tech"})
 
@@ -225,19 +223,19 @@ class TestRaindropMCPDataSourceFetchBookmarks:
             MCPClient,
             "call_tool",
             new_callable=AsyncMock,
-            return_value={"raindrops": []}
+            return_value={"raindrops": []},
         ) as mock_call:
             with patch.object(
-                RaindropMCPDataSource,
-                "_load_collections",
-                new_callable=AsyncMock
+                RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
             ):
                 source = RaindropMCPDataSource(
-                    server_url="http://localhost:3000",
-                    access_token="test-token"
+                    server_url="http://localhost:3000", access_token="test-token"
                 )
 
-                with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+                with patch(
+                    "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                    return_value=mock_http_client,
+                ):
                     async with source:
                         await source.fetch_bookmarks({"tags": ["python", "ai"]})
 
@@ -259,25 +257,23 @@ class TestRaindropMCPDataSourceUpdateBookmark:
             MCPClient,
             "call_tool",
             new_callable=AsyncMock,
-            return_value={"success": True}
+            return_value={"success": True},
         ):
             with patch.object(
-                RaindropMCPDataSource,
-                "_load_collections",
-                new_callable=AsyncMock
+                RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
             ):
                 source = RaindropMCPDataSource(
-                    server_url="http://localhost:3000",
-                    access_token="test-token"
+                    server_url="http://localhost:3000", access_token="test-token"
                 )
 
                 bookmark = Bookmark(
-                    id="12345",
-                    title="Updated Title",
-                    url="https://example.com"
+                    id="12345", title="Updated Title", url="https://example.com"
                 )
 
-                with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+                with patch(
+                    "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                    return_value=mock_http_client,
+                ):
                     async with source:
                         result = await source.update_bookmark(bookmark)
 
@@ -290,21 +286,18 @@ class TestRaindropMCPDataSourceUpdateBookmark:
         mock_http_client.aclose = AsyncMock()
 
         with patch.object(
-            RaindropMCPDataSource,
-            "_load_collections",
-            new_callable=AsyncMock
+            RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
         ):
             source = RaindropMCPDataSource(
-                server_url="http://localhost:3000",
-                access_token="test-token"
+                server_url="http://localhost:3000", access_token="test-token"
             )
 
-            bookmark = Bookmark(
-                title="Test",
-                url="https://example.com"
-            )  # No ID
+            bookmark = Bookmark(title="Test", url="https://example.com")  # No ID
 
-            with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+            with patch(
+                "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                return_value=mock_http_client,
+            ):
                 async with source:
                     result = await source.update_bookmark(bookmark)
 
@@ -324,16 +317,13 @@ class TestRaindropMCPDataSourceBulkUpdate:
             MCPClient,
             "call_tool",
             new_callable=AsyncMock,
-            return_value={"modified": 2, "errors": []}
+            return_value={"modified": 2, "errors": []},
         ):
             with patch.object(
-                RaindropMCPDataSource,
-                "_load_collections",
-                new_callable=AsyncMock
+                RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
             ):
                 source = RaindropMCPDataSource(
-                    server_url="http://localhost:3000",
-                    access_token="test-token"
+                    server_url="http://localhost:3000", access_token="test-token"
                 )
 
                 bookmarks = [
@@ -341,7 +331,10 @@ class TestRaindropMCPDataSourceBulkUpdate:
                     Bookmark(id="2", title="Title 2", url="https://example2.com"),
                 ]
 
-                with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+                with patch(
+                    "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                    return_value=mock_http_client,
+                ):
                     async with source:
                         result = await source.bulk_update(bookmarks)
 
@@ -356,16 +349,16 @@ class TestRaindropMCPDataSourceBulkUpdate:
         mock_http_client.aclose = AsyncMock()
 
         with patch.object(
-            RaindropMCPDataSource,
-            "_load_collections",
-            new_callable=AsyncMock
+            RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
         ):
             source = RaindropMCPDataSource(
-                server_url="http://localhost:3000",
-                access_token="test-token"
+                server_url="http://localhost:3000", access_token="test-token"
             )
 
-            with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+            with patch(
+                "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                return_value=mock_http_client,
+            ):
                 async with source:
                     result = await source.bulk_update([])
 
@@ -379,8 +372,7 @@ class TestRaindropMCPDataSourceConversion:
     def test_api_to_bookmark_conversion(self):
         """Test converting API response to Bookmark."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         api_data = {
@@ -407,8 +399,7 @@ class TestRaindropMCPDataSourceConversion:
     def test_bookmark_to_api_update_conversion(self):
         """Test converting Bookmark to API update format."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         bookmark = Bookmark(
@@ -434,13 +425,16 @@ class TestRaindropMCPDataSourceBackupRestore:
     async def test_create_backup(self):
         """Test creating a backup."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         bookmarks = [
-            Bookmark(id="1", title="Bookmark 1", url="https://example1.com", tags=["tag1"]),
-            Bookmark(id="2", title="Bookmark 2", url="https://example2.com", tags=["tag2"]),
+            Bookmark(
+                id="1", title="Bookmark 1", url="https://example1.com", tags=["tag1"]
+            ),
+            Bookmark(
+                id="2", title="Bookmark 2", url="https://example2.com", tags=["tag2"]
+            ),
         ]
 
         backup = await source.create_backup(bookmarks)
@@ -461,16 +455,13 @@ class TestRaindropMCPDataSourceBackupRestore:
             MCPClient,
             "call_tool",
             new_callable=AsyncMock,
-            return_value={"modified": 2, "errors": []}
+            return_value={"modified": 2, "errors": []},
         ):
             with patch.object(
-                RaindropMCPDataSource,
-                "_load_collections",
-                new_callable=AsyncMock
+                RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
             ):
                 source = RaindropMCPDataSource(
-                    server_url="http://localhost:3000",
-                    access_token="test-token"
+                    server_url="http://localhost:3000", access_token="test-token"
                 )
 
                 backup_data = {
@@ -478,12 +469,25 @@ class TestRaindropMCPDataSourceBackupRestore:
                     "source": "Raindrop.io (MCP)",
                     "bookmark_count": 2,
                     "bookmarks": [
-                        {"id": "1", "url": "https://example1.com", "title": "Title 1", "tags": []},
-                        {"id": "2", "url": "https://example2.com", "title": "Title 2", "tags": []},
-                    ]
+                        {
+                            "id": "1",
+                            "url": "https://example1.com",
+                            "title": "Title 1",
+                            "tags": [],
+                        },
+                        {
+                            "id": "2",
+                            "url": "https://example2.com",
+                            "title": "Title 2",
+                            "tags": [],
+                        },
+                    ],
                 }
 
-                with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+                with patch(
+                    "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                    return_value=mock_http_client,
+                ):
                     async with source:
                         result = await source.restore_from_backup(backup_data)
 
@@ -509,19 +513,19 @@ class TestRaindropMCPDataSourceCollections:
             MCPClient,
             "call_tool",
             new_callable=AsyncMock,
-            return_value={"collections": mock_collections}
+            return_value={"collections": mock_collections},
         ):
             with patch.object(
-                RaindropMCPDataSource,
-                "_load_collections",
-                new_callable=AsyncMock
+                RaindropMCPDataSource, "_load_collections", new_callable=AsyncMock
             ):
                 source = RaindropMCPDataSource(
-                    server_url="http://localhost:3000",
-                    access_token="test-token"
+                    server_url="http://localhost:3000", access_token="test-token"
                 )
 
-                with patch("bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient", return_value=mock_http_client):
+                with patch(
+                    "bookmark_processor.core.data_sources.mcp_client.httpx.AsyncClient",
+                    return_value=mock_http_client,
+                ):
                     async with source:
                         collections = await source.get_collections()
 
@@ -531,8 +535,7 @@ class TestRaindropMCPDataSourceCollections:
     def test_get_collection_id(self):
         """Test getting collection ID from name."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
         source._collection_cache = {
             "tech": 123,
@@ -546,8 +549,7 @@ class TestRaindropMCPDataSourceCollections:
     def test_get_collection_name(self):
         """Test getting collection name from ID."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
         source._collection_name_cache = {
             123: "Tech",
@@ -565,8 +567,7 @@ class TestRaindropMCPDataSourceErrorHandling:
     async def test_fetch_not_connected_raises_error(self):
         """Test fetch raises error when not connected."""
         source = RaindropMCPDataSource(
-            server_url="http://localhost:3000",
-            access_token="test-token"
+            server_url="http://localhost:3000", access_token="test-token"
         )
 
         with pytest.raises(DataSourceConnectionError):

@@ -33,7 +33,7 @@ class ObsidianExporter(BookmarkExporter):
         create_folder_notes: bool = True,
         create_moc: bool = True,
         date_format: str = "%Y-%m-%d",
-        template: Optional[str] = None
+        template: Optional[str] = None,
     ):
         """
         Initialize the Obsidian exporter.
@@ -64,11 +64,7 @@ class ObsidianExporter(BookmarkExporter):
     def file_extension(self) -> str:
         return "md"
 
-    def export(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
-    ) -> ExportResult:
+    def export(self, bookmarks: List[Bookmark], output_path: Path) -> ExportResult:
         """
         Export bookmarks to an Obsidian vault.
 
@@ -85,10 +81,7 @@ class ObsidianExporter(BookmarkExporter):
         warnings = self.validate_bookmarks(bookmarks)
 
         if not bookmarks:
-            raise ExportError(
-                "No bookmarks to export",
-                format_name=self.format_name
-            )
+            raise ExportError("No bookmarks to export", format_name=self.format_name)
 
         # Prepare vault directory
         vault_path = self.prepare_output_path(output_path, is_directory=True)
@@ -129,9 +122,9 @@ class ObsidianExporter(BookmarkExporter):
                     "files_created": files_created,
                     "folders": len(by_folder),
                     "moc_created": self.create_moc,
-                    "folder_notes_created": self.create_folder_notes
+                    "folder_notes_created": self.create_folder_notes,
                 },
-                warnings=warnings
+                warnings=warnings,
             )
 
         except Exception as e:
@@ -139,7 +132,7 @@ class ObsidianExporter(BookmarkExporter):
                 f"Failed to export to Obsidian vault: {e}",
                 format_name=self.format_name,
                 path=vault_path,
-                original_error=e
+                original_error=e,
             )
 
     def _group_by_folder(self, bookmarks: List[Bookmark]) -> Dict[str, List[Bookmark]]:
@@ -225,7 +218,9 @@ class ObsidianExporter(BookmarkExporter):
         if bookmark.folder:
             lines.append(f"- **Folder:** {bookmark.folder}")
         if bookmark.created:
-            lines.append(f"- **Created:** {bookmark.created.strftime(self.date_format)}")
+            lines.append(
+                f"- **Created:** {bookmark.created.strftime(self.date_format)}"
+            )
         if bookmark.favorite:
             lines.append("- **Favorite:** Yes")
 
@@ -236,17 +231,18 @@ class ObsidianExporter(BookmarkExporter):
         lines = []
 
         # URL
-        lines.append(f"url: \"{bookmark.url}\"")
+        lines.append(f'url: "{bookmark.url}"')
 
         # Title
         title = bookmark.get_effective_title()
-        lines.append(f"title: \"{self._escape_yaml_string(title)}\"")
+        lines.append(f'title: "{self._escape_yaml_string(title)}"')
 
         # Aliases
         if self.include_aliases:
             aliases = [title]
             # Add domain as alias
             from urllib.parse import urlparse
+
             try:
                 domain = urlparse(bookmark.url).netloc
                 if domain and domain not in aliases:
@@ -274,7 +270,7 @@ class ObsidianExporter(BookmarkExporter):
         lines.append("type: bookmark")
 
         if bookmark.folder:
-            lines.append(f"folder: \"{self._escape_yaml_string(bookmark.folder)}\"")
+            lines.append(f'folder: "{self._escape_yaml_string(bookmark.folder)}"')
 
         if bookmark.favorite:
             lines.append("favorite: true")
@@ -282,10 +278,7 @@ class ObsidianExporter(BookmarkExporter):
         return lines
 
     def _create_folder_note(
-        self,
-        folder_path: Path,
-        folder_name: str,
-        bookmarks: List[Bookmark]
+        self, folder_path: Path, folder_name: str, bookmarks: List[Bookmark]
     ) -> None:
         """Create an index note for a folder."""
         # Use folder name as note title
@@ -298,7 +291,7 @@ class ObsidianExporter(BookmarkExporter):
 
         # Frontmatter
         lines.append("---")
-        lines.append(f"title: \"{self._escape_yaml_string(note_name)} Index\"")
+        lines.append(f'title: "{self._escape_yaml_string(note_name)} Index"')
         lines.append("type: folder-index")
         lines.append("tags: [index, bookmarks]")
         lines.append(f"created: {datetime.now().strftime(self.date_format)}")
@@ -330,9 +323,7 @@ class ObsidianExporter(BookmarkExporter):
             f.write("\n".join(lines))
 
     def _create_moc_note(
-        self,
-        vault_path: Path,
-        by_folder: Dict[str, List[Bookmark]]
+        self, vault_path: Path, by_folder: Dict[str, List[Bookmark]]
     ) -> None:
         """Create a Map of Content note."""
         note_path = vault_path / "Bookmarks MOC.md"
@@ -343,7 +334,7 @@ class ObsidianExporter(BookmarkExporter):
 
         # Frontmatter
         lines.append("---")
-        lines.append("title: \"Bookmarks Map of Content\"")
+        lines.append('title: "Bookmarks Map of Content"')
         lines.append("type: moc")
         lines.append("tags: [moc, bookmarks]")
         lines.append(f"created: {datetime.now().strftime(self.date_format)}")
@@ -384,10 +375,7 @@ class ObsidianExporter(BookmarkExporter):
         lines.append("")
 
         # Get most recent bookmarks (with dates)
-        dated_bookmarks = [
-            b for b in sum(by_folder.values(), [])
-            if b.created
-        ]
+        dated_bookmarks = [b for b in sum(by_folder.values(), []) if b.created]
         dated_bookmarks.sort(key=lambda b: b.created, reverse=True)
 
         for bookmark in dated_bookmarks[:10]:

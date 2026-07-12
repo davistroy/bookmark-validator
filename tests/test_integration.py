@@ -23,7 +23,9 @@ from tests.fixtures.test_data import (
 )
 
 
-def create_mock_validation_result(url: str, is_valid: bool = True, **kwargs) -> ValidationResult:
+def create_mock_validation_result(
+    url: str, is_valid: bool = True, **kwargs
+) -> ValidationResult:
     """Create a mock ValidationResult for testing."""
     return ValidationResult(
         url=url,
@@ -596,7 +598,9 @@ class TestEndToEndScenarios:
             final_url = url
             if "httpbin.org/redirect" in url:
                 final_url = "https://httpbin.org/get"
-            return create_mock_validation_result(url, is_valid=True, final_url=final_url)
+            return create_mock_validation_result(
+                url, is_valid=True, final_url=final_url
+            )
 
         with patch(
             "bookmark_processor.core.url_validator.URLValidator.validate_url",

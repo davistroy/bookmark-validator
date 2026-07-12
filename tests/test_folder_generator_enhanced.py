@@ -224,7 +224,7 @@ class TestPreserveFolders:
             url = bookmark.url
             expected_folder = bookmark.folder if bookmark.folder else "Uncategorized"
             # Folder depth may be limited
-            expected_parts = expected_folder.split("/")[:generator.max_depth]
+            expected_parts = expected_folder.split("/")[: generator.max_depth]
             expected_limited = "/".join(expected_parts)
 
             assert result.folder_assignments[url] == expected_limited
@@ -334,14 +334,32 @@ class TestLearnFolders:
         generator._learn_from_existing_structure(sample_bookmarks, original_folders)
 
         # Should have learned domain mappings
-        assert len(generator.folder_domain_mapping) > 0 or len(generator.learned_patterns) > 0
+        assert (
+            len(generator.folder_domain_mapping) > 0
+            or len(generator.learned_patterns) > 0
+        )
 
     def test_learn_domain_mapping(self):
         """Test learning domain to folder mapping."""
         bookmarks = [
-            Bookmark(url="https://github.com/a", title="A", folder="Development", created=datetime.now()),
-            Bookmark(url="https://github.com/b", title="B", folder="Development", created=datetime.now()),
-            Bookmark(url="https://github.com/c", title="C", folder="Development", created=datetime.now()),
+            Bookmark(
+                url="https://github.com/a",
+                title="A",
+                folder="Development",
+                created=datetime.now(),
+            ),
+            Bookmark(
+                url="https://github.com/b",
+                title="B",
+                folder="Development",
+                created=datetime.now(),
+            ),
+            Bookmark(
+                url="https://github.com/c",
+                title="C",
+                folder="Development",
+                created=datetime.now(),
+            ),
         ]
 
         generator = EnhancedFolderGenerator(learn_from_existing=True)
@@ -356,9 +374,24 @@ class TestLearnFolders:
     def test_learn_keyword_patterns(self):
         """Test learning keyword to folder patterns."""
         bookmarks = [
-            Bookmark(url="https://example.com/1", title="Python Tutorial One", folder="Tutorials", created=datetime.now()),
-            Bookmark(url="https://example.com/2", title="Python Tutorial Two", folder="Tutorials", created=datetime.now()),
-            Bookmark(url="https://example.com/3", title="Python Guide Three", folder="Tutorials", created=datetime.now()),
+            Bookmark(
+                url="https://example.com/1",
+                title="Python Tutorial One",
+                folder="Tutorials",
+                created=datetime.now(),
+            ),
+            Bookmark(
+                url="https://example.com/2",
+                title="Python Tutorial Two",
+                folder="Tutorials",
+                created=datetime.now(),
+            ),
+            Bookmark(
+                url="https://example.com/3",
+                title="Python Guide Three",
+                folder="Tutorials",
+                created=datetime.now(),
+            ),
         ]
 
         generator = EnhancedFolderGenerator(learn_from_existing=True)

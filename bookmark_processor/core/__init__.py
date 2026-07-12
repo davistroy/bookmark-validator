@@ -42,16 +42,19 @@ from .async_http_client import AsyncHttpClient
 # Lazy imports to avoid circular dependencies
 def _get_pipeline_class():
     from .pipeline import BookmarkProcessingPipeline
+
     return BookmarkProcessingPipeline
 
 
 def _get_pipeline_factory():
     from .pipeline.factory import PipelineFactory
+
     return PipelineFactory
 
 
 def _get_create_pipeline():
     from .pipeline.factory import create_pipeline
+
     return create_pipeline
 
 
@@ -73,11 +76,13 @@ def _get_url_validator():
 def _get_enhanced_batch_processor():
     # Import directly from the .py file, not the package
     from .batch_validator import EnhancedBatchProcessor
+
     return EnhancedBatchProcessor
 
 
 def _get_validation_error():
     from ..utils.error_handler import ValidationError
+
     return ValidationError
 
 

@@ -117,7 +117,9 @@ def _display_processing_mode_info(
 
         # Preview mode
         if processing_mode.is_preview:
-            info_parts.append(f"[cyan]Preview:[/cyan] First {processing_mode.preview_count} bookmarks")
+            info_parts.append(
+                f"[cyan]Preview:[/cyan] First {processing_mode.preview_count} bookmarks"
+            )
 
         # Dry-run mode
         if processing_mode.dry_run:
@@ -133,11 +135,13 @@ def _display_processing_mode_info(
             info_parts.append(f"[blue]Stages:[/blue] {', '.join(stage_list)}")
 
         if info_parts:
-            console.print(Panel(
-                "\n".join(info_parts),
-                title="Processing Mode",
-                border_style="dim",
-            ))
+            console.print(
+                Panel(
+                    "\n".join(info_parts),
+                    title="Processing Mode",
+                    border_style="dim",
+                )
+            )
 
 
 def _display_dry_run_summary(
@@ -187,7 +191,10 @@ def _display_dry_run_summary(
         table.add_row("Total bookmarks", str(total_count))
 
         if filter_chain:
-            table.add_row("After filters", f"{filtered_count} ({filtered_count * 100 // total_count}%)")
+            table.add_row(
+                "After filters",
+                f"{filtered_count} ({filtered_count * 100 // total_count}%)",
+            )
 
         if preview:
             table.add_row("Preview limit", str(preview))
@@ -257,11 +264,15 @@ def print_config_details(validated_args: dict, config: Configuration):
         table.add_row("AI Engine", "local (facebook/bart-large-cnn)")
     elif ai_engine == "claude":
         has_key = config.has_api_key("claude")
-        status = "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
+        status = (
+            "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
+        )
         table.add_row("AI Engine", f"claude-haiku-4-5 ({status})")
     elif ai_engine == "openai":
         has_key = config.has_api_key("openai")
-        status = "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
+        status = (
+            "[green]configured[/green]" if has_key else "[red]missing API key[/red]"
+        )
         table.add_row("AI Engine", f"gpt-5-mini ({status})")
 
     # Processing options
@@ -271,9 +282,7 @@ def print_config_details(validated_args: dict, config: Configuration):
 
     # Duplicate detection
     if validated_args["detect_duplicates"]:
-        table.add_row(
-            "Duplicates", f"detect ({validated_args['duplicate_strategy']})"
-        )
+        table.add_row("Duplicates", f"detect ({validated_args['duplicate_strategy']})")
     else:
         table.add_row("Duplicates", "disabled")
 
@@ -443,6 +452,7 @@ def _run_interactive_processing(
         console.print(f"[red]Error in interactive processing: {e}[/red]")
         if verbose:
             import traceback
+
             console.print(traceback.format_exc())
         return 1
 
@@ -722,7 +732,9 @@ if RICH_AVAILABLE:
         try:
             # Validate arguments
             with console.status("[bold green]Validating arguments..."):
-                input_path = validate_input_file(str(input_file) if input_file else None)
+                input_path = validate_input_file(
+                    str(input_file) if input_file else None
+                )
                 if input_path is None:
                     validate_auto_detection_mode()
                 output_path = validate_output_file(str(output_file))
@@ -805,7 +817,11 @@ if RICH_AVAILABLE:
                 "suggest_folders": suggest_folders,
                 "learn_folders": learn_folders,
                 "max_folder_depth": max_folder_depth,
-                "folder_suggestions_output": str(folder_suggestions_output) if folder_suggestions_output else None,
+                "folder_suggestions_output": (
+                    str(folder_suggestions_output)
+                    if folder_suggestions_output
+                    else None
+                ),
             }
 
             # Initialize configuration
@@ -950,7 +966,9 @@ if RICH_AVAILABLE:
                 "large-dataset": "Conservative settings for 3000+ bookmarks",
             }
 
-            console.print(f"\n[bold]Next steps:[/bold] {guidance.get(template_name, '')}")
+            console.print(
+                f"\n[bold]Next steps:[/bold] {guidance.get(template_name, '')}"
+            )
 
         except Exception as e:
             console.print(f"[red]Error creating config: {e}[/red]")
@@ -962,6 +980,7 @@ if RICH_AVAILABLE:
 
     class DataSource(str, Enum):
         """Available data sources for bookmark processing."""
+
         csv = "csv"
         raindrop = "raindrop"
 
@@ -1102,13 +1121,17 @@ if RICH_AVAILABLE:
             config = Configuration()
 
             # Determine MCP server URL
-            server_url = mcp_server or os.environ.get("MCP_SERVER_URL") or config.get(
-                "raindrop.mcp_server", "http://localhost:3000"
+            server_url = (
+                mcp_server
+                or os.environ.get("MCP_SERVER_URL")
+                or config.get("raindrop.mcp_server", "http://localhost:3000")
             )
 
             # Determine Raindrop token
-            token = raindrop_token or os.environ.get("RAINDROP_TOKEN") or config.get(
-                "raindrop.token", ""
+            token = (
+                raindrop_token
+                or os.environ.get("RAINDROP_TOKEN")
+                or config.get("raindrop.token", "")
             )
 
             if source == DataSource.csv:
@@ -1119,16 +1142,13 @@ if RICH_AVAILABLE:
                     )
                     raise typer.Exit(1)
 
-                console.print(
-                    f"[cyan]Processing CSV:[/cyan] {input_file}"
-                )
+                console.print(f"[cyan]Processing CSV:[/cyan] {input_file}")
 
                 # Delegate to process command with appropriate options
                 from bookmark_processor.core.data_sources import CSVDataSource
 
                 data_source = CSVDataSource(
-                    input_file,
-                    output_file or Path("enhanced_bookmarks.csv")
+                    input_file, output_file or Path("enhanced_bookmarks.csv")
                 )
 
                 # Build filters
@@ -1141,10 +1161,14 @@ if RICH_AVAILABLE:
                 if preview_count:
                     bookmarks = bookmarks[:preview_count]
 
-                console.print(f"[green]Found {len(bookmarks)} bookmarks to process[/green]")
+                console.print(
+                    f"[green]Found {len(bookmarks)} bookmarks to process[/green]"
+                )
 
                 if dry_run:
-                    console.print("[yellow]Dry-run mode - no changes will be applied[/yellow]")
+                    console.print(
+                        "[yellow]Dry-run mode - no changes will be applied[/yellow]"
+                    )
                     _display_bookmark_preview(bookmarks[:10], console)
                     return 0
 
@@ -1222,6 +1246,7 @@ if RICH_AVAILABLE:
             console.print(f"[red]Error:[/red] {e}")
             if verbose:
                 import traceback
+
                 console.print(traceback.format_exc())
             raise typer.Exit(1)
 
@@ -1354,7 +1379,8 @@ if RICH_AVAILABLE:
                 import asyncio
 
                 server_url = config_data.get("raindrop", {}).get(
-                    "mcp_server", os.environ.get("MCP_SERVER_URL", "http://localhost:3000")
+                    "mcp_server",
+                    os.environ.get("MCP_SERVER_URL", "http://localhost:3000"),
                 )
                 token = config_data.get("raindrop", {}).get(
                     "token", os.environ.get("RAINDROP_TOKEN", "")
@@ -1363,7 +1389,10 @@ if RICH_AVAILABLE:
                 console.print(f"[cyan]Testing connection to:[/cyan] {server_url}")
 
                 async def test_conn():
-                    from bookmark_processor.core.data_sources.mcp_client import MCPClient
+                    from bookmark_processor.core.data_sources.mcp_client import (
+                        MCPClient,
+                    )
+
                     async with MCPClient(server_url, access_token=token) as client:
                         healthy = await client.health_check()
                         if healthy:
@@ -1449,7 +1478,9 @@ if RICH_AVAILABLE:
                     backups = sorted(backup_dir.glob("backup_*.json"), reverse=True)
                     if backups:
                         backup_file = backups[0]
-                        console.print(f"[cyan]Using most recent backup:[/cyan] {backup_file}")
+                        console.print(
+                            f"[cyan]Using most recent backup:[/cyan] {backup_file}"
+                        )
 
             if not backup_file or not backup_file.exists():
                 console.print(
@@ -1512,7 +1543,9 @@ if RICH_AVAILABLE:
                 if result.errors and verbose:
                     console.print("\n[yellow]Errors:[/yellow]")
                     for error in result.errors[:10]:
-                        console.print(f"  - {error.get('url', 'unknown')}: {error.get('error', 'unknown')}")
+                        console.print(
+                            f"  - {error.get('url', 'unknown')}: {error.get('error', 'unknown')}"
+                        )
 
             else:
                 console.print(f"[red]Rollback not supported for source: {source}[/red]")
@@ -1524,6 +1557,7 @@ if RICH_AVAILABLE:
             console.print(f"[red]Error:[/red] {e}")
             if verbose:
                 import traceback
+
                 console.print(traceback.format_exc())
             raise typer.Exit(1)
 
@@ -1580,9 +1614,7 @@ if RICH_AVAILABLE:
 
                 if not available:
                     console.print("[yellow]No plugins found[/yellow]")
-                    console.print(
-                        "\n[dim]Plugin search paths:[/dim]"
-                    )
+                    console.print("\n[dim]Plugin search paths:[/dim]")
                     for path in loader._search_paths:
                         console.print(f"  - {path}")
                     raise typer.Exit(0)
@@ -1624,7 +1656,9 @@ if RICH_AVAILABLE:
 
             elif action == "info":
                 if not plugin_name:
-                    console.print("[red]Error:[/red] Plugin name required for 'info' action")
+                    console.print(
+                        "[red]Error:[/red] Plugin name required for 'info' action"
+                    )
                     raise typer.Exit(1)
 
                 # Discover plugins first
@@ -1636,10 +1670,14 @@ if RICH_AVAILABLE:
                     raise typer.Exit(1)
 
                 # Display detailed info
-                console.print(f"\n[bold cyan]{info.get('name', plugin_name)}[/bold cyan]")
+                console.print(
+                    f"\n[bold cyan]{info.get('name', plugin_name)}[/bold cyan]"
+                )
                 console.print(f"  Version: {info.get('version', 'unknown')}")
                 console.print(f"  Author: {info.get('author', 'unknown')}")
-                console.print(f"  Description: {info.get('description', 'No description')}")
+                console.print(
+                    f"  Description: {info.get('description', 'No description')}"
+                )
 
                 if info.get("provides"):
                     console.print(f"  Provides: {', '.join(info['provides'])}")
@@ -1652,7 +1690,9 @@ if RICH_AVAILABLE:
 
             elif action == "test":
                 if not plugin_name:
-                    console.print("[red]Error:[/red] Plugin name required for 'test' action")
+                    console.print(
+                        "[red]Error:[/red] Plugin name required for 'test' action"
+                    )
                     raise typer.Exit(1)
 
                 console.print(f"[cyan]Testing plugin: {plugin_name}[/cyan]")
@@ -1673,6 +1713,7 @@ if RICH_AVAILABLE:
                     console.print(f"[red]Plugin test failed:[/red] {e}")
                     if verbose:
                         import traceback
+
                         console.print(traceback.format_exc())
                     raise typer.Exit(1)
 
@@ -1698,6 +1739,7 @@ if RICH_AVAILABLE:
             console.print(f"[red]Error:[/red] {e}")
             if verbose:
                 import traceback
+
                 console.print(traceback.format_exc())
             raise typer.Exit(1)
 
@@ -1706,14 +1748,17 @@ if RICH_AVAILABLE:
 # Phase 6: Export & Monitoring Commands
 # =========================================================================
 
+
 class ExportFormat(str, Enum):
     """Available export formats."""
+
     json = "json"
     markdown = "markdown"
     md = "md"
     obsidian = "obsidian"
     notion = "notion"
     opml = "opml"
+
 
 if RICH_AVAILABLE:
 
@@ -1834,6 +1879,7 @@ if RICH_AVAILABLE:
             console.print(f"[red]Error:[/red] {e}")
             if verbose:
                 import traceback
+
                 console.print(traceback.format_exc())
             raise typer.Exit(1)
 
@@ -1918,7 +1964,9 @@ if RICH_AVAILABLE:
                 BookmarkHealthMonitor,
                 HealthMonitorError,
             )
-            from bookmark_processor.core.data_sources.state_tracker import ProcessingStateTracker
+            from bookmark_processor.core.data_sources.state_tracker import (
+                ProcessingStateTracker,
+            )
             from datetime import datetime, timedelta
 
             # Load bookmarks
@@ -1951,7 +1999,9 @@ if RICH_AVAILABLE:
                 )
             except HealthMonitorError as e:
                 console.print(f"[red]Error:[/red] {e}")
-                console.print("[yellow]Tip: Install httpx with: pip install httpx[/yellow]")
+                console.print(
+                    "[yellow]Tip: Install httpx with: pip install httpx[/yellow]"
+                )
                 raise typer.Exit(1)
 
             # Progress callback
@@ -1964,7 +2014,9 @@ if RICH_AVAILABLE:
                         "timeout": "[yellow]TIMEOUT[/yellow]",
                         "error": "[red]ERROR[/red]",
                     }.get(result.status, "[dim]?[/dim]")
-                    console.print(f"  [{current}/{total}] {status_icon} {result.url[:60]}")
+                    console.print(
+                        f"  [{current}/{total}] {status_icon} {result.url[:60]}"
+                    )
 
             # Run health check
             console.print("[cyan]Checking bookmark health...[/cyan]")
@@ -1997,7 +2049,9 @@ if RICH_AVAILABLE:
             # Show problematic URLs
             problematic = report.problematic
             if problematic:
-                console.print(f"\n[yellow]Problematic URLs ({len(problematic)}):[/yellow]")
+                console.print(
+                    f"\n[yellow]Problematic URLs ({len(problematic)}):[/yellow]"
+                )
 
                 table = Table(show_header=True)
                 table.add_column("Status", style="bold", width=12)
@@ -2024,7 +2078,7 @@ if RICH_AVAILABLE:
                     table.add_row(
                         f"[{status_style}]{result.status}[/{status_style}]",
                         result.url[:50],
-                        details
+                        details,
                     )
 
                 console.print(table)
@@ -2042,12 +2096,16 @@ if RICH_AVAILABLE:
                     ".txt": "text",
                 }.get(ext, "text")
 
-                monitor_instance.save_report(report, output_report, format=report_format)
+                monitor_instance.save_report(
+                    report, output_report, format=report_format
+                )
                 console.print(f"\n[green]Report saved to {output_report}[/green]")
 
             # Archive summary
             if archive_dead and report.archived > 0:
-                console.print(f"\n[cyan]Archived {report.archived} dead links to Wayback Machine[/cyan]")
+                console.print(
+                    f"\n[cyan]Archived {report.archived} dead links to Wayback Machine[/cyan]"
+                )
 
             return 0
 
@@ -2057,6 +2115,7 @@ if RICH_AVAILABLE:
             console.print(f"[red]Error:[/red] {e}")
             if verbose:
                 import traceback
+
                 console.print(traceback.format_exc())
             raise typer.Exit(1)
 
@@ -2069,6 +2128,7 @@ if RICH_AVAILABLE:
 
     class AnalyzeOutputFormat(str, Enum):
         """Output format for analyze command."""
+
         text = "text"
         json = "json"
 
@@ -2174,6 +2234,7 @@ if RICH_AVAILABLE:
                 # Display to console
                 if format == AnalyzeOutputFormat.json:
                     from rich.syntax import Syntax
+
                     syntax = Syntax(output_content, "json", theme="monokai")
                     console.print(syntax)
                 else:
@@ -2202,11 +2263,13 @@ if RICH_AVAILABLE:
             console.print(f"[red]Error:[/red] {e}")
             if verbose:
                 import traceback
+
                 console.print(traceback.format_exc())
             raise typer.Exit(1)
 
 
 # Helper functions for MCP CLI commands
+
 
 def _parse_since(since_str: str):
     """Parse a 'since' duration string into a datetime or timedelta."""
@@ -2291,7 +2354,9 @@ async def _enhance_raindrop_async(
     from pathlib import Path
 
     from bookmark_processor.core.data_sources.raindrop_mcp import RaindropMCPDataSource
-    from bookmark_processor.core.data_sources.state_tracker import ProcessingStateTracker
+    from bookmark_processor.core.data_sources.state_tracker import (
+        ProcessingStateTracker,
+    )
 
     # Initialize state tracker
     state_tracker = ProcessingStateTracker()
@@ -2299,7 +2364,7 @@ async def _enhance_raindrop_async(
     async with RaindropMCPDataSource(
         server_url=server_url,
         access_token=token,
-        state_tracker=state_tracker if since_last_run else None
+        state_tracker=state_tracker if since_last_run else None,
     ) as source:
         # Build filters
         filters = {}
@@ -2333,7 +2398,9 @@ async def _enhance_raindrop_async(
         # Create backup before modifying
         backup_dir = Path(".bookmark_processor_backups")
         backup_dir.mkdir(exist_ok=True)
-        backup_file = backup_dir / f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        backup_file = (
+            backup_dir / f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
 
         backup_data = await source.create_backup(bookmarks)
         with open(backup_file, "w") as f:
@@ -2361,7 +2428,9 @@ async def _enhance_raindrop_async(
                 try:
                     # Apply basic processing
                     # In a full implementation, this would use the full pipeline
-                    status.update(f"[bold green]Processing {i+1}/{len(bookmarks)}: {bookmark.title[:30]}...")
+                    status.update(
+                        f"[bold green]Processing {i+1}/{len(bookmarks)}: {bookmark.title[:30]}..."
+                    )
 
                     # For now, mark as processed
                     state_tracker.mark_processed(bookmark, ai_engine=ai_engine)
@@ -2370,14 +2439,16 @@ async def _enhance_raindrop_async(
                 except Exception as e:
                     error_count += 1
                     if verbose:
-                        console.print(f"[red]Error processing {bookmark.url}: {e}[/red]")
+                        console.print(
+                            f"[red]Error processing {bookmark.url}: {e}[/red]"
+                        )
 
         # Complete processing run
         state_tracker.complete_processing_run(
             run_id=run_id,
             total_processed=len(bookmarks),
             total_succeeded=processed_count,
-            total_failed=error_count
+            total_failed=error_count,
         )
 
         # Update bookmarks in Raindrop.io
@@ -2393,7 +2464,9 @@ async def _enhance_raindrop_async(
             if result.errors and verbose:
                 console.print("\n[yellow]Update errors:[/yellow]")
                 for error in result.errors[:5]:
-                    console.print(f"  - {error.get('url', 'unknown')}: {error.get('error', 'unknown')}")
+                    console.print(
+                        f"  - {error.get('url', 'unknown')}: {error.get('error', 'unknown')}"
+                    )
 
         # Optionally export to CSV
         if output_file:
@@ -2402,7 +2475,9 @@ async def _enhance_raindrop_async(
 
             handler = RaindropCSVHandler()
             handler.save_import_csv(bookmarks, output_file)
-            console.print(f"[green]Exported {len(bookmarks)} bookmarks to {output_file}[/green]")
+            console.print(
+                f"[green]Exported {len(bookmarks)} bookmarks to {output_file}[/green]"
+            )
 
         return 0
 
@@ -2453,9 +2528,7 @@ class CLIInterface:
         self.parser.add_argument("--max-bookmarks-per-folder", type=int, default=20)
         self.parser.add_argument("--chrome-html", action="store_true")
         self.parser.add_argument("--html-output", help="Chrome HTML output path")
-        self.parser.add_argument(
-            "--html-title", default="Enhanced Bookmarks"
-        )
+        self.parser.add_argument("--html-title", default="Enhanced Bookmarks")
         self.parser.add_argument(
             "--create-config",
             choices=["basic", "claude", "openai", "performance", "large-dataset"],

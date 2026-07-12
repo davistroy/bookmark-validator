@@ -38,7 +38,6 @@ from bookmark_processor.core.streaming.pipeline import (
 from bookmark_processor.core.streaming.reader import StreamingBookmarkReader
 from bookmark_processor.core.streaming.writer import StreamingBookmarkWriter
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
@@ -72,12 +71,84 @@ def basic_config(tmp_path):
 def sample_csv_data():
     """Sample CSV data in raindrop.io export format."""
     return [
-        ["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"],
-        ["1", "Site One", "Note 1", "Excerpt 1", "https://example.com/1", "Tech", "python, web", "2024-01-01T00:00:00Z", "", "", "false"],
-        ["2", "Site Two", "Note 2", "Excerpt 2", "https://example.com/2", "Tech/AI", "ai, ml", "2024-01-02T00:00:00Z", "", "", "true"],
-        ["3", "Site Three", "", "", "https://example.com/3", "Science", "science", "2024-01-03T00:00:00Z", "", "", "false"],
-        ["4", "Site Four", "Note 4", "", "https://example.com/4", "News", "news", "2024-01-04T00:00:00Z", "", "", "false"],
-        ["5", "Site Five", "", "Excerpt 5", "https://example.com/5", "Dev", "dev, code", "2024-01-05T00:00:00Z", "", "", "true"],
+        [
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
+        ],
+        [
+            "1",
+            "Site One",
+            "Note 1",
+            "Excerpt 1",
+            "https://example.com/1",
+            "Tech",
+            "python, web",
+            "2024-01-01T00:00:00Z",
+            "",
+            "",
+            "false",
+        ],
+        [
+            "2",
+            "Site Two",
+            "Note 2",
+            "Excerpt 2",
+            "https://example.com/2",
+            "Tech/AI",
+            "ai, ml",
+            "2024-01-02T00:00:00Z",
+            "",
+            "",
+            "true",
+        ],
+        [
+            "3",
+            "Site Three",
+            "",
+            "",
+            "https://example.com/3",
+            "Science",
+            "science",
+            "2024-01-03T00:00:00Z",
+            "",
+            "",
+            "false",
+        ],
+        [
+            "4",
+            "Site Four",
+            "Note 4",
+            "",
+            "https://example.com/4",
+            "News",
+            "news",
+            "2024-01-04T00:00:00Z",
+            "",
+            "",
+            "false",
+        ],
+        [
+            "5",
+            "Site Five",
+            "",
+            "Excerpt 5",
+            "https://example.com/5",
+            "Dev",
+            "dev, code",
+            "2024-01-05T00:00:00Z",
+            "",
+            "",
+            "true",
+        ],
     ]
 
 
@@ -97,21 +168,37 @@ def large_input_file(tmp_path):
     csv_file = tmp_path / "large_input.csv"
     with open(csv_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"])
+        writer.writerow(
+            [
+                "id",
+                "title",
+                "note",
+                "excerpt",
+                "url",
+                "folder",
+                "tags",
+                "created",
+                "cover",
+                "highlights",
+                "favorite",
+            ]
+        )
         for i in range(350):  # Create 350 bookmarks to test multiple batches
-            writer.writerow([
-                str(i),
-                f"Test Site {i}",
-                f"Note {i}",
-                f"Excerpt {i}",
-                f"https://example{i}.com/page",
-                f"Folder{i % 10}",
-                f"tag{i % 20}",
-                "2024-01-01T00:00:00Z",
-                "",
-                "",
-                "false"
-            ])
+            writer.writerow(
+                [
+                    str(i),
+                    f"Test Site {i}",
+                    f"Note {i}",
+                    f"Excerpt {i}",
+                    f"https://example{i}.com/page",
+                    f"Folder{i % 10}",
+                    f"tag{i % 20}",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "",
+                    "false",
+                ]
+            )
     return csv_file
 
 
@@ -528,9 +615,15 @@ class TestStreamingPipelineInit:
         assert pipeline._tag_generator is None
         assert pipeline._state_tracker is None
 
-    def test_init_with_components(self, basic_config, mock_url_validator,
-                                   mock_content_analyzer, mock_ai_processor,
-                                   mock_tag_generator, mock_state_tracker):
+    def test_init_with_components(
+        self,
+        basic_config,
+        mock_url_validator,
+        mock_content_analyzer,
+        mock_ai_processor,
+        mock_tag_generator,
+        mock_state_tracker,
+    ):
         """Test initialization with injected components."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -572,7 +665,7 @@ class TestStreamingPipelineInit:
 class TestStreamingPipelineLazyInit:
     """Tests for lazy component initialization."""
 
-    @patch('bookmark_processor.core.url_validator.URLValidator')
+    @patch("bookmark_processor.core.url_validator.URLValidator")
     def test_get_url_validator_lazy_init(self, mock_url_validator_class, basic_config):
         """Test lazy initialization of URL validator."""
         pipeline = StreamingPipeline(basic_config)
@@ -587,7 +680,7 @@ class TestStreamingPipelineLazyInit:
         )
         assert validator is not None
 
-    @patch('bookmark_processor.core.url_validator.URLValidator')
+    @patch("bookmark_processor.core.url_validator.URLValidator")
     def test_get_url_validator_cached(self, mock_url_validator_class, basic_config):
         """Test that URL validator is cached after first call."""
         pipeline = StreamingPipeline(basic_config)
@@ -608,19 +701,17 @@ class TestStreamingPipelineLazyInit:
 
         assert validator is mock_url_validator
 
-    @patch('bookmark_processor.core.content_analyzer.ContentAnalyzer')
+    @patch("bookmark_processor.core.content_analyzer.ContentAnalyzer")
     def test_get_content_analyzer_lazy_init(self, mock_analyzer_class, basic_config):
         """Test lazy initialization of content analyzer."""
         pipeline = StreamingPipeline(basic_config)
 
         analyzer = pipeline._get_content_analyzer()
 
-        mock_analyzer_class.assert_called_once_with(
-            timeout=basic_config.url_timeout
-        )
+        mock_analyzer_class.assert_called_once_with(timeout=basic_config.url_timeout)
         assert analyzer is not None
 
-    @patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor')
+    @patch("bookmark_processor.core.ai_processor.EnhancedAIProcessor")
     def test_get_ai_processor_lazy_init(self, mock_processor_class, tmp_path):
         """Test lazy initialization of AI processor."""
         config = StreamingPipelineConfig(
@@ -633,9 +724,7 @@ class TestStreamingPipelineLazyInit:
 
         processor = pipeline._get_ai_processor()
 
-        mock_processor_class.assert_called_once_with(
-            max_description_length=200
-        )
+        mock_processor_class.assert_called_once_with(max_description_length=200)
         assert processor is not None
 
     def test_get_ai_processor_disabled(self, basic_config):
@@ -647,7 +736,7 @@ class TestStreamingPipelineLazyInit:
 
         assert processor is None
 
-    @patch('bookmark_processor.core.tag_generator.CorpusAwareTagGenerator')
+    @patch("bookmark_processor.core.tag_generator.CorpusAwareTagGenerator")
     def test_get_tag_generator_lazy_init(self, mock_generator_class, basic_config):
         """Test lazy initialization of tag generator."""
         pipeline = StreamingPipeline(basic_config)
@@ -660,7 +749,7 @@ class TestStreamingPipelineLazyInit:
         )
         assert generator is not None
 
-    @patch('bookmark_processor.core.streaming.pipeline.ProcessingStateTracker')
+    @patch("bookmark_processor.core.streaming.pipeline.ProcessingStateTracker")
     def test_get_state_tracker_lazy_init(self, mock_tracker_class, tmp_path):
         """Test lazy initialization of state tracker."""
         config = StreamingPipelineConfig(
@@ -676,7 +765,7 @@ class TestStreamingPipelineLazyInit:
         mock_tracker_class.assert_called_once()
         assert tracker is not None
 
-    @patch('bookmark_processor.core.streaming.pipeline.ProcessingStateTracker')
+    @patch("bookmark_processor.core.streaming.pipeline.ProcessingStateTracker")
     def test_get_state_tracker_default_path(self, mock_tracker_class, tmp_path):
         """Test state tracker with default path."""
         config = StreamingPipelineConfig(
@@ -715,8 +804,7 @@ class TestStreamingPipelineValidateUrl:
         """Test successful URL validation."""
         pipeline = StreamingPipeline(basic_config, url_validator=mock_url_validator)
         mock_url_validator.validate_url.return_value = MagicMock(
-            is_valid=True,
-            error_message=None
+            is_valid=True, error_message=None
         )
 
         bookmark = Bookmark(url="https://example.com", title="Test")
@@ -730,8 +818,7 @@ class TestStreamingPipelineValidateUrl:
         """Test failed URL validation."""
         pipeline = StreamingPipeline(basic_config, url_validator=mock_url_validator)
         mock_url_validator.validate_url.return_value = MagicMock(
-            is_valid=False,
-            error_message="Connection timeout"
+            is_valid=False, error_message="Connection timeout"
         )
 
         bookmark = Bookmark(url="https://invalid.example.com", title="Test")
@@ -789,7 +876,9 @@ class TestStreamingPipelineAnalyzeContent:
 
     def test_analyze_content_success(self, basic_config, mock_content_analyzer):
         """Test successful content analysis."""
-        pipeline = StreamingPipeline(basic_config, content_analyzer=mock_content_analyzer)
+        pipeline = StreamingPipeline(
+            basic_config, content_analyzer=mock_content_analyzer
+        )
         mock_content_analyzer.analyze_content.return_value = {
             "content": "Sample content",
             "title": "Page Title",
@@ -819,7 +908,9 @@ class TestStreamingPipelineAnalyzeContent:
 
     def test_analyze_content_exception(self, basic_config, mock_content_analyzer):
         """Test content analysis when exception occurs."""
-        pipeline = StreamingPipeline(basic_config, content_analyzer=mock_content_analyzer)
+        pipeline = StreamingPipeline(
+            basic_config, content_analyzer=mock_content_analyzer
+        )
         mock_content_analyzer.analyze_content.side_effect = Exception("Parse error")
 
         bookmark = Bookmark(url="https://example.com", title="Test")
@@ -922,7 +1013,11 @@ class TestStreamingPipelineGenerateTags:
     def test_generate_tags_success(self, basic_config, mock_tag_generator):
         """Test successful tag generation."""
         pipeline = StreamingPipeline(basic_config, tag_generator=mock_tag_generator)
-        mock_tag_generator.generate_for_single_bookmark.return_value = ["ai", "python", "web"]
+        mock_tag_generator.generate_for_single_bookmark.return_value = [
+            "ai",
+            "python",
+            "web",
+        ]
 
         bookmark = Bookmark(url="https://example.com", title="Test", tags=["original"])
         content_data = {"content": "Sample content"}
@@ -937,7 +1032,9 @@ class TestStreamingPipelineGenerateTags:
         pipeline = StreamingPipeline(basic_config)
         pipeline._get_tag_generator = MagicMock(return_value=None)
 
-        bookmark = Bookmark(url="https://example.com", title="Test", tags=["original", "tags"])
+        bookmark = Bookmark(
+            url="https://example.com", title="Test", tags=["original", "tags"]
+        )
         result = pipeline._generate_tags(bookmark, None)
 
         # Should return original tags
@@ -946,7 +1043,9 @@ class TestStreamingPipelineGenerateTags:
     def test_generate_tags_exception(self, basic_config, mock_tag_generator):
         """Test tag generation when exception occurs."""
         pipeline = StreamingPipeline(basic_config, tag_generator=mock_tag_generator)
-        mock_tag_generator.generate_for_single_bookmark.side_effect = Exception("Tag error")
+        mock_tag_generator.generate_for_single_bookmark.side_effect = Exception(
+            "Tag error"
+        )
 
         bookmark = Bookmark(url="https://example.com", title="Test", tags=["original"])
         result = pipeline._generate_tags(bookmark, {"content": "test"})
@@ -971,8 +1070,9 @@ class TestStreamingPipelineProcessBatch:
 
         assert result == []
 
-    def test_process_batch_all_valid(self, basic_config, mock_url_validator,
-                                      mock_tag_generator, sample_bookmarks):
+    def test_process_batch_all_valid(
+        self, basic_config, mock_url_validator, mock_tag_generator, sample_bookmarks
+    ):
         """Test processing batch where all bookmarks are valid."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -989,8 +1089,9 @@ class TestStreamingPipelineProcessBatch:
         assert pipeline.stats.validation_failed == 0
         assert pipeline.stats.total_processed == 3
 
-    def test_process_batch_some_invalid(self, basic_config, mock_url_validator,
-                                         mock_tag_generator, sample_bookmarks):
+    def test_process_batch_some_invalid(
+        self, basic_config, mock_url_validator, mock_tag_generator, sample_bookmarks
+    ):
         """Test processing batch where some bookmarks fail validation."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -1011,9 +1112,14 @@ class TestStreamingPipelineProcessBatch:
         assert pipeline.stats.validation_success == 2
         assert pipeline.stats.validation_failed == 1
 
-    def test_process_batch_with_content_extraction(self, basic_config, mock_url_validator,
-                                                    mock_content_analyzer, mock_tag_generator,
-                                                    sample_bookmarks):
+    def test_process_batch_with_content_extraction(
+        self,
+        basic_config,
+        mock_url_validator,
+        mock_content_analyzer,
+        mock_tag_generator,
+        sample_bookmarks,
+    ):
         """Test batch processing with content extraction."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -1030,9 +1136,15 @@ class TestStreamingPipelineProcessBatch:
         assert len(result) == 3
         assert pipeline.stats.content_extracted == 3
 
-    def test_process_batch_with_ai(self, tmp_path, mock_url_validator,
-                                    mock_ai_processor, mock_content_analyzer,
-                                    mock_tag_generator, sample_bookmarks):
+    def test_process_batch_with_ai(
+        self,
+        tmp_path,
+        mock_url_validator,
+        mock_ai_processor,
+        mock_content_analyzer,
+        mock_tag_generator,
+        sample_bookmarks,
+    ):
         """Test batch processing with AI enhancement."""
         config = StreamingPipelineConfig(
             input_file=tmp_path / "input.csv",
@@ -1058,8 +1170,9 @@ class TestStreamingPipelineProcessBatch:
         assert len(result) == 3
         assert pipeline.stats.ai_processed == 3
 
-    def test_process_batch_with_errors(self, basic_config, mock_url_validator,
-                                        mock_tag_generator, sample_bookmarks):
+    def test_process_batch_with_errors(
+        self, basic_config, mock_url_validator, mock_tag_generator, sample_bookmarks
+    ):
         """Test batch processing when errors occur during processing."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -1070,7 +1183,9 @@ class TestStreamingPipelineProcessBatch:
         # Exceptions in _validate_url are caught and return False, incrementing validation_failed
         mock_url_validator.validate_url.side_effect = [
             MagicMock(is_valid=True),
-            Exception("Unexpected error"),  # This causes validation_failed, not total_errors
+            Exception(
+                "Unexpected error"
+            ),  # This causes validation_failed, not total_errors
             MagicMock(is_valid=True),
         ]
         mock_tag_generator.generate_for_single_bookmark.return_value = ["tag1"]
@@ -1082,8 +1197,9 @@ class TestStreamingPipelineProcessBatch:
         assert pipeline.stats.validation_failed == 1
         assert pipeline.stats.validation_success == 2
 
-    def test_process_batch_tag_generation_error_graceful(self, basic_config, mock_url_validator,
-                                                          mock_tag_generator, sample_bookmarks):
+    def test_process_batch_tag_generation_error_graceful(
+        self, basic_config, mock_url_validator, mock_tag_generator, sample_bookmarks
+    ):
         """Test batch processing handles tag generation errors gracefully."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -1095,7 +1211,9 @@ class TestStreamingPipelineProcessBatch:
         # and falls back to original tags
         mock_tag_generator.generate_for_single_bookmark.side_effect = [
             ["tag1"],
-            Exception("Tag generation error"),  # Caught internally, returns original tags
+            Exception(
+                "Tag generation error"
+            ),  # Caught internally, returns original tags
             ["tag1"],
         ]
 
@@ -1107,8 +1225,9 @@ class TestStreamingPipelineProcessBatch:
         # Second bookmark should have its original tags (ai, ml)
         assert result[1].tags == ["ai", "ml"]
 
-    def test_process_batch_tags_assigned(self, basic_config, mock_url_validator,
-                                          mock_tag_generator, sample_bookmarks):
+    def test_process_batch_tags_assigned(
+        self, basic_config, mock_url_validator, mock_tag_generator, sample_bookmarks
+    ):
         """Test that generated tags are assigned to bookmarks."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -1133,8 +1252,9 @@ class TestStreamingPipelineProcessBatch:
 class TestStreamingPipelineExecute:
     """Tests for pipeline execution."""
 
-    def test_execute_basic(self, sample_input_file, tmp_path, mock_url_validator,
-                           mock_tag_generator):
+    def test_execute_basic(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test basic pipeline execution."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1157,8 +1277,9 @@ class TestStreamingPipelineExecute:
         assert results.stats.total_processed == 5
         assert (tmp_path / "output.csv").exists()
 
-    def test_execute_creates_output_file(self, sample_input_file, tmp_path,
-                                          mock_url_validator, mock_tag_generator):
+    def test_execute_creates_output_file(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test that execute creates output file."""
         output_path = tmp_path / "subdir" / "output.csv"
         config = StreamingPipelineConfig(
@@ -1183,8 +1304,9 @@ class TestStreamingPipelineExecute:
 class TestStreamingPipelineExecuteStreaming:
     """Tests for execute_streaming method."""
 
-    def test_execute_streaming_basic(self, sample_input_file, tmp_path,
-                                      mock_url_validator, mock_tag_generator):
+    def test_execute_streaming_basic(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test execute_streaming with reader and writer."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1211,9 +1333,14 @@ class TestStreamingPipelineExecuteStreaming:
         assert results.stats.total_read == 5
         assert results.stats.total_processed == 5
 
-    def test_execute_streaming_with_state_tracker(self, sample_input_file, tmp_path,
-                                                   mock_url_validator, mock_tag_generator,
-                                                   mock_state_tracker):
+    def test_execute_streaming_with_state_tracker(
+        self,
+        sample_input_file,
+        tmp_path,
+        mock_url_validator,
+        mock_tag_generator,
+        mock_state_tracker,
+    ):
         """Test execute_streaming with state tracker."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1243,9 +1370,14 @@ class TestStreamingPipelineExecuteStreaming:
         mock_state_tracker.start_processing_run.assert_called_once()
         mock_state_tracker.complete_processing_run.assert_called_once()
 
-    def test_execute_streaming_skips_processed(self, sample_input_file, tmp_path,
-                                                mock_url_validator, mock_tag_generator,
-                                                mock_state_tracker):
+    def test_execute_streaming_skips_processed(
+        self,
+        sample_input_file,
+        tmp_path,
+        mock_url_validator,
+        mock_tag_generator,
+        mock_state_tracker,
+    ):
         """Test that already processed bookmarks are skipped."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1263,7 +1395,9 @@ class TestStreamingPipelineExecuteStreaming:
         mock_url_validator.validate_url.return_value = MagicMock(is_valid=True)
         mock_tag_generator.generate_for_single_bookmark.return_value = ["tag"]
         # Return only 2 bookmarks as unprocessed (skip 3)
-        mock_state_tracker.get_unprocessed.side_effect = lambda x: x[:2] if len(x) >= 2 else x
+        mock_state_tracker.get_unprocessed.side_effect = lambda x: (
+            x[:2] if len(x) >= 2 else x
+        )
 
         reader = StreamingBookmarkReader(sample_input_file)
         writer = StreamingBookmarkWriter(tmp_path / "output.csv")
@@ -1274,8 +1408,9 @@ class TestStreamingPipelineExecuteStreaming:
         assert results.completed is True
         assert results.stats.total_skipped == 3
 
-    def test_execute_streaming_with_progress_callback(self, sample_input_file, tmp_path,
-                                                       mock_url_validator, mock_tag_generator):
+    def test_execute_streaming_with_progress_callback(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test execute_streaming with progress callback."""
         callback = MagicMock()
         config = StreamingPipelineConfig(
@@ -1325,8 +1460,9 @@ class TestStreamingPipelineExecuteStreaming:
         assert results.completed is False
         assert "Critical error" in results.error_message
 
-    def test_execute_streaming_timing(self, sample_input_file, tmp_path,
-                                       mock_url_validator, mock_tag_generator):
+    def test_execute_streaming_timing(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test that timing is recorded correctly."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1356,8 +1492,9 @@ class TestStreamingPipelineExecuteStreaming:
 class TestStreamingPipelineLargeDataset:
     """Tests for processing large datasets."""
 
-    def test_execute_large_dataset(self, large_input_file, tmp_path,
-                                    mock_url_validator, mock_tag_generator):
+    def test_execute_large_dataset(
+        self, large_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test processing large dataset in batches."""
         config = StreamingPipelineConfig(
             input_file=large_input_file,
@@ -1380,8 +1517,9 @@ class TestStreamingPipelineLargeDataset:
         assert results.stats.total_read == 350
         assert results.stats.total_processed == 350
 
-    def test_checkpoint_interval(self, large_input_file, tmp_path,
-                                  mock_url_validator, mock_tag_generator):
+    def test_checkpoint_interval(
+        self, large_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test that checkpoints are saved at intervals."""
         config = StreamingPipelineConfig(
             input_file=large_input_file,
@@ -1430,8 +1568,9 @@ class TestStreamingPipelineUtilities:
         assert stats["total_processed"] == 90
         assert stats["validation_success"] == 85
 
-    def test_close_with_components(self, basic_config, mock_url_validator,
-                                    mock_content_analyzer, mock_ai_processor):
+    def test_close_with_components(
+        self, basic_config, mock_url_validator, mock_content_analyzer, mock_ai_processor
+    ):
         """Test close method cleans up components."""
         pipeline = StreamingPipeline(
             basic_config,
@@ -1478,9 +1617,15 @@ class TestStreamingPipelineUtilities:
 class TestStreamingPipelineIntegration:
     """Integration tests for complete pipeline flow."""
 
-    def test_full_pipeline_flow(self, sample_input_file, tmp_path,
-                                 mock_url_validator, mock_content_analyzer,
-                                 mock_ai_processor, mock_tag_generator):
+    def test_full_pipeline_flow(
+        self,
+        sample_input_file,
+        tmp_path,
+        mock_url_validator,
+        mock_content_analyzer,
+        mock_ai_processor,
+        mock_tag_generator,
+    ):
         """Test complete pipeline flow with all components."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1520,8 +1665,9 @@ class TestStreamingPipelineIntegration:
             rows = list(reader)
         assert len(rows) == 5
 
-    def test_pipeline_partial_failures(self, sample_input_file, tmp_path,
-                                        mock_url_validator, mock_tag_generator):
+    def test_pipeline_partial_failures(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test pipeline handles partial failures gracefully."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1553,20 +1699,83 @@ class TestStreamingPipelineIntegration:
         assert results.stats.validation_failed == 2
         assert results.stats.total_processed == 3
 
-    def test_pipeline_with_mixed_content(self, tmp_path, mock_url_validator,
-                                          mock_tag_generator):
+    def test_pipeline_with_mixed_content(
+        self, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test pipeline with varied bookmark content."""
         # Create CSV with varied content
         csv_file = tmp_path / "varied_input.csv"
         with open(csv_file, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerows([
-                ["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"],
-                ["1", "Complete", "Full note", "Full excerpt", "https://complete.com", "Complete", "a, b, c", "2024-01-01T00:00:00Z", "cover.jpg", "highlight", "true"],
-                ["2", "Minimal", "", "", "https://minimal.com", "", "", "", "", "", "false"],
-                ["3", "Unicode Title", "Unicode note", "", "https://unicode.com", "", "", "", "", "", "false"],
-                ["4", "Special <>&", "Note with <special> chars", "", "https://special.com", "", "", "", "", "", "false"],
-            ])
+            writer.writerows(
+                [
+                    [
+                        "id",
+                        "title",
+                        "note",
+                        "excerpt",
+                        "url",
+                        "folder",
+                        "tags",
+                        "created",
+                        "cover",
+                        "highlights",
+                        "favorite",
+                    ],
+                    [
+                        "1",
+                        "Complete",
+                        "Full note",
+                        "Full excerpt",
+                        "https://complete.com",
+                        "Complete",
+                        "a, b, c",
+                        "2024-01-01T00:00:00Z",
+                        "cover.jpg",
+                        "highlight",
+                        "true",
+                    ],
+                    [
+                        "2",
+                        "Minimal",
+                        "",
+                        "",
+                        "https://minimal.com",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "false",
+                    ],
+                    [
+                        "3",
+                        "Unicode Title",
+                        "Unicode note",
+                        "",
+                        "https://unicode.com",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "false",
+                    ],
+                    [
+                        "4",
+                        "Special <>&",
+                        "Note with <special> chars",
+                        "",
+                        "https://special.com",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "false",
+                    ],
+                ]
+            )
 
         config = StreamingPipelineConfig(
             input_file=csv_file,
@@ -1601,7 +1810,21 @@ class TestStreamingPipelineEdgeCases:
         csv_file = tmp_path / "empty.csv"
         with open(csv_file, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"])
+            writer.writerow(
+                [
+                    "id",
+                    "title",
+                    "note",
+                    "excerpt",
+                    "url",
+                    "folder",
+                    "tags",
+                    "created",
+                    "cover",
+                    "highlights",
+                    "favorite",
+                ]
+            )
 
         config = StreamingPipelineConfig(
             input_file=csv_file,
@@ -1622,10 +1845,36 @@ class TestStreamingPipelineEdgeCases:
         csv_file = tmp_path / "single.csv"
         with open(csv_file, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerows([
-                ["id", "title", "note", "excerpt", "url", "folder", "tags", "created", "cover", "highlights", "favorite"],
-                ["1", "Single", "Note", "", "https://single.com", "Folder", "tag", "2024-01-01T00:00:00Z", "", "", "false"],
-            ])
+            writer.writerows(
+                [
+                    [
+                        "id",
+                        "title",
+                        "note",
+                        "excerpt",
+                        "url",
+                        "folder",
+                        "tags",
+                        "created",
+                        "cover",
+                        "highlights",
+                        "favorite",
+                    ],
+                    [
+                        "1",
+                        "Single",
+                        "Note",
+                        "",
+                        "https://single.com",
+                        "Folder",
+                        "tag",
+                        "2024-01-01T00:00:00Z",
+                        "",
+                        "",
+                        "false",
+                    ],
+                ]
+            )
 
         config = StreamingPipelineConfig(
             input_file=csv_file,
@@ -1648,8 +1897,9 @@ class TestStreamingPipelineEdgeCases:
         assert results.stats.total_read == 1
         assert results.stats.total_processed == 1
 
-    def test_batch_size_larger_than_data(self, sample_input_file, tmp_path,
-                                          mock_url_validator, mock_tag_generator):
+    def test_batch_size_larger_than_data(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test when batch size is larger than total data."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1671,8 +1921,9 @@ class TestStreamingPipelineEdgeCases:
         assert results.completed is True
         assert results.stats.total_read == 5
 
-    def test_all_bookmarks_fail_validation(self, sample_input_file, tmp_path,
-                                            mock_url_validator, mock_tag_generator):
+    def test_all_bookmarks_fail_validation(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test when all bookmarks fail validation."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1686,8 +1937,7 @@ class TestStreamingPipelineEdgeCases:
             tag_generator=mock_tag_generator,
         )
         mock_url_validator.validate_url.return_value = MagicMock(
-            is_valid=False,
-            error_message="All fail"
+            is_valid=False, error_message="All fail"
         )
 
         results = pipeline.execute()
@@ -1698,8 +1948,9 @@ class TestStreamingPipelineEdgeCases:
         assert results.stats.total_processed == 0
         assert results.stats.total_written == 0
 
-    def test_stats_reset_on_execute(self, sample_input_file, tmp_path,
-                                     mock_url_validator, mock_tag_generator):
+    def test_stats_reset_on_execute(
+        self, sample_input_file, tmp_path, mock_url_validator, mock_tag_generator
+    ):
         """Test that stats are reset on each execute call."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,
@@ -1742,8 +1993,14 @@ class TestStreamingPipelineLogging:
             assert pipeline.logger is not None
             assert pipeline.logger.name == "bookmark_processor.core.streaming.pipeline"
 
-    def test_error_logging(self, sample_input_file, tmp_path, mock_url_validator,
-                           mock_tag_generator, caplog):
+    def test_error_logging(
+        self,
+        sample_input_file,
+        tmp_path,
+        mock_url_validator,
+        mock_tag_generator,
+        caplog,
+    ):
         """Test that validation errors are handled appropriately."""
         config = StreamingPipelineConfig(
             input_file=sample_input_file,

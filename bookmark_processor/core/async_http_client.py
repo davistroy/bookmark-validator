@@ -33,8 +33,20 @@ class AsyncHttpClient:
 
     # Valid HTTP status codes for success
     SUCCESS_CODES = {
-        200, 201, 202, 203, 204, 205, 206,
-        300, 301, 302, 303, 304, 307, 308,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        300,
+        301,
+        302,
+        303,
+        304,
+        307,
+        308,
     }
 
     def __init__(

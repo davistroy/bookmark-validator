@@ -27,7 +27,10 @@ from bookmark_processor.utils.cli_validators import (
     create_enhanced_parser,
     validate_cli_arguments,
 )
-from bookmark_processor.utils.input_validator import ValidationResult, ValidationSeverity
+from bookmark_processor.utils.input_validator import (
+    ValidationResult,
+    ValidationSeverity,
+)
 
 
 class TestPathValidator:
@@ -102,7 +105,9 @@ class TestPathValidator:
             )
             result = validator.validate(temp_path)
             assert not result.is_valid
-            assert any("not a directory" in str(issue).lower() for issue in result.issues)
+            assert any(
+                "not a directory" in str(issue).lower() for issue in result.issues
+            )
         finally:
             os.unlink(temp_path)
 
@@ -182,7 +187,9 @@ class TestPathValidator:
             )
             result = validator.validate(new_path)
             assert not result.is_valid
-            assert any("parent directory" in str(issue).lower() for issue in result.issues)
+            assert any(
+                "parent directory" in str(issue).lower() for issue in result.issues
+            )
 
     def test_file_or_dir_type_accepts_both(self):
         """Test file_or_dir path type accepts both files and directories"""
@@ -1111,7 +1118,9 @@ class TestExceptionHandlingPaths:
         with mock.patch.object(Path, "resolve", side_effect=ValueError("Invalid path")):
             result = validator.validate("some_path")
             assert not result.is_valid
-            assert any("invalid path format" in str(issue).lower() for issue in result.issues)
+            assert any(
+                "invalid path format" in str(issue).lower() for issue in result.issues
+            )
 
     def test_unreadable_file(self):
         """Test handling of unreadable file"""
@@ -1137,7 +1146,9 @@ class TestExceptionHandlingPaths:
             with mock.patch("os.access", side_effect=mock_access):
                 result = validator.validate(temp_path)
                 assert not result.is_valid
-                assert any("not readable" in str(issue).lower() for issue in result.issues)
+                assert any(
+                    "not readable" in str(issue).lower() for issue in result.issues
+                )
         finally:
             os.unlink(temp_path)
 
@@ -1165,7 +1176,9 @@ class TestExceptionHandlingPaths:
             with mock.patch("os.access", side_effect=mock_access):
                 result = validator.validate(temp_path)
                 assert not result.is_valid
-                assert any("not writable" in str(issue).lower() for issue in result.issues)
+                assert any(
+                    "not writable" in str(issue).lower() for issue in result.issues
+                )
         finally:
             os.unlink(temp_path)
 
@@ -1179,7 +1192,9 @@ class TestExceptionHandlingPaths:
             create_parent_dirs=True,
         )
         # Use a path where we cannot create directories
-        with mock.patch.object(Path, "mkdir", side_effect=PermissionError("No permission")):
+        with mock.patch.object(
+            Path, "mkdir", side_effect=PermissionError("No permission")
+        ):
             result = validator.validate("/nonexistent/subdir/file.txt")
             assert not result.is_valid
             assert any("cannot create" in str(issue).lower() for issue in result.issues)
@@ -1206,7 +1221,9 @@ class TestExceptionHandlingPaths:
             with mock.patch("os.access", side_effect=mock_access):
                 result = validator.validate(new_file)
                 assert not result.is_valid
-                assert any("not writable" in str(issue).lower() for issue in result.issues)
+                assert any(
+                    "not writable" in str(issue).lower() for issue in result.issues
+                )
 
     def test_file_size_check_exception(self):
         """Test handling of exception during file size check"""
@@ -1221,7 +1238,10 @@ class TestExceptionHandlingPaths:
                 result = validator.validate(temp_path)
                 # Should still work but with warning about size check
                 assert result.has_warnings()
-                assert any("cannot check file size" in str(issue).lower() for issue in result.issues)
+                assert any(
+                    "cannot check file size" in str(issue).lower()
+                    for issue in result.issues
+                )
         finally:
             os.unlink(temp_path)
 
@@ -1237,7 +1257,9 @@ class TestExceptionHandlingPaths:
             original_open = open
 
             def mock_open_func(*args, **kwargs):
-                if args[0] == Path(temp_path) or str(args[0]) == str(Path(temp_path).resolve()):
+                if args[0] == Path(temp_path) or str(args[0]) == str(
+                    Path(temp_path).resolve()
+                ):
                     raise IOError("Cannot read file")
                 return original_open(*args, **kwargs)
 
@@ -1264,7 +1286,9 @@ class TestExceptionHandlingPaths:
             def mock_open_func(*args, **kwargs):
                 # Allow first call to work (validation), fail on second (format check)
                 call_count[0] += 1
-                if call_count[0] > 0 and "r" in str(kwargs.get("mode", args[1] if len(args) > 1 else "r")):
+                if call_count[0] > 0 and "r" in str(
+                    kwargs.get("mode", args[1] if len(args) > 1 else "r")
+                ):
                     raise IOError("Cannot read config")
                 return original_open(*args, **kwargs)
 
@@ -1349,10 +1373,7 @@ class TestEdgeCases:
             validator = InputFileValidator()
             result = validator.validate(temp_path)
             # Should have an error or warning about empty first line
-            assert any(
-                "empty" in str(issue).lower()
-                for issue in result.issues
-            )
+            assert any("empty" in str(issue).lower() for issue in result.issues)
         finally:
             os.unlink(temp_path)
 

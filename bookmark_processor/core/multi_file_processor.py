@@ -29,7 +29,9 @@ class MultiFileProcessor:
         self.logger = logging.getLogger(__name__)
         self.importer = MultiFormatImporter()
 
-    def auto_detect_files(self, directory: Optional[Union[str, Path]] = None) -> List[Path]:
+    def auto_detect_files(
+        self, directory: Optional[Union[str, Path]] = None
+    ) -> List[Path]:
         """
         Auto-detect bookmark files in a directory.
 

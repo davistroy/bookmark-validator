@@ -21,6 +21,7 @@ from .data_models import Bookmark
 @dataclass
 class ProcessingRun:
     """Represents a single processing run."""
+
     id: int
     started_at: datetime
     completed_at: Optional[datetime]
@@ -34,8 +35,12 @@ class ProcessingRun:
     @classmethod
     def from_row(cls, row: sqlite3.Row) -> "ProcessingRun":
         """Create from database row."""
-        started = datetime.fromisoformat(row["started_at"]) if row["started_at"] else None
-        completed = datetime.fromisoformat(row["completed_at"]) if row["completed_at"] else None
+        started = (
+            datetime.fromisoformat(row["started_at"]) if row["started_at"] else None
+        )
+        completed = (
+            datetime.fromisoformat(row["completed_at"]) if row["completed_at"] else None
+        )
 
         duration = None
         if started and completed:
@@ -50,7 +55,7 @@ class ProcessingRun:
             total_succeeded=row["total_succeeded"] or 0,
             total_failed=row["total_failed"] or 0,
             config_hash=row["config_hash"],
-            duration_seconds=duration
+            duration_seconds=duration,
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -58,19 +63,22 @@ class ProcessingRun:
         return {
             "id": self.id,
             "started_at": self.started_at.isoformat() if self.started_at else None,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "completed_at": (
+                self.completed_at.isoformat() if self.completed_at else None
+            ),
             "source": self.source,
             "total_processed": self.total_processed,
             "total_succeeded": self.total_succeeded,
             "total_failed": self.total_failed,
             "config_hash": self.config_hash,
-            "duration_seconds": self.duration_seconds
+            "duration_seconds": self.duration_seconds,
         }
 
 
 @dataclass
 class BookmarkRecord:
     """Represents a bookmark record in the database."""
+
     url: str
     content_hash: str
     processed_at: datetime
@@ -90,18 +98,24 @@ class BookmarkRecord:
 
         # sqlite3.Row doesn't have .get(), so check keys() instead
         row_keys = row.keys()
-        status = row["status"] if "status" in row_keys and row["status"] else "processed"
+        status = (
+            row["status"] if "status" in row_keys and row["status"] else "processed"
+        )
 
         return cls(
             url=row["url"],
             content_hash=row["content_hash"],
-            processed_at=datetime.fromisoformat(row["processed_at"]) if row["processed_at"] else datetime.now(),
+            processed_at=(
+                datetime.fromisoformat(row["processed_at"])
+                if row["processed_at"]
+                else datetime.now()
+            ),
             ai_engine=row["ai_engine"],
             description=row["description"],
             tags=tags,
             folder=row["folder"],
             title=row["title"],
-            status=status
+            status=status,
         )
 
     def to_bookmark(self) -> Bookmark:
@@ -112,7 +126,7 @@ class BookmarkRecord:
             note=self.description or "",
             folder=self.folder or "",
             tags=self.tags,
-            enhanced_description=self.description or ""
+            enhanced_description=self.description or "",
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -126,13 +140,14 @@ class BookmarkRecord:
             "tags": self.tags,
             "folder": self.folder,
             "title": self.title,
-            "status": self.status
+            "status": self.status,
         }
 
 
 @dataclass
 class RunComparison:
     """Comparison between two processing runs."""
+
     run1: ProcessingRun
     run2: ProcessingRun
     new_bookmarks: List[str]
@@ -142,7 +157,11 @@ class RunComparison:
 
     @property
     def total_changes(self) -> int:
-        return len(self.new_bookmarks) + len(self.removed_bookmarks) + len(self.changed_bookmarks)
+        return (
+            len(self.new_bookmarks)
+            + len(self.removed_bookmarks)
+            + len(self.changed_bookmarks)
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -284,7 +303,7 @@ class BookmarkDatabase:
     def __init__(
         self,
         db_path: Union[str, Path] = Path(".bookmark_database.db"),
-        enable_fts: bool = True
+        enable_fts: bool = True,
     ):
         """
         Initialize the bookmark database.
@@ -340,10 +359,12 @@ class BookmarkDatabase:
             bookmark.note or "",
             bookmark.excerpt or "",
             bookmark.folder or "",
-            ",".join(sorted(bookmark.tags)) if bookmark.tags else ""
+            ",".join(sorted(bookmark.tags)) if bookmark.tags else "",
         ]
         content = "|".join(content_parts)
-        return hashlib.md5(content.encode("utf-8", errors="surrogatepass"), usedforsecurity=False).hexdigest()
+        return hashlib.md5(
+            content.encode("utf-8", errors="surrogatepass"), usedforsecurity=False
+        ).hexdigest()
 
     # ============ Query Methods ============
 
@@ -366,9 +387,7 @@ class BookmarkDatabase:
             return []
 
     def query_by_date(
-        self,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None
+        self, start: Optional[datetime] = None, end: Optional[datetime] = None
     ) -> List[BookmarkRecord]:
         """
         Query bookmarks processed within a date range.
@@ -389,7 +408,7 @@ class BookmarkDatabase:
                         WHERE processed_at >= ? AND processed_at <= ?
                         ORDER BY processed_at DESC
                         """,
-                        (start.isoformat(), end.isoformat())
+                        (start.isoformat(), end.isoformat()),
                     )
                 elif start:
                     cursor = conn.execute(
@@ -398,7 +417,7 @@ class BookmarkDatabase:
                         WHERE processed_at >= ?
                         ORDER BY processed_at DESC
                         """,
-                        (start.isoformat(),)
+                        (start.isoformat(),),
                     )
                 elif end:
                     cursor = conn.execute(
@@ -407,7 +426,7 @@ class BookmarkDatabase:
                         WHERE processed_at <= ?
                         ORDER BY processed_at DESC
                         """,
-                        (end.isoformat(),)
+                        (end.isoformat(),),
                     )
                 else:
                     cursor = conn.execute(
@@ -433,8 +452,7 @@ class BookmarkDatabase:
         try:
             with self._get_connection() as conn:
                 cursor = conn.execute(
-                    "SELECT * FROM processed_bookmarks WHERE status = ?",
-                    (status,)
+                    "SELECT * FROM processed_bookmarks WHERE status = ?", (status,)
                 )
                 return [BookmarkRecord.from_row(row) for row in cursor.fetchall()]
 
@@ -457,13 +475,12 @@ class BookmarkDatabase:
             with self._get_connection() as conn:
                 if exact:
                     cursor = conn.execute(
-                        "SELECT * FROM processed_bookmarks WHERE folder = ?",
-                        (folder,)
+                        "SELECT * FROM processed_bookmarks WHERE folder = ?", (folder,)
                     )
                 else:
                     cursor = conn.execute(
                         "SELECT * FROM processed_bookmarks WHERE folder LIKE ?",
-                        (f"{folder}%",)
+                        (f"{folder}%",),
                     )
 
                 return [BookmarkRecord.from_row(row) for row in cursor.fetchall()]
@@ -490,7 +507,7 @@ class BookmarkDatabase:
                     SELECT * FROM processed_bookmarks
                     WHERE tags LIKE ? OR tags LIKE ? OR tags LIKE ? OR tags = ?
                     """,
-                    (f"{tag},%", f"%, {tag},%", f"%, {tag}", tag)
+                    (f"{tag},%", f"%, {tag},%", f"%, {tag}", tag),
                 )
                 return [BookmarkRecord.from_row(row) for row in cursor.fetchall()]
 
@@ -524,7 +541,7 @@ class BookmarkDatabase:
                     ORDER BY rank
                     LIMIT ?
                     """,
-                    (query, limit)
+                    (query, limit),
                 )
                 return [BookmarkRecord.from_row(row) for row in cursor.fetchall()]
 
@@ -543,7 +560,7 @@ class BookmarkDatabase:
                     WHERE title LIKE ? OR description LIKE ? OR tags LIKE ? OR url LIKE ?
                     LIMIT ?
                     """,
-                    (pattern, pattern, pattern, pattern, limit)
+                    (pattern, pattern, pattern, pattern, limit),
                 )
                 return [BookmarkRecord.from_row(row) for row in cursor.fetchall()]
 
@@ -573,7 +590,7 @@ class BookmarkDatabase:
                     WHERE h.url = ?
                     ORDER BY h.changed_at DESC
                     """,
-                    (url,)
+                    (url,),
                 )
                 return [dict(row) for row in cursor.fetchall()]
 
@@ -596,12 +613,10 @@ class BookmarkDatabase:
             with self._get_connection() as conn:
                 # Get run info
                 run1_row = conn.execute(
-                    "SELECT * FROM processing_runs WHERE id = ?",
-                    (run1_id,)
+                    "SELECT * FROM processing_runs WHERE id = ?", (run1_id,)
                 ).fetchone()
                 run2_row = conn.execute(
-                    "SELECT * FROM processing_runs WHERE id = ?",
-                    (run2_id,)
+                    "SELECT * FROM processing_runs WHERE id = ?", (run2_id,)
                 ).fetchone()
 
                 if not run1_row or not run2_row:
@@ -615,7 +630,7 @@ class BookmarkDatabase:
                 run1_hashes = {}
                 cursor = conn.execute(
                     "SELECT url, content_hash FROM bookmark_history WHERE run_id = ?",
-                    (run1_id,)
+                    (run1_id,),
                 )
                 for row in cursor.fetchall():
                     run1_urls.add(row["url"])
@@ -625,7 +640,7 @@ class BookmarkDatabase:
                 run2_hashes = {}
                 cursor = conn.execute(
                     "SELECT url, content_hash FROM bookmark_history WHERE run_id = ?",
-                    (run2_id,)
+                    (run2_id,),
                 )
                 for row in cursor.fetchall():
                     run2_urls.add(row["url"])
@@ -638,11 +653,13 @@ class BookmarkDatabase:
                 # Find changed (same URL, different hash)
                 common_urls = run1_urls & run2_urls
                 changed_bookmarks = [
-                    url for url in common_urls
+                    url
+                    for url in common_urls
                     if run1_hashes.get(url) != run2_hashes.get(url)
                 ]
                 unchanged_bookmarks = [
-                    url for url in common_urls
+                    url
+                    for url in common_urls
                     if run1_hashes.get(url) == run2_hashes.get(url)
                 ]
 
@@ -652,7 +669,7 @@ class BookmarkDatabase:
                     new_bookmarks=new_bookmarks,
                     removed_bookmarks=removed_bookmarks,
                     changed_bookmarks=changed_bookmarks,
-                    unchanged_bookmarks=unchanged_bookmarks
+                    unchanged_bookmarks=unchanged_bookmarks,
                 )
 
         except sqlite3.Error as e:
@@ -660,9 +677,7 @@ class BookmarkDatabase:
             return None
 
     def get_run_history(
-        self,
-        limit: int = 10,
-        source: Optional[str] = None
+        self, limit: int = 10, source: Optional[str] = None
     ) -> List[ProcessingRun]:
         """
         Get processing run history.
@@ -684,7 +699,7 @@ class BookmarkDatabase:
                         ORDER BY started_at DESC
                         LIMIT ?
                         """,
-                        (source, limit)
+                        (source, limit),
                     )
                 else:
                     cursor = conn.execute(
@@ -693,7 +708,7 @@ class BookmarkDatabase:
                         ORDER BY started_at DESC
                         LIMIT ?
                         """,
-                        (limit,)
+                        (limit,),
                     )
 
                 return [ProcessingRun.from_row(row) for row in cursor.fetchall()]
@@ -710,7 +725,7 @@ class BookmarkDatabase:
         content_hash: Optional[str] = None,
         ai_engine: str = "local",
         status: str = "processed",
-        run_id: Optional[int] = None
+        run_id: Optional[int] = None,
     ) -> None:
         """
         Mark a bookmark as processed.
@@ -742,12 +757,13 @@ class BookmarkDatabase:
                         content_hash,
                         now,
                         ai_engine,
-                        bookmark.enhanced_description or bookmark.get_effective_description(),
+                        bookmark.enhanced_description
+                        or bookmark.get_effective_description(),
                         tags_str,
                         bookmark.folder,
                         bookmark.get_effective_title(),
-                        status
-                    )
+                        status,
+                    ),
                 )
 
                 # Add to history if run_id provided
@@ -762,13 +778,14 @@ class BookmarkDatabase:
                             bookmark.url,
                             run_id,
                             content_hash,
-                            bookmark.enhanced_description or bookmark.get_effective_description(),
+                            bookmark.enhanced_description
+                            or bookmark.get_effective_description(),
                             tags_str,
                             bookmark.folder,
                             bookmark.get_effective_title(),
                             now,
-                            "processed"
-                        )
+                            "processed",
+                        ),
                     )
 
                 conn.commit()
@@ -778,10 +795,7 @@ class BookmarkDatabase:
             raise
 
     def mark_failed(
-        self,
-        url: str,
-        error_message: str,
-        run_id: Optional[int] = None
+        self, url: str, error_message: str, run_id: Optional[int] = None
     ) -> None:
         """
         Mark a URL as failed processing.
@@ -801,7 +815,7 @@ class BookmarkDatabase:
                     (url, content_hash, processed_at, status, description)
                     VALUES (?, ?, ?, 'failed', ?)
                     """,
-                    (url, "", now, error_message)
+                    (url, "", now, error_message),
                 )
 
                 if run_id:
@@ -811,7 +825,7 @@ class BookmarkDatabase:
                         (url, run_id, content_hash, description, changed_at, change_type)
                         VALUES (?, ?, '', ?, ?, 'failed')
                         """,
-                        (url, run_id, error_message, now)
+                        (url, run_id, error_message, now),
                     )
 
                 conn.commit()
@@ -827,7 +841,7 @@ class BookmarkDatabase:
             with self._get_connection() as conn:
                 cursor = conn.execute(
                     "SELECT content_hash, status FROM processed_bookmarks WHERE url = ?",
-                    (bookmark.url,)
+                    (bookmark.url,),
                 )
                 row = cursor.fetchone()
 
@@ -851,9 +865,7 @@ class BookmarkDatabase:
     # ============ Run Management Methods ============
 
     def start_processing_run(
-        self,
-        source: str,
-        config_hash: Optional[str] = None
+        self, source: str, config_hash: Optional[str] = None
     ) -> int:
         """
         Start a new processing run.
@@ -872,7 +884,7 @@ class BookmarkDatabase:
                     INSERT INTO processing_runs (started_at, source, config_hash)
                     VALUES (?, ?, ?)
                     """,
-                    (datetime.now().isoformat(), source, config_hash)
+                    (datetime.now().isoformat(), source, config_hash),
                 )
                 conn.commit()
                 self._current_run_id = cursor.lastrowid
@@ -887,7 +899,7 @@ class BookmarkDatabase:
         run_id: Optional[int] = None,
         total_processed: int = 0,
         total_succeeded: int = 0,
-        total_failed: int = 0
+        total_failed: int = 0,
     ) -> None:
         """Complete a processing run."""
         run_id = run_id or self._current_run_id
@@ -908,8 +920,8 @@ class BookmarkDatabase:
                         total_processed,
                         total_succeeded,
                         total_failed,
-                        run_id
-                    )
+                        run_id,
+                    ),
                 )
                 conn.commit()
 
@@ -930,30 +942,30 @@ class BookmarkDatabase:
                 stats = {}
 
                 # Total bookmarks
-                cursor = conn.execute("SELECT COUNT(*) as count FROM processed_bookmarks")
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as count FROM processed_bookmarks"
+                )
                 stats["total_bookmarks"] = cursor.fetchone()["count"]
 
                 # By status
-                cursor = conn.execute(
-                    """
+                cursor = conn.execute("""
                     SELECT status, COUNT(*) as count
                     FROM processed_bookmarks
                     GROUP BY status
-                    """
-                )
-                stats["by_status"] = {row["status"]: row["count"] for row in cursor.fetchall()}
+                    """)
+                stats["by_status"] = {
+                    row["status"]: row["count"] for row in cursor.fetchall()
+                }
 
                 # Total runs
                 cursor = conn.execute("SELECT COUNT(*) as count FROM processing_runs")
                 stats["total_runs"] = cursor.fetchone()["count"]
 
                 # Recent activity
-                cursor = conn.execute(
-                    """
+                cursor = conn.execute("""
                     SELECT COUNT(*) as count FROM processed_bookmarks
                     WHERE processed_at >= datetime('now', '-7 days')
-                    """
-                )
+                    """)
                 stats["processed_last_7_days"] = cursor.fetchone()["count"]
 
                 # Unique folders
@@ -963,12 +975,10 @@ class BookmarkDatabase:
                 stats["unique_folders"] = cursor.fetchone()["count"]
 
                 # Average tags per bookmark
-                cursor = conn.execute(
-                    """
+                cursor = conn.execute("""
                     SELECT AVG(LENGTH(tags) - LENGTH(REPLACE(tags, ',', '')) + 1) as avg
                     FROM processed_bookmarks WHERE tags != '' AND tags IS NOT NULL
-                    """
-                )
+                    """)
                 result = cursor.fetchone()
                 stats["avg_tags_per_bookmark"] = round(result["avg"] or 0, 2)
 

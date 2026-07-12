@@ -840,8 +840,7 @@ class EnhancedBatchProcessor:
 
         # Emit final progress update for async processing completion
         self._emit_progress_update(
-            "async_processing_completed", "final", len(all_results),
-            len(all_results)
+            "async_processing_completed", "final", len(all_results), len(all_results)
         )
 
         logging.info(

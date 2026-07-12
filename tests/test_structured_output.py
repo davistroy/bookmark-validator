@@ -88,12 +88,14 @@ class TestParseEnhancementResponse:
 
     def test_parse_valid_json(self):
         """Test parsing valid JSON response."""
-        json_response = json.dumps({
-            "description": "A great tutorial for learning Python web development.",
-            "tags": ["python", "web", "tutorial"],
-            "category": "tutorial",
-            "confidence": 0.85,
-        })
+        json_response = json.dumps(
+            {
+                "description": "A great tutorial for learning Python web development.",
+                "tags": ["python", "web", "tutorial"],
+                "category": "tutorial",
+                "confidence": 0.85,
+            }
+        )
         enhancement = parse_enhancement_response(json_response)
         assert enhancement.description
         assert len(enhancement.tags) >= 1

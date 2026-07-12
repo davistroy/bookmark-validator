@@ -16,7 +16,6 @@ import pytest
 from bookmark_processor.core.batch_processor import BatchProcessor
 from bookmark_processor.core.data_models import Bookmark
 
-
 # ============================================================================
 # Test Fixtures
 # ============================================================================
@@ -147,7 +146,9 @@ class TestBatchProcessorInitialization:
 
     def test_init_without_cost_tracker(self, mock_ai_manager):
         """Test initialization creates CostTracker if not provided."""
-        with patch("bookmark_processor.core.batch_processor.CostTracker") as MockTracker:
+        with patch(
+            "bookmark_processor.core.batch_processor.CostTracker"
+        ) as MockTracker:
             MockTracker.return_value = MagicMock()
             processor = BatchProcessor(
                 ai_manager=mock_ai_manager,
@@ -239,8 +240,7 @@ class TestProcessBookmarks:
         bookmarks = sample_bookmarks[:5]
 
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Enhanced desc", {"success": True, "provider": "claude"})
-            for _ in range(5)
+            ("Enhanced desc", {"success": True, "provider": "claude"}) for _ in range(5)
         ]
 
         results, statistics = await batch_processor.process_bookmarks(
@@ -257,8 +257,7 @@ class TestProcessBookmarks:
         """Test verbose output for local provider (no cost estimate)."""
         mock_ai_manager.get_current_provider.return_value = "local"
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "local"})
-            for _ in range(5)
+            ("Description", {"success": True, "provider": "local"}) for _ in range(5)
         ]
 
         await verbose_batch_processor.process_bookmarks(sample_bookmarks[:5])
@@ -269,8 +268,12 @@ class TestProcessBookmarks:
 
     @pytest.mark.asyncio
     async def test_process_bookmarks_verbose_with_cost_estimate(
-        self, verbose_batch_processor, mock_ai_manager, mock_cost_tracker,
-        sample_bookmarks, capsys
+        self,
+        verbose_batch_processor,
+        mock_ai_manager,
+        mock_cost_tracker,
+        sample_bookmarks,
+        capsys,
     ):
         """Test verbose output includes cost estimate for cloud providers (lines 100-108)."""
         mock_ai_manager.get_current_provider.return_value = "claude"
@@ -281,8 +284,7 @@ class TestProcessBookmarks:
             "method": "historical_average",
         }
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(5)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(5)
         ]
 
         await verbose_batch_processor.process_bookmarks(sample_bookmarks[:5])
@@ -300,8 +302,7 @@ class TestProcessBookmarks:
     ):
         """Test verbose output shows batch processing info (lines 111-115, 130)."""
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(15)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(15)
         ]
 
         await verbose_batch_processor.process_bookmarks(sample_bookmarks)
@@ -354,7 +355,9 @@ class TestBatchSplitting:
         batches_received = []
 
         async def capture_batches(bookmarks, existing_content=None):
-            batches_received.append((len(bookmarks), len(existing_content) if existing_content else 0))
+            batches_received.append(
+                (len(bookmarks), len(existing_content) if existing_content else 0)
+            )
             return [
                 ("Description", {"success": True, "provider": "claude"})
                 for _ in bookmarks
@@ -387,7 +390,10 @@ class TestErrorHandling:
         # Instead, the results contain error metadata
         mock_ai_manager.generate_descriptions_batch.side_effect = [
             Exception("Batch processing failed"),
-            [("Description", {"success": True, "provider": "claude"}) for _ in range(5)],
+            [
+                ("Description", {"success": True, "provider": "claude"})
+                for _ in range(5)
+            ],
         ]
 
         results, statistics = await batch_processor.process_bookmarks(sample_bookmarks)
@@ -493,8 +499,7 @@ class TestProcessBatch:
         """Test that cost records are NOT added for local AI."""
         mock_ai_manager.get_current_provider.return_value = "local"
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "local"})
-            for _ in range(5)
+            ("Description", {"success": True, "provider": "local"}) for _ in range(5)
         ]
 
         await batch_processor._process_batch(sample_bookmarks[:5])
@@ -536,8 +541,7 @@ class TestProgressCallbacks:
     ):
         """Test verbose mode uses tqdm for progress (lines 142-153)."""
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(10)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(10)
         ]
 
         # Test verbose mode processes correctly - tqdm is used internally
@@ -552,15 +556,18 @@ class TestProgressCallbacks:
 
     @pytest.mark.asyncio
     async def test_cost_confirmation_continues_processing(
-        self, verbose_batch_processor, mock_ai_manager, mock_cost_tracker, sample_bookmarks
+        self,
+        verbose_batch_processor,
+        mock_ai_manager,
+        mock_cost_tracker,
+        sample_bookmarks,
     ):
         """Test that confirming cost confirmation allows processing to continue (lines 148-153)."""
         # The cost confirmation feature - test the happy path where user confirms
         mock_cost_tracker.confirm_continuation = AsyncMock(return_value=True)
 
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(10)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(10)
         ]
 
         # Create bookmarks for processing
@@ -608,9 +615,7 @@ class TestGenerateStatistics:
         assert "cost_tracking" in stats
         assert "error_handling" in stats
 
-    def test_generate_statistics_with_ai_usage(
-        self, batch_processor, mock_ai_manager
-    ):
+    def test_generate_statistics_with_ai_usage(self, batch_processor, mock_ai_manager):
         """Test statistics include AI usage when available."""
         batch_processor.start_time = time.time()
         batch_processor.end_time = time.time()
@@ -959,8 +964,7 @@ class TestEdgeCases:
         """Test processing exactly one batch worth of bookmarks."""
         # Claude batch size is 10
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(10)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(10)
         ]
 
         results, statistics = await batch_processor.process_bookmarks(
@@ -1055,8 +1059,12 @@ class TestVerboseModeScenarios:
 
     @pytest.mark.asyncio
     async def test_verbose_no_cost_for_zero_session_cost(
-        self, verbose_batch_processor, mock_ai_manager, mock_cost_tracker,
-        sample_bookmarks, capsys
+        self,
+        verbose_batch_processor,
+        mock_ai_manager,
+        mock_cost_tracker,
+        sample_bookmarks,
+        capsys,
     ):
         """Test verbose mode skips cost section when session cost is zero."""
         mock_cost_tracker.get_detailed_statistics.return_value = {
@@ -1065,8 +1073,7 @@ class TestVerboseModeScenarios:
             "providers": {},
         }
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(5)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(5)
         ]
 
         await verbose_batch_processor.process_bookmarks(sample_bookmarks[:5])
@@ -1077,8 +1084,12 @@ class TestVerboseModeScenarios:
 
     @pytest.mark.asyncio
     async def test_verbose_empty_health_status(
-        self, verbose_batch_processor, mock_ai_manager, mock_cost_tracker,
-        sample_bookmarks, capsys
+        self,
+        verbose_batch_processor,
+        mock_ai_manager,
+        mock_cost_tracker,
+        sample_bookmarks,
+        capsys,
     ):
         """Test verbose mode handles empty health status."""
         mock_ai_manager.get_usage_statistics.return_value = {
@@ -1091,8 +1102,7 @@ class TestVerboseModeScenarios:
             "providers": {},
         }
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(5)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(5)
         ]
 
         await verbose_batch_processor.process_bookmarks(sample_bookmarks[:5])
@@ -1116,8 +1126,7 @@ class TestNonVerboseMode:
     ):
         """Test non-verbose mode uses asyncio.gather (lines 155-158)."""
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(10)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(10)
         ]
 
         results, statistics = await batch_processor.process_bookmarks(
@@ -1178,7 +1187,9 @@ class TestExceptionResultHandling:
             # Return an exception object instead of a list of results
             mock_process.side_effect = RuntimeError("Unhandled batch error")
 
-            results, statistics = await processor.process_bookmarks(sample_bookmarks[:10])
+            results, statistics = await processor.process_bookmarks(
+                sample_bookmarks[:10]
+            )
 
             # The exception handling in _process_batch should convert to error results
             assert isinstance(results, list)
@@ -1203,7 +1214,9 @@ class TestExceptionResultHandling:
             call_count += 1
             if call_count == 1:
                 # First batch succeeds
-                return [("Desc", {"success": True, "provider": "claude"}) for _ in range(10)]
+                return [
+                    ("Desc", {"success": True, "provider": "claude"}) for _ in range(10)
+                ]
             else:
                 # Second batch fails
                 raise Exception("Second batch failed")
@@ -1230,8 +1243,7 @@ class TestAdditionalEdgeCases:
     ):
         """Test that start_time and end_time are properly set."""
         mock_ai_manager.generate_descriptions_batch.return_value = [
-            ("Description", {"success": True, "provider": "claude"})
-            for _ in range(5)
+            ("Description", {"success": True, "provider": "claude"}) for _ in range(5)
         ]
 
         # Ensure times are reset
@@ -1328,7 +1340,9 @@ class TestAdditionalEdgeCases:
             for i in range(30)
         ]
 
-        await batch_processor.estimate_processing_cost(1000, sample_bookmarks=large_samples)
+        await batch_processor.estimate_processing_cost(
+            1000, sample_bookmarks=large_samples
+        )
 
         # Sample size should be capped at 20
         mock_cost_tracker.get_cost_estimate.assert_called_once_with(

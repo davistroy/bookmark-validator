@@ -21,7 +21,6 @@ from bookmark_processor.utils.error_handler import (
     UnsupportedFormatError,
 )
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -40,6 +39,7 @@ def temp_directory():
     yield temp_dir
     # Cleanup
     import shutil
+
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
 
@@ -134,7 +134,9 @@ class TestAutoDetectFiles:
             files = processor.auto_detect_files()
             assert isinstance(files, list)
 
-    def test_auto_detect_with_specific_directory(self, processor, temp_directory, temp_csv_file):
+    def test_auto_detect_with_specific_directory(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test auto-detection with specific directory."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -146,7 +148,9 @@ class TestAutoDetectFiles:
             assert len(files) >= 1
             assert all(isinstance(f, Path) for f in files)
 
-    def test_auto_detect_with_path_object(self, processor, temp_directory, temp_csv_file):
+    def test_auto_detect_with_path_object(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test auto-detection accepts Path object."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -169,7 +173,9 @@ class TestAutoDetectFiles:
             processor.auto_detect_files(temp_csv_file)
         assert "not a directory" in str(exc_info.value)
 
-    def test_auto_detect_finds_csv_files(self, processor, temp_directory, temp_csv_file):
+    def test_auto_detect_finds_csv_files(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test auto-detection finds CSV files."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -181,7 +187,9 @@ class TestAutoDetectFiles:
             csv_files = [f for f in files if f.suffix == ".csv"]
             assert len(csv_files) >= 1
 
-    def test_auto_detect_finds_html_files(self, processor, temp_directory, temp_html_file):
+    def test_auto_detect_finds_html_files(
+        self, processor, temp_directory, temp_html_file
+    ):
         """Test auto-detection finds HTML files."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -193,7 +201,9 @@ class TestAutoDetectFiles:
             html_files = [f for f in files if f.suffix in (".html", ".htm")]
             assert len(html_files) >= 1
 
-    def test_auto_detect_skips_unsupported_files(self, processor, temp_directory, temp_invalid_file):
+    def test_auto_detect_skips_unsupported_files(
+        self, processor, temp_directory, temp_invalid_file
+    ):
         """Test auto-detection skips unsupported files."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -211,7 +221,9 @@ class TestAutoDetectFiles:
         # Create an empty CSV file
         empty_path = os.path.join(temp_directory, "empty.csv")
         with open(empty_path, "w") as f:
-            f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
+            f.write(
+                "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+            )
 
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -223,7 +235,9 @@ class TestAutoDetectFiles:
             # Empty files should be skipped
             assert not any(f.name == "empty.csv" for f in files)
 
-    def test_auto_detect_handles_validation_error(self, processor, temp_directory, temp_csv_file):
+    def test_auto_detect_handles_validation_error(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test auto-detection handles file validation errors gracefully."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.side_effect = Exception("Validation error")
@@ -237,7 +251,9 @@ class TestAutoDetectFiles:
         for name in ["c_file.csv", "a_file.csv", "b_file.csv"]:
             path = os.path.join(temp_directory, name)
             with open(path, "w") as f:
-                f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
+                f.write(
+                    "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+                )
                 f.write("1,Test,,,https://example.com,,,,,,false\n")
 
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
@@ -266,7 +282,9 @@ class TestProcessMultipleFiles:
             processor.process_multiple_files([])
         assert "No files provided" in str(exc_info.value)
 
-    def test_process_single_file_success(self, processor, temp_csv_file, sample_bookmarks):
+    def test_process_single_file_success(
+        self, processor, temp_csv_file, sample_bookmarks
+    ):
         """Test processing a single file successfully."""
         with patch.object(processor.importer, "import_bookmarks") as mock_import:
             with patch.object(processor.importer, "detect_format") as mock_detect:
@@ -281,7 +299,9 @@ class TestProcessMultipleFiles:
                 assert stats["failed_files"] == 0
                 assert stats["total_bookmarks"] == 2
 
-    def test_process_multiple_files_success(self, processor, temp_csv_file, temp_html_file, sample_bookmarks):
+    def test_process_multiple_files_success(
+        self, processor, temp_csv_file, temp_html_file, sample_bookmarks
+    ):
         """Test processing multiple files successfully."""
         with patch.object(processor.importer, "import_bookmarks") as mock_import:
             with patch.object(processor.importer, "detect_format") as mock_detect:
@@ -297,14 +317,18 @@ class TestProcessMultipleFiles:
                 assert stats["successful_files"] == 2
                 assert stats["failed_files"] == 0
 
-    def test_process_files_with_path_objects(self, processor, temp_csv_file, sample_bookmarks):
+    def test_process_files_with_path_objects(
+        self, processor, temp_csv_file, sample_bookmarks
+    ):
         """Test processing accepts Path objects."""
         with patch.object(processor.importer, "import_bookmarks") as mock_import:
             with patch.object(processor.importer, "detect_format") as mock_detect:
                 mock_import.return_value = sample_bookmarks
                 mock_detect.return_value = "csv"
 
-                bookmarks, stats = processor.process_multiple_files([Path(temp_csv_file)])
+                bookmarks, stats = processor.process_multiple_files(
+                    [Path(temp_csv_file)]
+                )
 
                 assert len(bookmarks) == 2
 
@@ -325,7 +349,9 @@ class TestProcessMultipleFiles:
                 assert hasattr(bookmarks[0], "source_file")
                 assert temp_csv_file in bookmarks[0].source_file
 
-    def test_process_files_preserves_existing_source_file(self, processor, temp_csv_file):
+    def test_process_files_preserves_existing_source_file(
+        self, processor, temp_csv_file
+    ):
         """Test processing preserves existing source_file attribute."""
         test_bookmark = Bookmark(url="https://test.com", title="Test")
         test_bookmark.source_file = "original_source.csv"
@@ -340,8 +366,11 @@ class TestProcessMultipleFiles:
                 # Should preserve original source_file
                 assert bookmarks[0].source_file == "original_source.csv"
 
-    def test_process_files_with_bookmark_import_error(self, processor, temp_csv_file, temp_html_file, sample_bookmarks):
+    def test_process_files_with_bookmark_import_error(
+        self, processor, temp_csv_file, temp_html_file, sample_bookmarks
+    ):
         """Test processing continues after BookmarkImportError."""
+
         def mock_import_side_effect(path):
             if "html" in str(path):
                 raise BookmarkImportError("Import failed")
@@ -361,8 +390,11 @@ class TestProcessMultipleFiles:
                 assert stats["failed_files"] == 1
                 assert len(stats["errors"]) == 1
 
-    def test_process_files_with_unsupported_format_error(self, processor, temp_csv_file, temp_html_file, sample_bookmarks):
+    def test_process_files_with_unsupported_format_error(
+        self, processor, temp_csv_file, temp_html_file, sample_bookmarks
+    ):
         """Test processing handles UnsupportedFormatError for one file but continues."""
+
         def mock_import_side_effect(path):
             if "html" in str(path):
                 raise UnsupportedFormatError("Unsupported format")
@@ -373,12 +405,16 @@ class TestProcessMultipleFiles:
                 mock_import.side_effect = mock_import_side_effect
                 mock_detect.return_value = "csv"
 
-                bookmarks, stats = processor.process_multiple_files([temp_csv_file, temp_html_file])
+                bookmarks, stats = processor.process_multiple_files(
+                    [temp_csv_file, temp_html_file]
+                )
 
                 assert stats["successful_files"] == 1
                 assert stats["failed_files"] == 1
 
-    def test_process_files_with_generic_exception(self, processor, temp_csv_file, sample_bookmarks):
+    def test_process_files_with_generic_exception(
+        self, processor, temp_csv_file, sample_bookmarks
+    ):
         """Test processing handles generic exceptions."""
         with patch.object(processor.importer, "import_bookmarks") as mock_import:
             mock_import.side_effect = Exception("Unexpected error")
@@ -389,7 +425,9 @@ class TestProcessMultipleFiles:
 
             assert "Failed to process any files" in str(exc_info.value)
 
-    def test_process_files_all_fail_raises_error(self, processor, temp_csv_file, temp_html_file):
+    def test_process_files_all_fail_raises_error(
+        self, processor, temp_csv_file, temp_html_file
+    ):
         """Test processing raises error when all files fail."""
         with patch.object(processor.importer, "import_bookmarks") as mock_import:
             mock_import.side_effect = BookmarkImportError("All imports fail")
@@ -399,7 +437,9 @@ class TestProcessMultipleFiles:
 
             assert "Failed to process any files" in str(exc_info.value)
 
-    def test_process_files_records_file_results(self, processor, temp_csv_file, sample_bookmarks):
+    def test_process_files_records_file_results(
+        self, processor, temp_csv_file, sample_bookmarks
+    ):
         """Test processing records detailed file results."""
         with patch.object(processor.importer, "import_bookmarks") as mock_import:
             with patch.object(processor.importer, "detect_format") as mock_detect:
@@ -409,9 +449,14 @@ class TestProcessMultipleFiles:
                 bookmarks, stats = processor.process_multiple_files([temp_csv_file])
 
                 # Check file_results structure
-                assert temp_csv_file in stats["file_results"] or str(Path(temp_csv_file)) in stats["file_results"]
+                assert (
+                    temp_csv_file in stats["file_results"]
+                    or str(Path(temp_csv_file)) in stats["file_results"]
+                )
 
-                file_result = stats["file_results"].get(temp_csv_file) or stats["file_results"].get(str(Path(temp_csv_file)))
+                file_result = stats["file_results"].get(temp_csv_file) or stats[
+                    "file_results"
+                ].get(str(Path(temp_csv_file)))
                 assert file_result is not None
                 assert file_result["status"] == "success"
                 assert file_result["bookmark_count"] == 2
@@ -475,6 +520,7 @@ class TestGenerateTimestampedOutputPaths:
 
         # Small delay to ensure different timestamp
         import time
+
         time.sleep(0.01)
 
         paths2 = processor.generate_timestamped_output_paths()
@@ -646,7 +692,9 @@ class TestValidateDirectoryForAutoDetection:
         assert "error" in report
         assert "not a directory" in report["error"]
 
-    def test_validate_finds_potential_files(self, processor, temp_directory, temp_csv_file, temp_html_file):
+    def test_validate_finds_potential_files(
+        self, processor, temp_directory, temp_csv_file, temp_html_file
+    ):
         """Test validation identifies potential bookmark files."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -661,7 +709,9 @@ class TestValidateDirectoryForAutoDetection:
             assert len(report["potential_files"]) >= 2
             assert len(report["valid_files"]) >= 0
 
-    def test_validate_identifies_valid_files(self, processor, temp_directory, temp_csv_file):
+    def test_validate_identifies_valid_files(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test validation identifies valid bookmark files."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -680,7 +730,9 @@ class TestValidateDirectoryForAutoDetection:
                 assert "estimated_bookmarks" in valid_file
                 assert "size_mb" in valid_file
 
-    def test_validate_identifies_invalid_files(self, processor, temp_directory, temp_invalid_file):
+    def test_validate_identifies_invalid_files(
+        self, processor, temp_directory, temp_invalid_file
+    ):
         """Test validation identifies invalid bookmark files."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -697,7 +749,9 @@ class TestValidateDirectoryForAutoDetection:
             assert "name" in invalid_file
             assert "reason" in invalid_file
 
-    def test_validate_calculates_total_bookmarks(self, processor, temp_directory, temp_csv_file):
+    def test_validate_calculates_total_bookmarks(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test validation calculates total estimated bookmarks."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -711,7 +765,9 @@ class TestValidateDirectoryForAutoDetection:
 
             assert "total_estimated_bookmarks" in report
 
-    def test_validate_sets_can_auto_detect_flag(self, processor, temp_directory, temp_csv_file):
+    def test_validate_sets_can_auto_detect_flag(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test validation sets can_auto_detect flag correctly."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.return_value = {
@@ -726,7 +782,9 @@ class TestValidateDirectoryForAutoDetection:
             if report["valid_files"]:
                 assert report["can_auto_detect"] is True
 
-    def test_validate_handles_get_file_info_exception(self, processor, temp_directory, temp_csv_file):
+    def test_validate_handles_get_file_info_exception(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test validation handles exceptions from get_file_info."""
         with patch.object(processor.importer, "get_file_info") as mock_get_info:
             mock_get_info.side_effect = Exception("File info error")
@@ -768,7 +826,9 @@ class TestValidateDirectoryForAutoDetection:
 class TestMultiFileProcessorIntegration:
     """Integration tests for MultiFileProcessor."""
 
-    def test_full_workflow_auto_detect_and_process(self, processor, temp_directory, temp_csv_file):
+    def test_full_workflow_auto_detect_and_process(
+        self, processor, temp_directory, temp_csv_file
+    ):
         """Test complete workflow: auto-detect then process files."""
         # Mock the importer methods
         sample_bookmarks = [
@@ -792,10 +852,14 @@ class TestMultiFileProcessorIntegration:
 
                     # Step 2: Process detected files
                     if detected_files:
-                        bookmarks, stats = processor.process_multiple_files(detected_files)
+                        bookmarks, stats = processor.process_multiple_files(
+                            detected_files
+                        )
 
                         # Step 3: Generate output paths
-                        output_paths = processor.generate_timestamped_output_paths("output")
+                        output_paths = processor.generate_timestamped_output_paths(
+                            "output"
+                        )
 
                         # Step 4: Get summary
                         summary = processor.get_processing_summary(stats)
@@ -816,14 +880,18 @@ class TestMultiFileProcessorIntegration:
             }
 
             # First validate
-            validation_report = processor.validate_directory_for_auto_detection(temp_directory)
+            validation_report = processor.validate_directory_for_auto_detection(
+                temp_directory
+            )
 
             if validation_report["can_auto_detect"]:
                 # Then auto-detect
                 files = processor.auto_detect_files(temp_directory)
                 assert len(files) >= 1
 
-    def test_error_recovery_workflow(self, processor, temp_directory, temp_csv_file, temp_html_file):
+    def test_error_recovery_workflow(
+        self, processor, temp_directory, temp_csv_file, temp_html_file
+    ):
         """Test workflow with partial failures and recovery."""
         success_bookmarks = [Bookmark(url="https://success.com", title="Success")]
 
@@ -859,14 +927,18 @@ class TestMultiFileProcessorIntegration:
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    def test_process_files_with_special_characters_in_path(self, processor, temp_directory):
+    def test_process_files_with_special_characters_in_path(
+        self, processor, temp_directory
+    ):
         """Test processing files with special characters in path."""
         # Create file with special characters (if supported by OS)
         special_name = "bookmarks with spaces.csv"
         special_path = os.path.join(temp_directory, special_name)
 
         with open(special_path, "w") as f:
-            f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
+            f.write(
+                "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+            )
             f.write("1,Test,,,https://example.com,,,,,,false\n")
 
         sample_bookmarks = [Bookmark(url="https://example.com", title="Test")]
@@ -889,7 +961,9 @@ class TestEdgeCases:
         for i in range(num_files):
             path = os.path.join(temp_directory, f"bookmarks_{i}.csv")
             with open(path, "w") as f:
-                f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
+                f.write(
+                    "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+                )
                 f.write(f"{i},Test{i},,,https://example{i}.com,,,,,,false\n")
             file_paths.append(path)
 

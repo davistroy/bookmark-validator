@@ -662,8 +662,7 @@ class ConfigurationErrorFormatter:
             )
 
         elif (
-            "api_key" in location.lower()
-            and "placeholder" in str(input_value).lower()
+            "api_key" in location.lower() and "placeholder" in str(input_value).lower()
         ):
             provider = "Claude" if "claude" in location.lower() else "OpenAI"
             return (

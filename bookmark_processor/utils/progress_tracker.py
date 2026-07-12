@@ -142,7 +142,7 @@ class ProgressTracker:
         self.start_time = time.time()
         self.items_processed = 0
         self.items_failed = 0
-        
+
         # Backward compatibility attribute
         self.completed_items = 0
 
@@ -291,14 +291,14 @@ class ProgressTracker:
     def update(self, completed_items: int) -> None:
         """
         Set absolute progress (for backward compatibility).
-        
+
         Args:
             completed_items: Absolute number of completed items
         """
         if completed_items < self.items_processed:
             # If the new value is less than current, reset and set
             self.items_processed = 0
-            
+
         # Calculate delta and call update_progress
         delta = completed_items - self.items_processed
         if delta > 0:

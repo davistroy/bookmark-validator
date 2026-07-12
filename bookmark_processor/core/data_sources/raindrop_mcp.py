@@ -74,7 +74,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         access_token: str,
         state_tracker: Optional[ProcessingStateTracker] = None,
         timeout: float = 30.0,
-        batch_size: int = 50
+        batch_size: int = 50,
     ):
         """
         Initialize the Raindrop.io MCP data source.
@@ -107,7 +107,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         self._client = MCPClient(
             server_url=self.server_url,
             timeout=self.timeout,
-            access_token=self.access_token
+            access_token=self.access_token,
         )
         await self._client.__aenter__()
         self._connected = True
@@ -146,7 +146,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         if not self._connected or self._client is None:
             raise DataSourceConnectionError(
                 "Not connected to MCP server. Use 'async with' context manager.",
-                source_name=self.source_name
+                source_name=self.source_name,
             )
 
     async def _load_collections(self) -> None:
@@ -155,8 +155,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         """
         try:
             result = await self._client.call_tool(
-                self.TOOL_LIST_COLLECTIONS,
-                {"access_token": self.access_token}
+                self.TOOL_LIST_COLLECTIONS, {"access_token": self.access_token}
             )
 
             collections = result.get("collections", [])
@@ -197,8 +196,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         return self._collection_name_cache.get(collection_id, "")
 
     async def fetch_bookmarks(
-        self,
-        filters: Optional[Dict[str, Any]] = None
+        self, filters: Optional[Dict[str, Any]] = None
     ) -> List[Bookmark]:
         """
         Fetch bookmarks from Raindrop.io via MCP.
@@ -276,10 +274,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
 
             while len(all_bookmarks) < max_bookmarks:
                 params["page"] = page
-                result = await self._client.call_tool(
-                    self.TOOL_BOOKMARK_SEARCH,
-                    params
-                )
+                result = await self._client.call_tool(self.TOOL_BOOKMARK_SEARCH, params)
 
                 items = result.get("raindrops", result.get("items", []))
                 if not items:
@@ -315,25 +310,25 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
             raise DataSourceConnectionError(
                 f"Failed to connect to Raindrop.io: {e.message}",
                 source_name=self.source_name,
-                original_error=e.original_error
+                original_error=e.original_error,
             )
         except MCPTimeoutError as e:
             raise DataSourceReadError(
                 f"Timeout fetching bookmarks: {e.message}",
                 source_name=self.source_name,
-                original_error=e.original_error
+                original_error=e.original_error,
             )
         except MCPToolError as e:
             raise DataSourceReadError(
                 f"Failed to fetch bookmarks: {e.message}",
                 source_name=self.source_name,
-                original_error=e.original_error
+                original_error=e.original_error,
             )
         except MCPClientError as e:
             raise DataSourceReadError(
                 f"Error fetching bookmarks: {e.message}",
                 source_name=self.source_name,
-                original_error=e.original_error
+                original_error=e.original_error,
             )
 
     async def update_bookmark(self, bookmark: Bookmark) -> bool:
@@ -365,16 +360,13 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
                     "access_token": self.access_token,
                     "action": "update",
                     "id": int(bookmark.id),
-                    "updates": updates
-                }
+                    "updates": updates,
+                },
             )
 
             # Mark as processed in state tracker
             if self.state_tracker:
-                self.state_tracker.mark_processed(
-                    bookmark,
-                    ai_engine="mcp-raindrop"
-                )
+                self.state_tracker.mark_processed(bookmark, ai_engine="mcp-raindrop")
 
             self.logger.debug(f"Updated bookmark: {bookmark.url}")
             return True
@@ -389,10 +381,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
             self.logger.error(f"Unexpected error updating bookmark: {e}")
             return False
 
-    async def bulk_update(
-        self,
-        bookmarks: List[Bookmark]
-    ) -> BulkUpdateResult:
+    async def bulk_update(self, bookmarks: List[Bookmark]) -> BulkUpdateResult:
         """
         Bulk update multiple bookmarks in Raindrop.io.
 
@@ -420,22 +409,19 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         invalid_count = len(bookmarks) - len(valid_bookmarks)
 
         if invalid_count > 0:
-            self.logger.warning(
-                f"{invalid_count} bookmarks skipped (no ID)"
-            )
+            self.logger.warning(f"{invalid_count} bookmarks skipped (no ID)")
 
         # Try bulk API first
         try:
             result = await self._bulk_update_api(valid_bookmarks)
             return result
         except MCPToolError:
-            self.logger.info("Bulk API not available, falling back to individual updates")
+            self.logger.info(
+                "Bulk API not available, falling back to individual updates"
+            )
             return await self._bulk_update_individual(valid_bookmarks)
 
-    async def _bulk_update_api(
-        self,
-        bookmarks: List[Bookmark]
-    ) -> BulkUpdateResult:
+    async def _bulk_update_api(self, bookmarks: List[Bookmark]) -> BulkUpdateResult:
         """
         Attempt bulk update using MCP bulk edit tool.
 
@@ -450,11 +436,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
 
         result = await self._client.call_tool(
             self.TOOL_BULK_EDIT,
-            {
-                "access_token": self.access_token,
-                "ids": ids,
-                "updates": updates
-            }
+            {"access_token": self.access_token, "ids": ids, "updates": updates},
         )
 
         modified = result.get("modified", 0)
@@ -469,12 +451,11 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
             total=len(bookmarks),
             succeeded=modified,
             failed=len(bookmarks) - modified,
-            errors=errors
+            errors=errors,
         )
 
     async def _bulk_update_individual(
-        self,
-        bookmarks: List[Bookmark]
+        self, bookmarks: List[Bookmark]
     ) -> BulkUpdateResult:
         """
         Fallback bulk update using individual update calls.
@@ -495,24 +476,19 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
                     succeeded += 1
                 else:
                     failed += 1
-                    errors.append({
-                        "url": bookmark.url,
-                        "id": bookmark.id,
-                        "error": "Update returned False"
-                    })
+                    errors.append(
+                        {
+                            "url": bookmark.url,
+                            "id": bookmark.id,
+                            "error": "Update returned False",
+                        }
+                    )
             except Exception as e:
                 failed += 1
-                errors.append({
-                    "url": bookmark.url,
-                    "id": bookmark.id,
-                    "error": str(e)
-                })
+                errors.append({"url": bookmark.url, "id": bookmark.id, "error": str(e)})
 
         return BulkUpdateResult(
-            total=len(bookmarks),
-            succeeded=succeeded,
-            failed=failed,
-            errors=errors
+            total=len(bookmarks), succeeded=succeeded, failed=failed, errors=errors
         )
 
     def _api_to_bookmark(self, data: Dict[str, Any]) -> Bookmark:
@@ -531,9 +507,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         if created_str:
             try:
                 # Handle ISO format with timezone
-                created = datetime.fromisoformat(
-                    created_str.replace("Z", "+00:00")
-                )
+                created = datetime.fromisoformat(created_str.replace("Z", "+00:00"))
             except (ValueError, TypeError):
                 pass
 
@@ -562,7 +536,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
             created=created,
             cover=data.get("cover", ""),
             highlights=data.get("highlights", ""),
-            favorite=data.get("favorite", False)
+            favorite=data.get("favorite", False),
         )
 
         # Extract metadata if available
@@ -571,7 +545,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
                 title=data.get("title"),
                 description=data.get("excerpt"),
                 author=data.get("author"),
-                canonical_url=data.get("link")
+                canonical_url=data.get("link"),
             )
 
         return bookmark
@@ -642,8 +616,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
 
         try:
             result = await self._client.call_tool(
-                self.TOOL_LIST_COLLECTIONS,
-                {"access_token": self.access_token}
+                self.TOOL_LIST_COLLECTIONS, {"access_token": self.access_token}
             )
             return result.get("collections", [])
         except MCPClientError as e:
@@ -665,10 +638,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         try:
             result = await self._client.call_tool(
                 self.TOOL_GET_BOOKMARK,
-                {
-                    "access_token": self.access_token,
-                    "id": int(bookmark_id)
-                }
+                {"access_token": self.access_token, "id": int(bookmark_id)},
             )
             if result and "item" in result:
                 return self._api_to_bookmark(result["item"])
@@ -677,10 +647,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
             self.logger.error(f"Failed to get bookmark {bookmark_id}: {e}")
             return None
 
-    async def create_backup(
-        self,
-        bookmarks: List[Bookmark]
-    ) -> Dict[str, Any]:
+    async def create_backup(self, bookmarks: List[Bookmark]) -> Dict[str, Any]:
         """
         Create a backup record of bookmarks before modification.
 
@@ -703,17 +670,14 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
                     "title": b.title,
                     "note": b.note,
                     "tags": b.tags,
-                    "folder": b.folder
+                    "folder": b.folder,
                 }
                 for b in bookmarks
-            ]
+            ],
         }
         return backup
 
-    async def restore_from_backup(
-        self,
-        backup: Dict[str, Any]
-    ) -> BulkUpdateResult:
+    async def restore_from_backup(self, backup: Dict[str, Any]) -> BulkUpdateResult:
         """
         Restore bookmarks from a backup record.
 
@@ -738,7 +702,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
                 title=data.get("title", ""),
                 note=data.get("note", ""),
                 tags=data.get("tags", []),
-                folder=data.get("folder", "")
+                folder=data.get("folder", ""),
             )
             bookmarks.append(bookmark)
 
@@ -748,8 +712,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
     # Implement abstract methods from protocol
 
     def fetch_bookmarks_sync(
-        self,
-        filters: Optional[Dict[str, Any]] = None
+        self, filters: Optional[Dict[str, Any]] = None
     ) -> List[Bookmark]:
         """
         Synchronous wrapper for fetch_bookmarks.
@@ -757,6 +720,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         Note: This is for protocol compliance. Prefer async version.
         """
         import asyncio
+
         return asyncio.get_event_loop().run_until_complete(
             self.fetch_bookmarks(filters)
         )
@@ -768,6 +732,7 @@ class RaindropMCPDataSource(AbstractBookmarkDataSource):
         Note: This is for protocol compliance. Prefer async version.
         """
         import asyncio
+
         return asyncio.get_event_loop().run_until_complete(
             self.update_bookmark(bookmark)
         )

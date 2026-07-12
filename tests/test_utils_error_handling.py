@@ -259,7 +259,9 @@ class TestRetryStrategy:
 
     def test_get_delay_linear(self):
         """Test linear backoff delay calculation."""
-        strategy = RetryStrategy(base_delay=2.0, exponential_backoff=False, jitter=False)
+        strategy = RetryStrategy(
+            base_delay=2.0, exponential_backoff=False, jitter=False
+        )
 
         # Linear backoff always returns base_delay
         assert strategy.get_delay(0) == 2.0
@@ -312,7 +314,9 @@ class TestBackoffStrategies:
 
     def test_exponential_backoff(self):
         """Test exponential backoff strategy."""
-        backoff = ExponentialBackoff(base_delay=1.0, multiplier=2.0, max_delay=10.0, jitter=False)
+        backoff = ExponentialBackoff(
+            base_delay=1.0, multiplier=2.0, max_delay=10.0, jitter=False
+        )
 
         # Test delay calculation for different attempts
         # Implementation uses attempt directly as exponent
@@ -368,6 +372,7 @@ class TestRetryHandler:
         handler = RetryHandler()
 
         import requests
+
         error = requests.exceptions.Timeout("Request timed out")
         error_type = handler._classify_error(error)
 
@@ -378,6 +383,7 @@ class TestRetryHandler:
         handler = RetryHandler()
 
         import requests
+
         error = requests.exceptions.ConnectionError("Connection refused")
         error_type = handler._classify_error(error)
 
@@ -388,6 +394,7 @@ class TestRetryHandler:
         handler = RetryHandler()
 
         import requests
+
         error = requests.exceptions.Timeout("Timeout")
         handler.add_failed_url("https://example.com", error)
 
@@ -401,6 +408,7 @@ class TestRetryHandler:
 
         # Client errors have max_retries = 0 in the strategy
         import requests
+
         response = Mock()
         response.status_code = 404
         error = requests.exceptions.HTTPError("Not found")
@@ -424,6 +432,7 @@ class TestRetryHandler:
         handler = RetryHandler()
 
         import requests
+
         error = requests.exceptions.Timeout("Timeout")
         handler.add_failed_url("https://example1.com", error)
         handler.add_failed_url("https://example2.com", error)
@@ -439,6 +448,7 @@ class TestRetryHandler:
         handler = RetryHandler()
 
         import requests
+
         error = requests.exceptions.Timeout("Timeout")
         handler.add_failed_url("https://example.com", error)
 

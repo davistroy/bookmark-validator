@@ -121,7 +121,7 @@ class TestTagConfig:
 
     def test_from_toml_file(self, tmp_path):
         """Test loading config from TOML file."""
-        toml_content = '''
+        toml_content = """
 [tags]
 protected_tags = ["important", "reference", "custom-tag"]
 target_unique_tags = 180
@@ -133,7 +133,7 @@ max_tags_per_bookmark = 6
 
 [tags.hierarchy]
 "python" = "programming/python"
-'''
+"""
         toml_file = tmp_path / "config.toml"
         toml_file.write_text(toml_content)
 
@@ -321,11 +321,11 @@ class TestEnhancedTagGenerator:
 
     def test_initialization_with_config_file(self, tmp_path):
         """Test initialization with config file."""
-        toml_content = '''
+        toml_content = """
 [tags]
 protected_tags = ["custom"]
 target_unique_tags = 120
-'''
+"""
         toml_file = tmp_path / "config.toml"
         toml_file.write_text(toml_content)
 
@@ -379,7 +379,9 @@ target_unique_tags = 120
         hierarchy = generator.get_hierarchy()
         assert hierarchy["ai"] == "technology/ai"
 
-    def test_generate_with_confidence(self, sample_bookmark, sample_content, sample_tag_config):
+    def test_generate_with_confidence(
+        self, sample_bookmark, sample_content, sample_tag_config
+    ):
         """Test generating tags with confidence scores."""
         generator = EnhancedTagGenerator(config=sample_tag_config)
 
@@ -400,7 +402,9 @@ target_unique_tags = 120
             assert isinstance(tag, str)
             assert 0.0 <= conf <= 1.0
 
-    def test_calculate_tag_confidence_protected(self, sample_bookmark, sample_tag_config):
+    def test_calculate_tag_confidence_protected(
+        self, sample_bookmark, sample_tag_config
+    ):
         """Test confidence calculation for protected tags."""
         generator = EnhancedTagGenerator(config=sample_tag_config)
 
@@ -421,26 +425,26 @@ target_unique_tags = 120
             created=datetime.now(),
         )
 
-        confidence = generator._calculate_tag_confidence(
-            bookmark, "python", {}
-        )
+        confidence = generator._calculate_tag_confidence(bookmark, "python", {})
 
         # Should be boosted for being in title
         assert confidence >= 0.7
 
-    def test_calculate_tag_confidence_in_existing_tags(self, sample_bookmark, sample_tag_config):
+    def test_calculate_tag_confidence_in_existing_tags(
+        self, sample_bookmark, sample_tag_config
+    ):
         """Test confidence boost for existing tags."""
         generator = EnhancedTagGenerator(config=sample_tag_config)
 
         # "python" is in bookmark's existing tags
-        confidence = generator._calculate_tag_confidence(
-            sample_bookmark, "python", {}
-        )
+        confidence = generator._calculate_tag_confidence(sample_bookmark, "python", {})
 
         # Should be boosted for being in existing tags
         assert confidence >= 0.75
 
-    def test_generate_corpus_tags_with_hierarchy(self, sample_bookmark, sample_content, sample_tag_config):
+    def test_generate_corpus_tags_with_hierarchy(
+        self, sample_bookmark, sample_content, sample_tag_config
+    ):
         """Test generating hierarchical tags."""
         generator = EnhancedTagGenerator(config=sample_tag_config)
 

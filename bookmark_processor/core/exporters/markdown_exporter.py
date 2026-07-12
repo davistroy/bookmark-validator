@@ -33,7 +33,7 @@ class MarkdownExporter(BookmarkExporter):
         include_dates: bool = False,
         use_checkboxes: bool = False,
         link_style: str = "inline",  # inline, reference
-        heading_level: int = 2
+        heading_level: int = 2,
     ):
         """
         Initialize the Markdown exporter.
@@ -67,11 +67,7 @@ class MarkdownExporter(BookmarkExporter):
     def file_extension(self) -> str:
         return "md"
 
-    def export(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
-    ) -> ExportResult:
+    def export(self, bookmarks: List[Bookmark], output_path: Path) -> ExportResult:
         """
         Export bookmarks to Markdown.
 
@@ -88,10 +84,7 @@ class MarkdownExporter(BookmarkExporter):
         warnings = self.validate_bookmarks(bookmarks)
 
         if not bookmarks:
-            raise ExportError(
-                "No bookmarks to export",
-                format_name=self.format_name
-            )
+            raise ExportError("No bookmarks to export", format_name=self.format_name)
 
         if self.mode == "single":
             return self._export_single_file(bookmarks, output_path, warnings)
@@ -99,10 +92,7 @@ class MarkdownExporter(BookmarkExporter):
             return self._export_directory(bookmarks, output_path, warnings)
 
     def _export_single_file(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path,
-        warnings: List[str]
+        self, bookmarks: List[Bookmark], output_path: Path, warnings: List[str]
     ) -> ExportResult:
         """Export all bookmarks to a single Markdown file."""
         path = self.prepare_output_path(output_path)
@@ -130,9 +120,9 @@ class MarkdownExporter(BookmarkExporter):
                 additional_info={
                     "mode": "single",
                     "folders": len(by_folder),
-                    "file_size": path.stat().st_size
+                    "file_size": path.stat().st_size,
                 },
-                warnings=warnings
+                warnings=warnings,
             )
 
         except Exception as e:
@@ -140,14 +130,11 @@ class MarkdownExporter(BookmarkExporter):
                 f"Failed to export Markdown: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
 
     def _export_directory(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path,
-        warnings: List[str]
+        self, bookmarks: List[Bookmark], output_path: Path, warnings: List[str]
     ) -> ExportResult:
         """Export bookmarks to a directory with one file per folder."""
         path = self.prepare_output_path(output_path, is_directory=True)
@@ -167,7 +154,9 @@ class MarkdownExporter(BookmarkExporter):
                         self.sanitize_filename(p) for p in folder_parts[:-1]
                     )
                     subdir.mkdir(parents=True, exist_ok=True)
-                    file_path = subdir / (self.sanitize_filename(folder_parts[-1]) + ".md")
+                    file_path = subdir / (
+                        self.sanitize_filename(folder_parts[-1]) + ".md"
+                    )
                 else:
                     file_path = path / filename
 
@@ -196,9 +185,9 @@ class MarkdownExporter(BookmarkExporter):
                 additional_info={
                     "mode": "directory",
                     "files_created": files_created,
-                    "folders": len(by_folder)
+                    "folders": len(by_folder),
                 },
-                warnings=warnings
+                warnings=warnings,
             )
 
         except Exception as e:
@@ -206,7 +195,7 @@ class MarkdownExporter(BookmarkExporter):
                 f"Failed to export Markdown directory: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
 
     def _group_by_folder(self, bookmarks: List[Bookmark]) -> Dict[str, List[Bookmark]]:
@@ -223,9 +212,7 @@ class MarkdownExporter(BookmarkExporter):
         return dict(sorted(by_folder.items()))
 
     def _build_single_file_content(
-        self,
-        by_folder: Dict[str, List[Bookmark]],
-        all_bookmarks: List[Bookmark]
+        self, by_folder: Dict[str, List[Bookmark]], all_bookmarks: List[Bookmark]
     ) -> str:
         """Build content for a single Markdown file."""
         lines = []
@@ -235,7 +222,9 @@ class MarkdownExporter(BookmarkExporter):
         lines.append("")
         lines.append(f"*Exported on {datetime.now().strftime('%Y-%m-%d %H:%M')}*")
         lines.append("")
-        lines.append(f"**Total:** {len(all_bookmarks)} bookmarks in {len(by_folder)} folders")
+        lines.append(
+            f"**Total:** {len(all_bookmarks)} bookmarks in {len(by_folder)} folders"
+        )
         lines.append("")
 
         # Table of contents
@@ -256,7 +245,9 @@ class MarkdownExporter(BookmarkExporter):
             lines.append("")
 
             for i, bookmark in enumerate(folder_bookmarks):
-                bookmark_lines, ref = self._format_bookmark(bookmark, f"ref-{len(references)}")
+                bookmark_lines, ref = self._format_bookmark(
+                    bookmark, f"ref-{len(references)}"
+                )
                 lines.extend(bookmark_lines)
                 if ref:
                     references.append(ref)
@@ -271,11 +262,7 @@ class MarkdownExporter(BookmarkExporter):
 
         return "\n".join(lines)
 
-    def _build_folder_content(
-        self,
-        folder_name: str,
-        bookmarks: List[Bookmark]
-    ) -> str:
+    def _build_folder_content(self, folder_name: str, bookmarks: List[Bookmark]) -> str:
         """Build content for a folder-specific Markdown file."""
         lines = []
 
@@ -319,21 +306,22 @@ class MarkdownExporter(BookmarkExporter):
             # Create relative link to folder file
             folder_parts = folder_name.split("/")
             if len(folder_parts) > 1:
-                link_path = "/".join(
-                    self.sanitize_filename(p) for p in folder_parts[:-1]
-                ) + "/" + self.sanitize_filename(folder_parts[-1]) + ".md"
+                link_path = (
+                    "/".join(self.sanitize_filename(p) for p in folder_parts[:-1])
+                    + "/"
+                    + self.sanitize_filename(folder_parts[-1])
+                    + ".md"
+                )
             else:
                 link_path = self.sanitize_filename(folder_name) + ".md"
 
-            lines.append(f"- [{folder_name}]({link_path}) ({len(folder_bookmarks)} bookmarks)")
+            lines.append(
+                f"- [{folder_name}]({link_path}) ({len(folder_bookmarks)} bookmarks)"
+            )
 
         return "\n".join(lines)
 
-    def _format_bookmark(
-        self,
-        bookmark: Bookmark,
-        ref_id: str
-    ) -> tuple:
+    def _format_bookmark(self, bookmark: Bookmark, ref_id: str) -> tuple:
         """
         Format a single bookmark as Markdown.
 
@@ -388,7 +376,8 @@ class MarkdownExporter(BookmarkExporter):
     def _folder_to_anchor(self, folder_name: str) -> str:
         """Convert folder name to Markdown anchor."""
         import re
+
         anchor = folder_name.lower()
-        anchor = re.sub(r'[^a-z0-9\s-]', '', anchor)
-        anchor = re.sub(r'\s+', '-', anchor)
+        anchor = re.sub(r"[^a-z0-9\s-]", "", anchor)
+        anchor = re.sub(r"\s+", "-", anchor)
         return anchor

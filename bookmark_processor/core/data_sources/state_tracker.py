@@ -76,8 +76,7 @@ class ProcessingStateTracker:
     """
 
     def __init__(
-        self,
-        db_path: Union[str, Path] = Path(".bookmark_processor_state.db")
+        self, db_path: Union[str, Path] = Path(".bookmark_processor_state.db")
     ):
         """
         Initialize the processing state tracker.
@@ -139,17 +138,19 @@ class ProcessingStateTracker:
             bookmark.note or "",
             bookmark.excerpt or "",
             bookmark.folder or "",
-            ",".join(sorted(bookmark.tags)) if bookmark.tags else ""
+            ",".join(sorted(bookmark.tags)) if bookmark.tags else "",
         ]
         content = "|".join(content_parts)
         # Use surrogatepass to handle any malformed unicode
-        return hashlib.md5(content.encode("utf-8", errors="surrogatepass"), usedforsecurity=False).hexdigest()
+        return hashlib.md5(
+            content.encode("utf-8", errors="surrogatepass"), usedforsecurity=False
+        ).hexdigest()
 
     def mark_processed(
         self,
         bookmark: Bookmark,
         content_hash: Optional[str] = None,
-        ai_engine: str = "local"
+        ai_engine: str = "local",
     ) -> None:
         """
         Mark a bookmark as processed.
@@ -177,11 +178,12 @@ class ProcessingStateTracker:
                         content_hash,
                         datetime.now().isoformat(),
                         ai_engine,
-                        bookmark.enhanced_description or bookmark.get_effective_description(),
+                        bookmark.enhanced_description
+                        or bookmark.get_effective_description(),
                         tags_str,
                         bookmark.folder,
-                        bookmark.get_effective_title()
-                    )
+                        bookmark.get_effective_title(),
+                    ),
                 )
                 conn.commit()
                 self.logger.debug(f"Marked as processed: {bookmark.url}")
@@ -210,7 +212,7 @@ class ProcessingStateTracker:
             with self._get_connection() as conn:
                 cursor = conn.execute(
                     "SELECT content_hash FROM processed_bookmarks WHERE url = ?",
-                    (bookmark.url,)
+                    (bookmark.url,),
                 )
                 row = cursor.fetchone()
 
@@ -241,8 +243,7 @@ class ProcessingStateTracker:
 
         # Compute hashes for all bookmarks
         bookmark_hashes = {
-            bookmark.url: self._compute_hash(bookmark)
-            for bookmark in bookmarks
+            bookmark.url: self._compute_hash(bookmark) for bookmark in bookmarks
         }
 
         try:
@@ -251,13 +252,12 @@ class ProcessingStateTracker:
                 placeholders = ",".join("?" * len(bookmark_hashes))
                 cursor = conn.execute(
                     f"SELECT url, content_hash FROM processed_bookmarks WHERE url IN ({placeholders})",  # nosec B608 - parameterized query with ? placeholders
-                    list(bookmark_hashes.keys())
+                    list(bookmark_hashes.keys()),
                 )
 
                 # Build dict of URL -> stored hash
                 stored_hashes = {
-                    row["url"]: row["content_hash"]
-                    for row in cursor.fetchall()
+                    row["url"]: row["content_hash"] for row in cursor.fetchall()
                 }
 
             # Filter bookmarks that need processing
@@ -297,7 +297,7 @@ class ProcessingStateTracker:
                            description, tags, folder, title
                     FROM processed_bookmarks WHERE url = ?
                     """,
-                    (url,)
+                    (url,),
                 )
                 row = cursor.fetchone()
 
@@ -311,9 +311,7 @@ class ProcessingStateTracker:
             return None
 
     def start_processing_run(
-        self,
-        source: str,
-        config_hash: Optional[str] = None
+        self, source: str, config_hash: Optional[str] = None
     ) -> int:
         """
         Start a new processing run.
@@ -332,7 +330,7 @@ class ProcessingStateTracker:
                     INSERT INTO processing_runs (started_at, source, config_hash)
                     VALUES (?, ?, ?)
                     """,
-                    (datetime.now().isoformat(), source, config_hash)
+                    (datetime.now().isoformat(), source, config_hash),
                 )
                 conn.commit()
                 self._current_run_id = cursor.lastrowid
@@ -348,7 +346,7 @@ class ProcessingStateTracker:
         run_id: Optional[int] = None,
         total_processed: int = 0,
         total_succeeded: int = 0,
-        total_failed: int = 0
+        total_failed: int = 0,
     ) -> None:
         """
         Complete a processing run with statistics.
@@ -378,8 +376,8 @@ class ProcessingStateTracker:
                         total_processed,
                         total_succeeded,
                         total_failed,
-                        run_id
-                    )
+                        run_id,
+                    ),
                 )
                 conn.commit()
                 self.logger.info(f"Completed processing run {run_id}")
@@ -407,15 +405,13 @@ class ProcessingStateTracker:
                         WHERE source = ?
                         ORDER BY started_at DESC LIMIT 1
                         """,
-                        (source,)
+                        (source,),
                     )
                 else:
-                    cursor = conn.execute(
-                        """
+                    cursor = conn.execute("""
                         SELECT * FROM processing_runs
                         ORDER BY started_at DESC LIMIT 1
-                        """
-                    )
+                        """)
                 row = cursor.fetchone()
                 return dict(row) if row else None
 
@@ -424,9 +420,7 @@ class ProcessingStateTracker:
             return None
 
     def get_run_history(
-        self,
-        limit: int = 10,
-        source: Optional[str] = None
+        self, limit: int = 10, source: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Get processing run history.
@@ -447,7 +441,7 @@ class ProcessingStateTracker:
                         WHERE source = ?
                         ORDER BY started_at DESC LIMIT ?
                         """,
-                        (source, limit)
+                        (source, limit),
                     )
                 else:
                     cursor = conn.execute(
@@ -455,7 +449,7 @@ class ProcessingStateTracker:
                         SELECT * FROM processing_runs
                         ORDER BY started_at DESC LIMIT ?
                         """,
-                        (limit,)
+                        (limit,),
                     )
                 return [dict(row) for row in cursor.fetchall()]
 
@@ -513,7 +507,7 @@ class ProcessingStateTracker:
                 if older_than:
                     cursor = conn.execute(
                         "DELETE FROM processed_bookmarks WHERE processed_at < ?",
-                        (older_than.isoformat(),)
+                        (older_than.isoformat(),),
                     )
                 else:
                     cursor = conn.execute("DELETE FROM processed_bookmarks")
@@ -540,8 +534,7 @@ class ProcessingStateTracker:
         try:
             with self._get_connection() as conn:
                 cursor = conn.execute(
-                    "DELETE FROM processed_bookmarks WHERE url = ?",
-                    (url,)
+                    "DELETE FROM processed_bookmarks WHERE url = ?", (url,)
                 )
                 conn.commit()
                 return cursor.rowcount > 0
@@ -568,7 +561,7 @@ class ProcessingStateTracker:
             export_data = {
                 "exported_at": datetime.now().isoformat(),
                 "processed_bookmarks": bookmarks,
-                "processing_runs": runs
+                "processing_runs": runs,
             }
 
             output_path.write_text(json.dumps(export_data, indent=2))
@@ -611,8 +604,8 @@ class ProcessingStateTracker:
                             bookmark.get("description"),
                             bookmark.get("tags"),
                             bookmark.get("folder"),
-                            bookmark.get("title")
-                        )
+                            bookmark.get("title"),
+                        ),
                     )
                     bookmarks_imported += 1
 
@@ -633,8 +626,8 @@ class ProcessingStateTracker:
                                 run.get("total_processed"),
                                 run.get("total_succeeded"),
                                 run.get("total_failed"),
-                                run.get("config_hash")
-                            )
+                                run.get("config_hash"),
+                            ),
                         )
                         runs_imported += 1
                     except sqlite3.IntegrityError:

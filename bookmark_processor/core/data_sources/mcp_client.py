@@ -26,7 +26,7 @@ class MCPClientError(Exception):
         self,
         message: str,
         status_code: Optional[int] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         self.message = message
         self.status_code = status_code
@@ -38,27 +38,33 @@ class MCPClientError(Exception):
         if self.status_code:
             parts.append(f"(HTTP {self.status_code})")
         if self.original_error:
-            parts.append(f"Caused by: {type(self.original_error).__name__}: {self.original_error}")
+            parts.append(
+                f"Caused by: {type(self.original_error).__name__}: {self.original_error}"
+            )
         return " ".join(parts)
 
 
 class MCPConnectionError(MCPClientError):
     """Exception raised when connection to MCP server fails."""
+
     pass
 
 
 class MCPTimeoutError(MCPClientError):
     """Exception raised when MCP request times out."""
+
     pass
 
 
 class MCPToolError(MCPClientError):
     """Exception raised when MCP tool execution fails."""
+
     pass
 
 
 class MCPAuthenticationError(MCPClientError):
     """Exception raised when MCP authentication fails."""
+
     pass
 
 
@@ -99,7 +105,7 @@ class MCPClient:
         timeout: float = 30.0,
         access_token: Optional[str] = None,
         retry_attempts: int = 3,
-        retry_delay: float = 1.0
+        retry_delay: float = 1.0,
     ):
         """
         Initialize the MCP client.
@@ -132,9 +138,7 @@ class MCPClient:
             headers["Authorization"] = f"Bearer {self.access_token}"
 
         self._client = httpx.AsyncClient(
-            timeout=httpx.Timeout(self.timeout),
-            headers=headers,
-            follow_redirects=True
+            timeout=httpx.Timeout(self.timeout), headers=headers, follow_redirects=True
         )
         self._connected = True
         self.logger.debug(f"MCP client connected to {self.server_url}")
@@ -172,7 +176,7 @@ class MCPClient:
         method: str,
         endpoint: str,
         json_data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Make an HTTP request to the MCP server with retry logic.
@@ -201,9 +205,13 @@ class MCPClient:
                 if method.upper() == "GET":
                     response = await self._client.get(url, params=params)
                 elif method.upper() == "POST":
-                    response = await self._client.post(url, json=json_data, params=params)
+                    response = await self._client.post(
+                        url, json=json_data, params=params
+                    )
                 elif method.upper() == "PUT":
-                    response = await self._client.put(url, json=json_data, params=params)
+                    response = await self._client.put(
+                        url, json=json_data, params=params
+                    )
                 elif method.upper() == "DELETE":
                     response = await self._client.delete(url, params=params)
                 else:
@@ -212,19 +220,14 @@ class MCPClient:
                 # Check for HTTP errors
                 if response.status_code == 401:
                     raise MCPAuthenticationError(
-                        "Authentication failed",
-                        status_code=401
+                        "Authentication failed", status_code=401
                     )
                 elif response.status_code == 403:
-                    raise MCPAuthenticationError(
-                        "Access forbidden",
-                        status_code=403
-                    )
+                    raise MCPAuthenticationError("Access forbidden", status_code=403)
                 elif response.status_code >= 400:
                     error_body = response.text
                     raise MCPClientError(
-                        f"HTTP error: {error_body}",
-                        status_code=response.status_code
+                        f"HTTP error: {error_body}", status_code=response.status_code
                     )
 
                 # Parse and return JSON response
@@ -237,6 +240,7 @@ class MCPClient:
                 )
                 if attempt < self.retry_attempts - 1:
                     import asyncio
+
                     await asyncio.sleep(self.retry_delay * (attempt + 1))
                 continue
 
@@ -247,6 +251,7 @@ class MCPClient:
                 )
                 if attempt < self.retry_attempts - 1:
                     import asyncio
+
                     await asyncio.sleep(self.retry_delay * (attempt + 1))
                 continue
 
@@ -261,30 +266,28 @@ class MCPClient:
                 )
                 if attempt < self.retry_attempts - 1:
                     import asyncio
+
                     await asyncio.sleep(self.retry_delay * (attempt + 1))
                 continue
 
         # All retries exhausted
         if isinstance(last_error, httpx.ConnectError):
             raise MCPConnectionError(
-                f"Failed to connect to {self.server_url}",
-                original_error=last_error
+                f"Failed to connect to {self.server_url}", original_error=last_error
             )
         elif isinstance(last_error, httpx.TimeoutException):
             raise MCPTimeoutError(
                 f"Request to {url} timed out after {self.timeout}s",
-                original_error=last_error
+                original_error=last_error,
             )
         else:
             raise MCPClientError(
                 f"Request failed after {self.retry_attempts} attempts",
-                original_error=last_error
+                original_error=last_error,
             )
 
     async def call_tool(
-        self,
-        tool_name: str,
-        arguments: Dict[str, Any]
+        self, tool_name: str, arguments: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Call an MCP tool with arguments.
@@ -315,16 +318,12 @@ class MCPClient:
 
         try:
             response = await self._make_request(
-                "POST",
-                f"tools/{tool_name}",
-                json_data={"arguments": arguments}
+                "POST", f"tools/{tool_name}", json_data={"arguments": arguments}
             )
 
             # Check for tool-level errors in response
             if "error" in response:
-                raise MCPToolError(
-                    f"Tool '{tool_name}' error: {response['error']}"
-                )
+                raise MCPToolError(f"Tool '{tool_name}' error: {response['error']}")
 
             self.logger.debug(f"Tool {tool_name} completed successfully")
             return response
@@ -335,7 +334,7 @@ class MCPClient:
             raise MCPToolError(
                 f"Failed to execute tool '{tool_name}': {e.message}",
                 status_code=e.status_code,
-                original_error=e.original_error
+                original_error=e.original_error,
             )
 
     async def list_tools(self) -> List[Dict[str, Any]]:
@@ -422,9 +421,7 @@ class MCPClient:
 
         try:
             response = await self._make_request(
-                "POST",
-                "resources/read",
-                json_data={"uri": uri}
+                "POST", "resources/read", json_data={"uri": uri}
             )
             return response
 

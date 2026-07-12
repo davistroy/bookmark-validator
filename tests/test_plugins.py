@@ -26,10 +26,13 @@ from bookmark_processor.plugins.base import (
     ValidationResult,
 )
 from bookmark_processor.plugins.loader import PluginLoader, PluginLoadError
-from bookmark_processor.plugins.registry import PluginRegistry, get_registry, reset_registry
+from bookmark_processor.plugins.registry import (
+    PluginRegistry,
+    get_registry,
+    reset_registry,
+)
 from bookmark_processor.plugins.examples.paywall_detector import PaywallDetectorPlugin
 from bookmark_processor.plugins.examples.ollama_ai import OllamaAIPlugin
-
 
 # ============================================================================
 # Test Plugin Classes
@@ -622,15 +625,19 @@ class TestPaywallDetectorPlugin:
 
     def test_validate_config(self, paywall_plugin):
         """Test config validation."""
-        errors = paywall_plugin.validate_config({
-            "additional_domains": ["example.com"],
-            "confidence_threshold": 0.8,
-        })
+        errors = paywall_plugin.validate_config(
+            {
+                "additional_domains": ["example.com"],
+                "confidence_threshold": 0.8,
+            }
+        )
         assert errors == []
 
-        errors = paywall_plugin.validate_config({
-            "confidence_threshold": 2.0,  # Invalid
-        })
+        errors = paywall_plugin.validate_config(
+            {
+                "confidence_threshold": 2.0,  # Invalid
+            }
+        )
         assert len(errors) > 0
 
     def test_get_statistics(self, paywall_plugin):
@@ -672,11 +679,13 @@ class TestOllamaAIPlugin:
     def test_custom_config(self):
         """Test custom configuration."""
         plugin = OllamaAIPlugin()
-        plugin.on_load({
-            "endpoint": "http://custom:8080",
-            "model": "mistral",
-            "timeout": 120.0,
-        })
+        plugin.on_load(
+            {
+                "endpoint": "http://custom:8080",
+                "model": "mistral",
+                "timeout": 120.0,
+            }
+        )
         assert plugin._endpoint == "http://custom:8080"
         assert plugin._model == "mistral"
         assert plugin._timeout == 120.0
@@ -688,16 +697,20 @@ class TestOllamaAIPlugin:
 
     def test_validate_config(self, ollama_plugin):
         """Test config validation."""
-        errors = ollama_plugin.validate_config({
-            "endpoint": "http://localhost:11434",
-            "model": "llama2",
-            "temperature": 0.7,
-        })
+        errors = ollama_plugin.validate_config(
+            {
+                "endpoint": "http://localhost:11434",
+                "model": "llama2",
+                "temperature": 0.7,
+            }
+        )
         assert errors == []
 
-        errors = ollama_plugin.validate_config({
-            "temperature": 3.0,  # Invalid
-        })
+        errors = ollama_plugin.validate_config(
+            {
+                "temperature": 3.0,  # Invalid
+            }
+        )
         assert len(errors) > 0
 
     def test_get_model_info(self, ollama_plugin):
@@ -706,21 +719,21 @@ class TestOllamaAIPlugin:
         assert info["name"] == "ollama-ai"
         assert info["model"] == "llama2"
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_is_available_success(self, mock_get, ollama_plugin):
         """Test is_available when Ollama is running."""
         mock_get.return_value = Mock(
-            status_code=200,
-            json=lambda: {"models": [{"name": "llama2:latest"}]}
+            status_code=200, json=lambda: {"models": [{"name": "llama2:latest"}]}
         )
         ollama_plugin._available = None  # Reset cache
 
         assert ollama_plugin.is_available() is True
 
-    @patch('bookmark_processor.plugins.examples.ollama_ai.requests')
+    @patch("bookmark_processor.plugins.examples.ollama_ai.requests")
     def test_is_available_failure(self, mock_requests, ollama_plugin):
         """Test is_available when Ollama is not running."""
         import requests
+
         mock_requests.get.side_effect = requests.RequestException("Connection refused")
         mock_requests.RequestException = requests.RequestException
         ollama_plugin._available = None  # Reset cache

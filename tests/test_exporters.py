@@ -32,10 +32,10 @@ from bookmark_processor.core.exporters.obsidian_exporter import ObsidianExporter
 from bookmark_processor.core.exporters.notion_exporter import NotionExporter
 from bookmark_processor.core.exporters.opml_exporter import OPMLExporter
 
-
 # =========================================================================
 # Fixtures
 # =========================================================================
+
 
 @pytest.fixture
 def sample_bookmarks() -> List[Bookmark]:
@@ -106,6 +106,7 @@ def temp_output_dir(tmp_path) -> Path:
 # Common Tests
 # =========================================================================
 
+
 class TestExporterRegistry:
     """Tests for the exporter registry."""
 
@@ -157,9 +158,7 @@ class TestExportResult:
     def test_export_result_creation(self, temp_output_dir):
         """Test creating an ExportResult."""
         result = ExportResult(
-            path=temp_output_dir / "test.json",
-            count=10,
-            format_name="JSON"
+            path=temp_output_dir / "test.json", count=10, format_name="JSON"
         )
 
         assert result.count == 10
@@ -169,9 +168,7 @@ class TestExportResult:
     def test_export_result_str(self, temp_output_dir):
         """Test ExportResult string representation."""
         result = ExportResult(
-            path=temp_output_dir / "test.json",
-            count=10,
-            format_name="JSON"
+            path=temp_output_dir / "test.json", count=10, format_name="JSON"
         )
 
         str_repr = str(result)
@@ -182,6 +179,7 @@ class TestExportResult:
 # =========================================================================
 # JSON Exporter Tests
 # =========================================================================
+
 
 class TestJSONExporter:
     """Tests for JSONExporter."""
@@ -305,6 +303,7 @@ class TestJSONExporter:
 # Markdown Exporter Tests
 # =========================================================================
 
+
 class TestMarkdownExporter:
     """Tests for MarkdownExporter."""
 
@@ -394,6 +393,7 @@ class TestMarkdownExporter:
 # Obsidian Exporter Tests
 # =========================================================================
 
+
 class TestObsidianExporter:
     """Tests for ObsidianExporter."""
 
@@ -451,7 +451,9 @@ class TestObsidianExporter:
         # Find a note file
         note_files = list(vault_path.rglob("*.md"))
         # Exclude index files and MOC
-        note_files = [f for f in note_files if "Index" not in f.name and "MOC" not in f.name]
+        note_files = [
+            f for f in note_files if "Index" not in f.name and "MOC" not in f.name
+        ]
 
         if note_files:
             content = note_files[0].read_text(encoding="utf-8")
@@ -484,6 +486,7 @@ class TestObsidianExporter:
 # =========================================================================
 # Notion Exporter Tests
 # =========================================================================
+
 
 class TestNotionExporter:
     """Tests for NotionExporter."""
@@ -568,6 +571,7 @@ class TestNotionExporter:
 # =========================================================================
 # OPML Exporter Tests
 # =========================================================================
+
 
 class TestOPMLExporter:
     """Tests for OPMLExporter."""
@@ -688,18 +692,13 @@ class TestOPMLExporter:
 # Edge Cases and Error Handling
 # =========================================================================
 
+
 class TestExporterEdgeCases:
     """Tests for edge cases and error handling."""
 
     def test_export_bookmark_without_title(self, temp_output_dir):
         """Test exporting bookmark without title."""
-        bookmarks = [
-            Bookmark(
-                url="https://example.com",
-                title="",
-                folder="Test"
-            )
-        ]
+        bookmarks = [Bookmark(url="https://example.com", title="", folder="Test")]
 
         exporter = JSONExporter()
         output_path = temp_output_dir / "bookmarks.json"
@@ -711,13 +710,7 @@ class TestExporterEdgeCases:
 
     def test_export_bookmark_without_folder(self, temp_output_dir):
         """Test exporting bookmark without folder."""
-        bookmarks = [
-            Bookmark(
-                url="https://example.com",
-                title="Test",
-                folder=""
-            )
-        ]
+        bookmarks = [Bookmark(url="https://example.com", title="Test", folder="")]
 
         exporter = JSONExporter()
         output_path = temp_output_dir / "bookmarks.json"
@@ -736,7 +729,7 @@ class TestExporterEdgeCases:
             Bookmark(
                 url="https://example.com",
                 title='Test "Special" <Characters> & More',
-                folder="Test"
+                folder="Test",
             )
         ]
 
@@ -752,9 +745,7 @@ class TestExporterEdgeCases:
         """Test exporting bookmark with unicode content."""
         bookmarks = [
             Bookmark(
-                url="https://example.com",
-                title="Test Unicode Content",
-                folder="Test"
+                url="https://example.com", title="Test Unicode Content", folder="Test"
             )
         ]
 
@@ -789,6 +780,7 @@ class TestExporterEdgeCases:
 # =========================================================================
 # Integration Tests
 # =========================================================================
+
 
 @pytest.mark.integration
 class TestExporterIntegration:

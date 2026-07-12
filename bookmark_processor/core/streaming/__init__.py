@@ -12,7 +12,11 @@ Main components:
 
 from .reader import StreamingBookmarkReader
 from .writer import StreamingBookmarkWriter
-from .pipeline import StreamingPipeline, StreamingPipelineConfig, StreamingPipelineResults
+from .pipeline import (
+    StreamingPipeline,
+    StreamingPipelineConfig,
+    StreamingPipelineResults,
+)
 
 __all__ = [
     "StreamingBookmarkReader",

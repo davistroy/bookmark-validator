@@ -25,23 +25,31 @@ class TagConfig:
     """User-configurable tag settings."""
 
     # Protected tags (never consolidated or modified)
-    protected_tags: Set[str] = field(default_factory=lambda: {
-        "important", "to-read", "reference", "archived", "favorite"
-    })
+    protected_tags: Set[str] = field(
+        default_factory=lambda: {
+            "important",
+            "to-read",
+            "reference",
+            "archived",
+            "favorite",
+        }
+    )
 
     # Synonym mappings (key -> normalized form)
-    synonyms: Dict[str, str] = field(default_factory=lambda: {
-        "artificial-intelligence": "ai",
-        "machine-learning": "ml",
-        "js": "javascript",
-        "py": "python",
-        "ts": "typescript",
-        "ui-ux": "design",
-        "user-interface": "ui",
-        "user-experience": "ux",
-        "dev": "development",
-        "prog": "programming",
-    })
+    synonyms: Dict[str, str] = field(
+        default_factory=lambda: {
+            "artificial-intelligence": "ai",
+            "machine-learning": "ml",
+            "js": "javascript",
+            "py": "python",
+            "ts": "typescript",
+            "ui-ux": "design",
+            "user-interface": "ui",
+            "user-experience": "ux",
+            "dev": "development",
+            "prog": "programming",
+        }
+    )
 
     # Hierarchy definitions (tag -> parent/tag path)
     hierarchy: Dict[str, str] = field(default_factory=dict)
@@ -56,15 +64,36 @@ class TagConfig:
     confidence_threshold: float = 0.5
 
     # Category mappings for hierarchical tags
-    category_mappings: Dict[str, List[str]] = field(default_factory=lambda: {
-        "technology": ["programming", "development", "software", "code", "devops"],
-        "technology/ai": ["ai", "ml", "machine-learning", "deep-learning", "neural"],
-        "technology/web": ["web", "frontend", "backend", "javascript", "html", "css"],
-        "technology/mobile": ["mobile", "android", "ios", "flutter", "react-native"],
-        "design": ["design", "ui", "ux", "graphic", "typography"],
-        "business": ["business", "startup", "marketing", "finance"],
-        "education": ["tutorial", "course", "learning", "guide", "documentation"],
-    })
+    category_mappings: Dict[str, List[str]] = field(
+        default_factory=lambda: {
+            "technology": ["programming", "development", "software", "code", "devops"],
+            "technology/ai": [
+                "ai",
+                "ml",
+                "machine-learning",
+                "deep-learning",
+                "neural",
+            ],
+            "technology/web": [
+                "web",
+                "frontend",
+                "backend",
+                "javascript",
+                "html",
+                "css",
+            ],
+            "technology/mobile": [
+                "mobile",
+                "android",
+                "ios",
+                "flutter",
+                "react-native",
+            ],
+            "design": ["design", "ui", "ux", "graphic", "typography"],
+            "business": ["business", "startup", "marketing", "finance"],
+            "education": ["tutorial", "course", "learning", "guide", "documentation"],
+        }
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -161,7 +190,9 @@ class TagConfig:
         if "category_mappings" in tags_section:
             config_data["category_mappings"] = tags_section["category_mappings"]
 
-        logger.info(f"Loaded tag config with {len(config_data.get('protected_tags', []))} protected tags")
+        logger.info(
+            f"Loaded tag config with {len(config_data.get('protected_tags', []))} protected tags"
+        )
 
         return cls.from_dict(config_data)
 

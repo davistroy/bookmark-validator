@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 # Platform-specific imports
 try:
     import resource
+
     HAS_RESOURCE = True
 except ImportError:
     # Windows doesn't have the resource module
@@ -27,6 +28,7 @@ except ImportError:
 
 try:
     import psutil
+
     HAS_PSUTIL = True
 except ImportError:
     HAS_PSUTIL = False

@@ -17,10 +17,10 @@ import pytest
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.pipeline.config import PipelineConfig
 
-
 # Check if aiohttp is available
 try:
     import aiohttp
+
     HAS_AIOHTTP = True
 except ImportError:
     HAS_AIOHTTP = False
@@ -53,7 +53,7 @@ def sample_bookmarks():
             title="Test Site 1",
             note="Note 1",
             folder="Tech",
-            tags=["test", "example"]
+            tags=["test", "example"],
         ),
         Bookmark(
             id="2",
@@ -61,14 +61,14 @@ def sample_bookmarks():
             title="Test Site 2",
             note="Note 2",
             folder="Tech/AI",
-            tags=["ai", "ml"]
+            tags=["ai", "ml"],
         ),
         Bookmark(
             id="3",
             url="https://example.com/3",
             title="Test Site 3",
             folder="Science",
-            tags=["science"]
+            tags=["science"],
         ),
     ]
 
@@ -83,18 +83,14 @@ def pipeline_config():
         max_concurrent_requests=5,
         verify_ssl=False,
         ai_enabled=True,
-        max_description_length=150
+        max_description_length=150,
     )
 
 
 @pytest.fixture
 def executor(pipeline_config):
     """Create an AsyncPipelineExecutor for testing."""
-    return AsyncPipelineExecutor(
-        config=pipeline_config,
-        max_concurrent=5,
-        timeout=10.0
-    )
+    return AsyncPipelineExecutor(config=pipeline_config, max_concurrent=5, timeout=10.0)
 
 
 # ============ AsyncPipelineExecutor Tests ============
@@ -114,9 +110,7 @@ class TestAsyncPipelineExecutor:
     def test_init_custom_params(self, pipeline_config):
         """Test executor initialization with custom parameters."""
         executor = AsyncPipelineExecutor(
-            pipeline_config,
-            max_concurrent=10,
-            timeout=15.0
+            pipeline_config, max_concurrent=10, timeout=15.0
         )
 
         assert executor.max_concurrent == 10
@@ -150,11 +144,9 @@ class TestAsyncPipelineExecutor:
         async def mock_head(*args, **kwargs):
             return AsyncMock(__aenter__=AsyncMock(return_value=mock_response))
 
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                url="https://example.com/1",
-                is_valid=True,
-                status_code=200
+                url="https://example.com/1", is_valid=True, status_code=200
             )
 
             await executor._init_session()
@@ -167,11 +159,11 @@ class TestAsyncPipelineExecutor:
     @pytest.mark.asyncio
     async def test_fetch_content_async_mocked(self, executor):
         """Test content fetching with mocked HTTP."""
-        with patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with patch.object(executor, "_fetch_single_content") as mock_fetch:
             mock_fetch.return_value = ContentData(
                 url="https://example.com",
                 content="<html><title>Test</title></html>",
-                title="Test"
+                title="Test",
             )
 
             await executor._init_session()
@@ -192,7 +184,9 @@ class TestAsyncPipelineExecutor:
             for b in sample_bookmarks
         }
 
-        with patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor') as MockProcessor:
+        with patch(
+            "bookmark_processor.core.ai_processor.EnhancedAIProcessor"
+        ) as MockProcessor:
             mock_instance = MagicMock()
             mock_instance.process_single.return_value = MagicMock(
                 enhanced_description="Test description"
@@ -200,8 +194,7 @@ class TestAsyncPipelineExecutor:
             MockProcessor.return_value = mock_instance
 
             results = await executor._process_ai_sequential(
-                sample_bookmarks[:1],  # Just test with one
-                contents
+                sample_bookmarks[:1], contents  # Just test with one
             )
 
         # Result count depends on whether the mock works correctly
@@ -327,10 +320,7 @@ class TestValidationResult:
     def test_valid_result(self):
         """Test creating a valid result."""
         result = ValidationResult(
-            url="https://example.com",
-            is_valid=True,
-            status_code=200,
-            response_time=0.5
+            url="https://example.com", is_valid=True, status_code=200, response_time=0.5
         )
 
         assert result.is_valid is True
@@ -342,7 +332,7 @@ class TestValidationResult:
             url="https://example.com",
             is_valid=False,
             error_message="Connection refused",
-            error_type="connection_error"
+            error_type="connection_error",
         )
 
         assert result.is_valid is False
@@ -361,7 +351,7 @@ class TestContentData:
             url="https://example.com",
             content="<html>Test</html>",
             title="Test Page",
-            description="A test page"
+            description="A test page",
         )
 
         assert data.url == "https://example.com"
@@ -369,10 +359,7 @@ class TestContentData:
 
     def test_content_data_with_error(self):
         """Test content data with error."""
-        data = ContentData(
-            url="https://example.com",
-            error="Connection timeout"
-        )
+        data = ContentData(url="https://example.com", error="Connection timeout")
 
         assert data.error == "Connection timeout"
         assert data.content == ""
@@ -390,7 +377,7 @@ class TestAIProcessingResult:
             url="https://example.com",
             enhanced_description="This is an enhanced description.",
             confidence=0.85,
-            method="cloud"
+            method="cloud",
         )
 
         assert result.enhanced_description == "This is an enhanced description."
@@ -400,8 +387,7 @@ class TestAIProcessingResult:
     def test_error_result(self):
         """Test AI result with error."""
         result = AIProcessingResult(
-            url="https://example.com",
-            error="API rate limit exceeded"
+            url="https://example.com", error="API rate limit exceeded"
         )
 
         assert result.error == "API rate limit exceeded"
@@ -418,19 +404,17 @@ class TestAsyncPipelineIntegration:
     async def test_full_pipeline_mocked(self, executor, sample_bookmarks):
         """Test full pipeline execution with mocked components."""
         # Mock all HTTP operations
-        with patch.object(executor, '_validate_single_url') as mock_validate, \
-             patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with (
+            patch.object(executor, "_validate_single_url") as mock_validate,
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+        ):
 
             mock_validate.return_value = ValidationResult(
-                url="https://example.com/1",
-                is_valid=True,
-                status_code=200
+                url="https://example.com/1", is_valid=True, status_code=200
             )
 
             mock_fetch.return_value = ContentData(
-                url="https://example.com/1",
-                content="Test content",
-                title="Test"
+                url="https://example.com/1", content="Test content", title="Test"
             )
 
             # Disable AI processing for this test

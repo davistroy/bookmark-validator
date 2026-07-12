@@ -23,11 +23,11 @@ import pytest
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.pipeline.config import PipelineConfig
 
-
 # Check if aiohttp is available
 try:
     import aiohttp
     from aiohttp import ClientSession, ClientTimeout, TCPConnector
+
     HAS_AIOHTTP = True
 except ImportError:
     HAS_AIOHTTP = False
@@ -68,7 +68,7 @@ def sample_bookmarks() -> List[Bookmark]:
             note="Note for site 1",
             excerpt="Excerpt for site 1",
             folder="Tech",
-            tags=["test", "example"]
+            tags=["test", "example"],
         ),
         Bookmark(
             id="2",
@@ -76,14 +76,14 @@ def sample_bookmarks() -> List[Bookmark]:
             title="GitHub Repository",
             note="Note for GitHub",
             folder="Tech/Programming",
-            tags=["github", "code"]
+            tags=["github", "code"],
         ),
         Bookmark(
             id="3",
             url="https://google.com/search",
             title="Google Search",
             folder="Search",
-            tags=["search", "google"]
+            tags=["search", "google"],
         ),
         Bookmark(
             id="4",
@@ -91,14 +91,14 @@ def sample_bookmarks() -> List[Bookmark]:
             title="YouTube Video",
             note="Video note",
             folder="Media",
-            tags=["video", "youtube"]
+            tags=["video", "youtube"],
         ),
         Bookmark(
             id="5",
             url="https://linkedin.com/profile",
             title="LinkedIn Profile",
             folder="Social",
-            tags=["social", "linkedin"]
+            tags=["social", "linkedin"],
         ),
     ]
 
@@ -124,7 +124,7 @@ def pipeline_config() -> PipelineConfig:
         verify_ssl=False,
         ai_enabled=True,
         ai_engine="local",
-        max_description_length=150
+        max_description_length=150,
     )
 
 
@@ -139,7 +139,7 @@ def pipeline_config_cloud_ai() -> PipelineConfig:
         verify_ssl=False,
         ai_enabled=True,
         ai_engine="claude",
-        max_description_length=150
+        max_description_length=150,
     )
 
 
@@ -153,18 +153,14 @@ def pipeline_config_ai_disabled() -> PipelineConfig:
         max_concurrent_requests=5,
         verify_ssl=False,
         ai_enabled=False,
-        max_description_length=150
+        max_description_length=150,
     )
 
 
 @pytest.fixture
 def executor(pipeline_config) -> AsyncPipelineExecutor:
     """Create an AsyncPipelineExecutor for testing."""
-    return AsyncPipelineExecutor(
-        config=pipeline_config,
-        max_concurrent=5,
-        timeout=10.0
-    )
+    return AsyncPipelineExecutor(config=pipeline_config, max_concurrent=5, timeout=10.0)
 
 
 @pytest.fixture
@@ -179,7 +175,7 @@ def executor_with_custom_limits(pipeline_config) -> AsyncPipelineExecutor:
         config=pipeline_config,
         max_concurrent=10,
         timeout=15.0,
-        domain_limits=custom_limits
+        domain_limits=custom_limits,
     )
 
 
@@ -309,7 +305,7 @@ class TestValidationResult:
             is_valid=True,
             status_code=200,
             final_url="https://example.com",
-            response_time=0.5
+            response_time=0.5,
         )
 
         assert result.url == "https://example.com"
@@ -327,7 +323,7 @@ class TestValidationResult:
             is_valid=False,
             error_message="Connection refused",
             error_type="connection_error",
-            response_time=1.2
+            response_time=1.2,
         )
 
         assert result.is_valid is False
@@ -341,7 +337,7 @@ class TestValidationResult:
             url="https://example.com",
             is_valid=True,
             status_code=200,
-            final_url="https://www.example.com/redirected"
+            final_url="https://www.example.com/redirected",
         )
 
         assert result.url == "https://example.com"
@@ -374,7 +370,7 @@ class TestContentData:
             title="Test",
             description="Test description",
             content_type="text/html",
-            fetch_time=0.8
+            fetch_time=0.8,
         )
 
         assert data.url == "https://example.com"
@@ -387,10 +383,7 @@ class TestContentData:
 
     def test_content_data_with_error(self):
         """Test content data with error."""
-        data = ContentData(
-            url="https://example.com",
-            error="Connection timeout"
-        )
+        data = ContentData(url="https://example.com", error="Connection timeout")
 
         assert data.url == "https://example.com"
         assert data.error == "Connection timeout"
@@ -424,7 +417,7 @@ class TestAIProcessingResult:
             enhanced_description="Enhanced description with AI insights.",
             confidence=0.95,
             processing_time=2.5,
-            method="cloud"
+            method="cloud",
         )
 
         assert result.url == "https://example.com"
@@ -439,7 +432,7 @@ class TestAIProcessingResult:
         result = AIProcessingResult(
             url="https://example.com",
             error="API rate limit exceeded",
-            processing_time=0.1
+            processing_time=0.1,
         )
 
         assert result.error == "API rate limit exceeded"
@@ -454,7 +447,7 @@ class TestAIProcessingResult:
             enhanced_description="Local AI description.",
             confidence=0.75,
             processing_time=1.0,
-            method="local"
+            method="local",
         )
 
         assert result.method == "local"
@@ -484,7 +477,7 @@ class TestAsyncPipelineExecutorInit:
             pipeline_config,
             max_concurrent=10,
             timeout=15.0,
-            domain_limits=custom_limits
+            domain_limits=custom_limits,
         )
 
         assert executor.max_concurrent == 10
@@ -512,7 +505,7 @@ class TestAsyncPipelineExecutorInit:
         assert executor._session is None
         assert executor._semaphore is None
 
-    @patch.dict('sys.modules', {'aiohttp': None})
+    @patch.dict("sys.modules", {"aiohttp": None})
     def test_initialization_without_aiohttp(self, pipeline_config):
         """Test that initialization fails without aiohttp."""
         # This test would need to reload the module without aiohttp
@@ -589,7 +582,9 @@ class TestDomainExtraction:
 
     def test_extract_domain_with_port(self, executor):
         """Test extraction with port number."""
-        assert executor._get_domain("https://example.com:8080/path") == "example.com:8080"
+        assert (
+            executor._get_domain("https://example.com:8080/path") == "example.com:8080"
+        )
 
     def test_extract_domain_invalid_url(self, executor):
         """Test extraction from invalid URL returns default."""
@@ -778,10 +773,10 @@ class TestHTMLExtraction:
 
     def test_extract_description_prefers_meta_name(self, executor):
         """Test that meta name description takes precedence."""
-        html = '''<html><head>
+        html = """<html><head>
             <meta name="description" content="Meta Description">
             <meta property="og:description" content="OG Description">
-        </head></html>'''
+        </head></html>"""
         desc = executor._extract_description(html)
 
         assert desc == "Meta Description"
@@ -825,17 +820,19 @@ class TestURLValidation:
         assert result == {}
 
     @pytest.mark.asyncio
-    async def test_validate_urls_filters_empty_urls(self, executor, sample_bookmarks_with_empty_url):
+    async def test_validate_urls_filters_empty_urls(
+        self, executor, sample_bookmarks_with_empty_url
+    ):
         """Test that bookmarks with empty URLs are filtered."""
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
 
             await executor._init_session()
-            results = await executor.validate_urls_async(sample_bookmarks_with_empty_url)
+            results = await executor.validate_urls_async(
+                sample_bookmarks_with_empty_url
+            )
             await executor._close_session()
 
         # Should only have called for valid URLs
@@ -844,11 +841,9 @@ class TestURLValidation:
     @pytest.mark.asyncio
     async def test_validate_urls_updates_stats(self, executor, sample_bookmarks):
         """Test that validation updates statistics."""
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
 
             await executor._init_session()
@@ -869,10 +864,12 @@ class TestURLValidation:
                 url=args[0] if args else "https://example.com",
                 is_valid=(call_count[0] % 2 == 0),  # Every other fails
                 status_code=200 if call_count[0] % 2 == 0 else None,
-                error_message=None if call_count[0] % 2 == 0 else "Failed"
+                error_message=None if call_count[0] % 2 == 0 else "Failed",
             )
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate_func):
+        with patch.object(
+            executor, "_validate_single_url", side_effect=mock_validate_func
+        ):
             await executor._init_session()
             await executor.validate_urls_async(sample_bookmarks)
             await executor._close_session()
@@ -887,15 +884,15 @@ class TestURLValidation:
         def progress_callback(current, total):
             progress_updates.append((current, total))
 
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
 
             await executor._init_session()
-            await executor.validate_urls_async(sample_bookmarks, progress_callback=progress_callback)
+            await executor.validate_urls_async(
+                sample_bookmarks, progress_callback=progress_callback
+            )
             await executor._close_session()
 
         # Progress callback called (may vary based on implementation)
@@ -934,7 +931,9 @@ class TestURLValidation:
         executor._session = MagicMock()
         executor._session.head = MagicMock(return_value=mock_context)
 
-        result = await executor._validate_single_url("https://example.com", retry_count=1)
+        result = await executor._validate_single_url(
+            "https://example.com", retry_count=1
+        )
 
         assert result.is_valid is False
         assert result.error_type == "timeout"
@@ -953,7 +952,9 @@ class TestURLValidation:
         executor._session = MagicMock()
         executor._session.head = MagicMock(return_value=mock_context)
 
-        result = await executor._validate_single_url("https://example.com", retry_count=1)
+        result = await executor._validate_single_url(
+            "https://example.com", retry_count=1
+        )
 
         assert result.is_valid is False
         assert result.error_type == "client_error"
@@ -972,7 +973,9 @@ class TestURLValidation:
         executor._session = MagicMock()
         executor._session.head = MagicMock(return_value=mock_context)
 
-        result = await executor._validate_single_url("https://example.com", retry_count=1)
+        result = await executor._validate_single_url(
+            "https://example.com", retry_count=1
+        )
 
         assert result.is_valid is False
         assert result.error_type == "unknown"
@@ -996,11 +999,9 @@ class TestContentFetching:
     @pytest.mark.asyncio
     async def test_fetch_content_updates_stats(self, executor):
         """Test that fetching updates statistics."""
-        with patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with patch.object(executor, "_fetch_single_content") as mock_fetch:
             mock_fetch.return_value = ContentData(
-                url="https://example.com",
-                content="<html>Test</html>",
-                title="Test"
+                url="https://example.com", content="<html>Test</html>", title="Test"
             )
 
             await executor._init_session()
@@ -1012,10 +1013,9 @@ class TestContentFetching:
     @pytest.mark.asyncio
     async def test_fetch_content_counts_failures(self, executor):
         """Test that fetch errors are counted."""
-        with patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with patch.object(executor, "_fetch_single_content") as mock_fetch:
             mock_fetch.return_value = ContentData(
-                url="https://example.com",
-                error="Connection failed"
+                url="https://example.com", error="Connection failed"
             )
 
             await executor._init_session()
@@ -1032,15 +1032,16 @@ class TestContentFetching:
         def progress_callback(current, total):
             progress_updates.append((current, total))
 
-        with patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with patch.object(executor, "_fetch_single_content") as mock_fetch:
             mock_fetch.return_value = ContentData(
-                url="https://example.com",
-                content="Test"
+                url="https://example.com", content="Test"
             )
 
             await executor._init_session()
             urls = [f"https://example{i}.com" for i in range(15)]
-            await executor.fetch_content_async(urls, progress_callback=progress_callback)
+            await executor.fetch_content_async(
+                urls, progress_callback=progress_callback
+            )
             await executor._close_session()
 
     @pytest.mark.asyncio
@@ -1099,7 +1100,9 @@ class TestContentFetching:
         executor._session = MagicMock()
         executor._session.get = MagicMock(return_value=mock_context)
 
-        result = await executor._fetch_single_content("https://example.com", max_length=100000)
+        result = await executor._fetch_single_content(
+            "https://example.com", max_length=100000
+        )
 
         assert len(result.content) == 100000
 
@@ -1124,10 +1127,10 @@ class TestContentFetching:
     @pytest.mark.asyncio
     async def test_fetch_single_content_extracts_metadata(self, executor):
         """Test that title and description are extracted."""
-        html = '''<html><head>
+        html = """<html><head>
             <title>Test Page Title</title>
             <meta name="description" content="Test page description">
-        </head><body>Content</body></html>'''
+        </head><body>Content</body></html>"""
 
         mock_response = MagicMock()
         mock_response.status = 200
@@ -1164,14 +1167,16 @@ class TestAIProcessing:
         assert result == {}
 
     @pytest.mark.asyncio
-    async def test_process_ai_no_api_client_uses_sequential(self, executor, sample_bookmarks):
+    async def test_process_ai_no_api_client_uses_sequential(
+        self, executor, sample_bookmarks
+    ):
         """Test that no API client falls back to sequential processing."""
         contents = {
             b.url: ContentData(url=b.url, content="Test content")
             for b in sample_bookmarks
         }
 
-        with patch.object(executor, '_process_ai_sequential') as mock_seq:
+        with patch.object(executor, "_process_ai_sequential") as mock_seq:
             mock_seq.return_value = {}
 
             await executor.process_ai_async(sample_bookmarks, contents, api_client=None)
@@ -1179,7 +1184,9 @@ class TestAIProcessing:
         mock_seq.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_process_ai_local_engine_uses_sequential(self, executor, sample_bookmarks):
+    async def test_process_ai_local_engine_uses_sequential(
+        self, executor, sample_bookmarks
+    ):
         """Test that local AI engine uses sequential processing."""
         contents = {
             b.url: ContentData(url=b.url, content="Test content")
@@ -1187,16 +1194,20 @@ class TestAIProcessing:
         }
         mock_client = MagicMock()
 
-        with patch.object(executor, '_process_ai_sequential') as mock_seq:
+        with patch.object(executor, "_process_ai_sequential") as mock_seq:
             mock_seq.return_value = {}
             executor.config.ai_engine = "local"
 
-            await executor.process_ai_async(sample_bookmarks, contents, api_client=mock_client)
+            await executor.process_ai_async(
+                sample_bookmarks, contents, api_client=mock_client
+            )
 
         mock_seq.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_process_ai_cloud_engine(self, pipeline_config_cloud_ai, sample_bookmarks):
+    async def test_process_ai_cloud_engine(
+        self, pipeline_config_cloud_ai, sample_bookmarks
+    ):
         """Test AI processing with cloud engine."""
         executor = AsyncPipelineExecutor(pipeline_config_cloud_ai)
         contents = {
@@ -1205,22 +1216,25 @@ class TestAIProcessing:
         }
 
         mock_client = MagicMock()
-        mock_client.generate_description_async = AsyncMock(return_value={
-            "description": "Enhanced description",
-            "confidence": 0.9
-        })
+        mock_client.generate_description_async = AsyncMock(
+            return_value={"description": "Enhanced description", "confidence": 0.9}
+        )
 
-        with patch.object(executor, '_process_ai_single') as mock_single:
+        with patch.object(executor, "_process_ai_single") as mock_single:
             mock_single.return_value = AIProcessingResult(
                 url="https://example.com",
                 enhanced_description="Enhanced",
-                confidence=0.9
+                confidence=0.9,
             )
 
-            await executor.process_ai_async(sample_bookmarks, contents, api_client=mock_client)
+            await executor.process_ai_async(
+                sample_bookmarks, contents, api_client=mock_client
+            )
 
     @pytest.mark.asyncio
-    async def test_process_ai_updates_stats(self, pipeline_config_cloud_ai, sample_bookmarks):
+    async def test_process_ai_updates_stats(
+        self, pipeline_config_cloud_ai, sample_bookmarks
+    ):
         """Test that AI processing updates statistics."""
         executor = AsyncPipelineExecutor(pipeline_config_cloud_ai)
         contents = {
@@ -1230,28 +1244,30 @@ class TestAIProcessing:
 
         mock_client = MagicMock()
 
-        with patch.object(executor, '_process_ai_single') as mock_single:
+        with patch.object(executor, "_process_ai_single") as mock_single:
             mock_single.return_value = AIProcessingResult(
-                url="https://example.com",
-                enhanced_description="Enhanced"
+                url="https://example.com", enhanced_description="Enhanced"
             )
 
-            await executor.process_ai_async(sample_bookmarks[:1], contents, api_client=mock_client)
+            await executor.process_ai_async(
+                sample_bookmarks[:1], contents, api_client=mock_client
+            )
 
         # Stats should be updated
         assert executor.stats.ai_time >= 0
 
     @pytest.mark.asyncio
-    async def test_process_ai_single_with_async_client(self, executor, sample_bookmarks):
+    async def test_process_ai_single_with_async_client(
+        self, executor, sample_bookmarks
+    ):
         """Test single AI processing with async client."""
         bookmark = sample_bookmarks[0]
         content = ContentData(url=bookmark.url, content="Test content for AI")
 
         mock_client = MagicMock()
-        mock_client.generate_description_async = AsyncMock(return_value={
-            "description": "AI generated description",
-            "confidence": 0.85
-        })
+        mock_client.generate_description_async = AsyncMock(
+            return_value={"description": "AI generated description", "confidence": 0.85}
+        )
 
         result = await executor._process_ai_single(bookmark, content, mock_client)
 
@@ -1266,10 +1282,9 @@ class TestAIProcessing:
         content = ContentData(url=bookmark.url, content="Test content for AI")
 
         mock_client = MagicMock()
-        mock_client.generate_description = MagicMock(return_value={
-            "description": "Sync description",
-            "confidence": 0.75
-        })
+        mock_client.generate_description = MagicMock(
+            return_value={"description": "Sync description", "confidence": 0.75}
+        )
         # No generate_description_async attribute
         del mock_client.generate_description_async
 
@@ -1295,15 +1310,14 @@ class TestAIProcessing:
             id="1",
             url="https://example.com",
             title="Test",
-            excerpt="This is the excerpt content"
+            excerpt="This is the excerpt content",
         )
         content = ContentData(url=bookmark.url)  # No content
 
         mock_client = MagicMock()
-        mock_client.generate_description_async = AsyncMock(return_value={
-            "description": "From excerpt",
-            "confidence": 0.7
-        })
+        mock_client.generate_description_async = AsyncMock(
+            return_value={"description": "From excerpt", "confidence": 0.7}
+        )
 
         result = await executor._process_ai_single(bookmark, content, mock_client)
 
@@ -1317,15 +1331,14 @@ class TestAIProcessing:
             id="1",
             url="https://example.com",
             title="Test",
-            note="This is the note content"
+            note="This is the note content",
         )
         content = ContentData(url=bookmark.url)  # No content
 
         mock_client = MagicMock()
-        mock_client.generate_description_async = AsyncMock(return_value={
-            "description": "From note",
-            "confidence": 0.7
-        })
+        mock_client.generate_description_async = AsyncMock(
+            return_value={"description": "From note", "confidence": 0.7}
+        )
 
         result = await executor._process_ai_single(bookmark, content, mock_client)
 
@@ -1338,7 +1351,9 @@ class TestAIProcessing:
         content = ContentData(url=bookmark.url, content="Test content")
 
         mock_client = MagicMock()
-        mock_client.generate_description_async = AsyncMock(side_effect=Exception("API error"))
+        mock_client.generate_description_async = AsyncMock(
+            side_effect=Exception("API error")
+        )
 
         result = await executor._process_ai_single(bookmark, content, mock_client)
 
@@ -1353,7 +1368,9 @@ class TestAIProcessing:
         }
 
         # Patch at the location where it's imported in async_pipeline.py
-        with patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor') as MockProcessor:
+        with patch(
+            "bookmark_processor.core.ai_processor.EnhancedAIProcessor"
+        ) as MockProcessor:
             mock_instance = MagicMock()
             mock_result = MagicMock()
             mock_result.enhanced_description = "Local AI description"
@@ -1361,50 +1378,55 @@ class TestAIProcessing:
             MockProcessor.return_value = mock_instance
 
             results = await executor._process_ai_sequential(
-                sample_bookmarks[:2],
-                contents
+                sample_bookmarks[:2], contents
             )
 
         # Results should be a dictionary
         assert isinstance(results, dict)
 
     @pytest.mark.asyncio
-    async def test_process_ai_sequential_handles_none_result(self, executor, sample_bookmarks):
+    async def test_process_ai_sequential_handles_none_result(
+        self, executor, sample_bookmarks
+    ):
         """Test sequential AI processing handles None results."""
         contents = {
             b.url: ContentData(url=b.url, content="Test content")
             for b in sample_bookmarks[:1]
         }
 
-        with patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor') as MockProcessor:
+        with patch(
+            "bookmark_processor.core.ai_processor.EnhancedAIProcessor"
+        ) as MockProcessor:
             mock_instance = MagicMock()
             mock_instance.process_single.return_value = None
             MockProcessor.return_value = mock_instance
 
             results = await executor._process_ai_sequential(
-                sample_bookmarks[:1],
-                contents
+                sample_bookmarks[:1], contents
             )
 
         # Should have handled None gracefully - results should still be a dict
         assert isinstance(results, dict)
 
     @pytest.mark.asyncio
-    async def test_process_ai_sequential_error_handling(self, executor, sample_bookmarks):
+    async def test_process_ai_sequential_error_handling(
+        self, executor, sample_bookmarks
+    ):
         """Test sequential AI processing error handling."""
         contents = {
             b.url: ContentData(url=b.url, content="Test content")
             for b in sample_bookmarks[:1]
         }
 
-        with patch('bookmark_processor.core.ai_processor.EnhancedAIProcessor') as MockProcessor:
+        with patch(
+            "bookmark_processor.core.ai_processor.EnhancedAIProcessor"
+        ) as MockProcessor:
             mock_instance = MagicMock()
             mock_instance.process_single.side_effect = Exception("Processing error")
             MockProcessor.return_value = mock_instance
 
             results = await executor._process_ai_sequential(
-                sample_bookmarks[:1],
-                contents
+                sample_bookmarks[:1], contents
             )
 
         # Should have caught exception and still return a dict
@@ -1422,80 +1444,86 @@ class TestFullPipelineExecution:
     @pytest.mark.asyncio
     async def test_execute_full_pipeline_basic(self, executor, sample_bookmarks):
         """Test basic full pipeline execution."""
+
         def mock_validate(url, retry_count=3):
-            return ValidationResult(
-                url=url,
-                is_valid=True,
-                status_code=200
-            )
+            return ValidationResult(url=url, is_valid=True, status_code=200)
 
         def mock_fetch(url, max_length=100000):
-            return ContentData(
-                url=url,
-                content="Test content",
-                title="Test"
-            )
+            return ContentData(url=url, content="Test content", title="Test")
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate), \
-             patch.object(executor, '_fetch_single_content', side_effect=mock_fetch):
+        with (
+            patch.object(executor, "_validate_single_url", side_effect=mock_validate),
+            patch.object(executor, "_fetch_single_content", side_effect=mock_fetch),
+        ):
 
             executor.config.ai_enabled = False
 
-            validation, content, ai = await executor.execute_full_pipeline(sample_bookmarks)
+            validation, content, ai = await executor.execute_full_pipeline(
+                sample_bookmarks
+            )
 
         assert len(validation) == len(sample_bookmarks)
 
     @pytest.mark.asyncio
-    async def test_execute_full_pipeline_with_ai(self, pipeline_config, sample_bookmarks):
+    async def test_execute_full_pipeline_with_ai(
+        self, pipeline_config, sample_bookmarks
+    ):
         """Test full pipeline with AI enabled."""
         executor = AsyncPipelineExecutor(pipeline_config)
 
-        with patch.object(executor, '_validate_single_url') as mock_validate, \
-             patch.object(executor, '_fetch_single_content') as mock_fetch, \
-             patch.object(executor, 'process_ai_async') as mock_ai:
+        with (
+            patch.object(executor, "_validate_single_url") as mock_validate,
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+            patch.object(executor, "process_ai_async") as mock_ai,
+        ):
 
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
             mock_fetch.return_value = ContentData(
-                url="https://example.com",
-                content="Test content"
+                url="https://example.com", content="Test content"
             )
-            mock_ai.return_value = {"https://example.com": AIProcessingResult(
-                url="https://example.com",
-                enhanced_description="Enhanced"
-            )}
+            mock_ai.return_value = {
+                "https://example.com": AIProcessingResult(
+                    url="https://example.com", enhanced_description="Enhanced"
+                )
+            }
 
-            validation, content, ai = await executor.execute_full_pipeline(sample_bookmarks)
+            validation, content, ai = await executor.execute_full_pipeline(
+                sample_bookmarks
+            )
 
         mock_ai.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_execute_full_pipeline_ai_disabled(self, pipeline_config_ai_disabled, sample_bookmarks):
+    async def test_execute_full_pipeline_ai_disabled(
+        self, pipeline_config_ai_disabled, sample_bookmarks
+    ):
         """Test full pipeline with AI disabled."""
         executor = AsyncPipelineExecutor(pipeline_config_ai_disabled)
 
-        with patch.object(executor, '_validate_single_url') as mock_validate, \
-             patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with (
+            patch.object(executor, "_validate_single_url") as mock_validate,
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+        ):
 
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
             mock_fetch.return_value = ContentData(
-                url="https://example.com",
-                content="Test content"
+                url="https://example.com", content="Test content"
             )
 
-            validation, content, ai = await executor.execute_full_pipeline(sample_bookmarks)
+            validation, content, ai = await executor.execute_full_pipeline(
+                sample_bookmarks
+            )
 
         assert ai == {}
 
     @pytest.mark.asyncio
-    async def test_execute_full_pipeline_only_valid_urls_for_content(self, executor, sample_bookmarks):
+    async def test_execute_full_pipeline_only_valid_urls_for_content(
+        self, executor, sample_bookmarks
+    ):
         """Test that only valid URLs proceed to content fetching."""
         call_count = [0]
 
@@ -1504,11 +1532,15 @@ class TestFullPipelineExecution:
             return ValidationResult(
                 url=args[0] if args else "https://example.com",
                 is_valid=(call_count[0] <= 2),  # Only first 2 are valid
-                status_code=200 if call_count[0] <= 2 else 404
+                status_code=200 if call_count[0] <= 2 else 404,
             )
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate_func), \
-             patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with (
+            patch.object(
+                executor, "_validate_single_url", side_effect=mock_validate_func
+            ),
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+        ):
 
             mock_fetch.return_value = ContentData(url="test", content="Test")
             executor.config.ai_enabled = False
@@ -1519,40 +1551,46 @@ class TestFullPipelineExecution:
         assert mock_fetch.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_execute_full_pipeline_progress_callback(self, executor, sample_bookmarks):
+    async def test_execute_full_pipeline_progress_callback(
+        self, executor, sample_bookmarks
+    ):
         """Test progress callback during full pipeline."""
         progress_updates = []
 
         def progress_callback(stage, current, total):
             progress_updates.append((stage, current, total))
 
-        with patch.object(executor, '_validate_single_url') as mock_validate, \
-             patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with (
+            patch.object(executor, "_validate_single_url") as mock_validate,
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+        ):
 
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
             mock_fetch.return_value = ContentData(url="test", content="Test")
             executor.config.ai_enabled = False
 
-            await executor.execute_full_pipeline(sample_bookmarks, progress_callback=progress_callback)
+            await executor.execute_full_pipeline(
+                sample_bookmarks, progress_callback=progress_callback
+            )
 
         # Should have received progress updates for different stages
         stages = [u[0] for u in progress_updates]
         assert "Validating URLs" in stages or len(progress_updates) >= 0
 
     @pytest.mark.asyncio
-    async def test_execute_full_pipeline_updates_all_stats(self, executor, sample_bookmarks):
+    async def test_execute_full_pipeline_updates_all_stats(
+        self, executor, sample_bookmarks
+    ):
         """Test that full pipeline updates all statistics."""
-        with patch.object(executor, '_validate_single_url') as mock_validate, \
-             patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with (
+            patch.object(executor, "_validate_single_url") as mock_validate,
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+        ):
 
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
             mock_fetch.return_value = ContentData(url="test", content="Test")
             executor.config.ai_enabled = False
@@ -1564,15 +1602,17 @@ class TestFullPipelineExecution:
         assert executor.stats.total_urls == len(sample_bookmarks)
 
     @pytest.mark.asyncio
-    async def test_execute_full_pipeline_returns_tuple(self, executor, sample_bookmarks):
+    async def test_execute_full_pipeline_returns_tuple(
+        self, executor, sample_bookmarks
+    ):
         """Test that pipeline returns correct tuple structure."""
-        with patch.object(executor, '_validate_single_url') as mock_validate, \
-             patch.object(executor, '_fetch_single_content') as mock_fetch:
+        with (
+            patch.object(executor, "_validate_single_url") as mock_validate,
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+        ):
 
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
             mock_fetch.return_value = ContentData(url="test", content="Test")
             executor.config.ai_enabled = False
@@ -1668,7 +1708,7 @@ class TestConcurrency:
             concurrent_count[0] -= 1
             return ValidationResult(url=url, is_valid=True, status_code=200)
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate):
+        with patch.object(executor, "_validate_single_url", side_effect=mock_validate):
             await executor._init_session()
             await executor.validate_urls_async(sample_bookmarks)
             await executor._close_session()
@@ -1677,12 +1717,13 @@ class TestConcurrency:
         assert max_concurrent[0] <= executor.max_concurrent
 
     @pytest.mark.asyncio
-    async def test_ai_processing_semaphore(self, pipeline_config_cloud_ai, sample_bookmarks):
+    async def test_ai_processing_semaphore(
+        self, pipeline_config_cloud_ai, sample_bookmarks
+    ):
         """Test AI processing has its own semaphore limit."""
         executor = AsyncPipelineExecutor(pipeline_config_cloud_ai)
         contents = {
-            b.url: ContentData(url=b.url, content="Test")
-            for b in sample_bookmarks
+            b.url: ContentData(url=b.url, content="Test") for b in sample_bookmarks
         }
 
         concurrent_count = [0]
@@ -1697,8 +1738,10 @@ class TestConcurrency:
 
         mock_client = MagicMock()
 
-        with patch.object(executor, '_process_ai_single', side_effect=mock_ai_single):
-            await executor.process_ai_async(sample_bookmarks, contents, api_client=mock_client)
+        with patch.object(executor, "_process_ai_single", side_effect=mock_ai_single):
+            await executor.process_ai_async(
+                sample_bookmarks, contents, api_client=mock_client
+            )
 
         # AI processing has a separate limit of 5
         assert max_concurrent[0] <= 5
@@ -1726,13 +1769,13 @@ class TestErrorRecovery:
                     url=url,
                     is_valid=False,
                     error_message="Request timed out",
-                    error_type="timeout"
+                    error_type="timeout",
                 )
             return ValidationResult(url=url, is_valid=True, status_code=200)
 
         # For testing retry logic, we test the high-level behavior
         # since _validate_single_url has internal retry logic
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate):
+        with patch.object(executor, "_validate_single_url", side_effect=mock_validate):
             await executor._init_session()
             bookmarks = [Bookmark(id="1", url="https://example.com", title="Test")]
             results = await executor.validate_urls_async(bookmarks)
@@ -1744,12 +1787,12 @@ class TestErrorRecovery:
     @pytest.mark.asyncio
     async def test_retry_on_client_error(self, executor):
         """Test that validation handles client errors correctly."""
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
                 url="https://example.com",
                 is_valid=False,
                 error_message="Client error occurred",
-                error_type="client_error"
+                error_type="client_error",
             )
 
             await executor._init_session()
@@ -1764,12 +1807,12 @@ class TestErrorRecovery:
     async def test_exponential_backoff(self, executor):
         """Test validation with retry exhaustion."""
         # Test that after all retries are exhausted, we get the proper error
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
                 url="https://example.com",
                 is_valid=False,
                 error_message="All retries failed",
-                error_type="retry_exhausted"
+                error_type="retry_exhausted",
             )
 
             await executor._init_session()
@@ -1782,12 +1825,12 @@ class TestErrorRecovery:
     @pytest.mark.asyncio
     async def test_retries_exhausted(self, executor):
         """Test result when all retries are exhausted."""
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
                 url="https://example.com",
                 is_valid=False,
                 error_message="All retries failed",
-                error_type="retry_exhausted"
+                error_type="retry_exhausted",
             )
 
             await executor._init_session()
@@ -1799,7 +1842,9 @@ class TestErrorRecovery:
         assert results["https://example.com"].error_type == "retry_exhausted"
 
     @pytest.mark.asyncio
-    async def test_pipeline_continues_on_individual_failures(self, executor, sample_bookmarks):
+    async def test_pipeline_continues_on_individual_failures(
+        self, executor, sample_bookmarks
+    ):
         """Test that pipeline continues when individual URLs fail."""
         call_count = [0]
 
@@ -1809,15 +1854,13 @@ class TestErrorRecovery:
                 return ValidationResult(
                     url=args[0] if args else "failed",
                     is_valid=False,
-                    error_message="Failed"
+                    error_message="Failed",
                 )
             return ValidationResult(
-                url=args[0] if args else "success",
-                is_valid=True,
-                status_code=200
+                url=args[0] if args else "success", is_valid=True, status_code=200
             )
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate):
+        with patch.object(executor, "_validate_single_url", side_effect=mock_validate):
             await executor._init_session()
             results = await executor.validate_urls_async(sample_bookmarks)
             await executor._close_session()
@@ -1836,11 +1879,13 @@ class TestRunAsyncPipeline:
 
     def test_run_async_pipeline(self, pipeline_config, sample_bookmarks):
         """Test synchronous wrapper for async pipeline."""
-        with patch.object(AsyncPipelineExecutor, 'execute_full_pipeline') as mock_execute:
+        with patch.object(
+            AsyncPipelineExecutor, "execute_full_pipeline"
+        ) as mock_execute:
             mock_execute.return_value = ({}, {}, {})
 
             # The function uses asyncio.run internally
-            with patch('asyncio.run') as mock_run:
+            with patch("asyncio.run") as mock_run:
                 mock_run.return_value = ({}, {}, {})
 
                 result = run_async_pipeline(sample_bookmarks, pipeline_config)
@@ -1862,7 +1907,7 @@ class TestEdgeCases:
         """Test handling of empty URL in bookmark."""
         bookmarks = [Bookmark(id="1", url="", title="Empty URL")]
 
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             await executor._init_session()
             results = await executor.validate_urls_async(bookmarks)
             await executor._close_session()
@@ -1876,11 +1921,9 @@ class TestEdgeCases:
         """Test handling of very long URL."""
         long_url = "https://example.com/" + "a" * 5000
 
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                url=long_url,
-                is_valid=True,
-                status_code=200
+                url=long_url, is_valid=True, status_code=200
             )
 
             bookmarks = [Bookmark(id="1", url=long_url, title="Long URL")]
@@ -1913,11 +1956,9 @@ class TestEdgeCases:
         """Test processing a single bookmark."""
         bookmarks = [Bookmark(id="1", url="https://example.com", title="Single")]
 
-        with patch.object(executor, '_validate_single_url') as mock_validate:
+        with patch.object(executor, "_validate_single_url") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                url="https://example.com",
-                is_valid=True,
-                status_code=200
+                url="https://example.com", is_valid=True, status_code=200
             )
 
             await executor._init_session()
@@ -1938,9 +1979,11 @@ class TestEdgeCases:
 
         def mock_validate(*args, **kwargs):
             call_count[0] += 1
-            return ValidationResult(url="https://example.com", is_valid=True, status_code=200)
+            return ValidationResult(
+                url="https://example.com", is_valid=True, status_code=200
+            )
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate):
+        with patch.object(executor, "_validate_single_url", side_effect=mock_validate):
             await executor._init_session()
             results = await executor.validate_urls_async(bookmarks)
             await executor._close_session()
@@ -1961,11 +2004,9 @@ class TestLogging:
     async def test_validation_logging(self, executor, sample_bookmarks, caplog):
         """Test that validation logs results."""
         with caplog.at_level(logging.INFO):
-            with patch.object(executor, '_validate_single_url') as mock_validate:
+            with patch.object(executor, "_validate_single_url") as mock_validate:
                 mock_validate.return_value = ValidationResult(
-                    url="https://example.com",
-                    is_valid=True,
-                    status_code=200
+                    url="https://example.com", is_valid=True, status_code=200
                 )
 
                 await executor._init_session()
@@ -1979,10 +2020,9 @@ class TestLogging:
     async def test_content_fetch_logging(self, executor, caplog):
         """Test that content fetching logs results."""
         with caplog.at_level(logging.INFO):
-            with patch.object(executor, '_fetch_single_content') as mock_fetch:
+            with patch.object(executor, "_fetch_single_content") as mock_fetch:
                 mock_fetch.return_value = ContentData(
-                    url="https://example.com",
-                    content="Test"
+                    url="https://example.com", content="Test"
                 )
 
                 await executor._init_session()
@@ -2004,12 +2044,10 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_complete_successful_pipeline(self, executor, sample_bookmarks):
         """Test complete successful pipeline execution."""
+
         def create_validate_result(url, retry_count=3):
             return ValidationResult(
-                url=url,
-                is_valid=True,
-                status_code=200,
-                final_url=url
+                url=url, is_valid=True, status_code=200, final_url=url
             )
 
         def create_content_result(url, max_length=100000):
@@ -2017,15 +2055,23 @@ class TestIntegrationScenarios:
                 url=url,
                 content="<html><title>Test</title></html>",
                 title="Test",
-                content_type="text/html"
+                content_type="text/html",
             )
 
-        with patch.object(executor, '_validate_single_url', side_effect=create_validate_result), \
-             patch.object(executor, '_fetch_single_content', side_effect=create_content_result):
+        with (
+            patch.object(
+                executor, "_validate_single_url", side_effect=create_validate_result
+            ),
+            patch.object(
+                executor, "_fetch_single_content", side_effect=create_content_result
+            ),
+        ):
 
             executor.config.ai_enabled = False
 
-            validation, content, ai = await executor.execute_full_pipeline(sample_bookmarks)
+            validation, content, ai = await executor.execute_full_pipeline(
+                sample_bookmarks
+            )
 
         assert len(validation) == len(sample_bookmarks)
         assert all(r.is_valid for r in validation.values())
@@ -2041,18 +2087,22 @@ class TestIntegrationScenarios:
             return ValidationResult(
                 url=url,
                 is_valid=(call_count[0] % 2 == 0),
-                status_code=200 if call_count[0] % 2 == 0 else 404
+                status_code=200 if call_count[0] % 2 == 0 else 404,
             )
 
         def mock_fetch(url, max_length=100000):
             return ContentData(url=url, content="Test")
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate), \
-             patch.object(executor, '_fetch_single_content', side_effect=mock_fetch):
+        with (
+            patch.object(executor, "_validate_single_url", side_effect=mock_validate),
+            patch.object(executor, "_fetch_single_content", side_effect=mock_fetch),
+        ):
 
             executor.config.ai_enabled = False
 
-            validation, content, ai = await executor.execute_full_pipeline(sample_bookmarks)
+            validation, content, ai = await executor.execute_full_pipeline(
+                sample_bookmarks
+            )
 
         # Should have both valid and invalid results
         valid_count = sum(1 for r in validation.values() if r.is_valid)
@@ -2064,19 +2114,20 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_all_failures_pipeline(self, executor, sample_bookmarks):
         """Test pipeline when all validations fail."""
-        def mock_validate(url, retry_count=3):
-            return ValidationResult(
-                url=url,
-                is_valid=False,
-                error_message="All failed"
-            )
 
-        with patch.object(executor, '_validate_single_url', side_effect=mock_validate), \
-             patch.object(executor, '_fetch_single_content') as mock_fetch:
+        def mock_validate(url, retry_count=3):
+            return ValidationResult(url=url, is_valid=False, error_message="All failed")
+
+        with (
+            patch.object(executor, "_validate_single_url", side_effect=mock_validate),
+            patch.object(executor, "_fetch_single_content") as mock_fetch,
+        ):
 
             executor.config.ai_enabled = False
 
-            validation, content, ai = await executor.execute_full_pipeline(sample_bookmarks)
+            validation, content, ai = await executor.execute_full_pipeline(
+                sample_bookmarks
+            )
 
         assert len(validation) == len(sample_bookmarks)
         assert all(not r.is_valid for r in validation.values())

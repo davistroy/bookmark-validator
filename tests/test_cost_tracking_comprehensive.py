@@ -1267,8 +1267,12 @@ class TestCostTrackingMixinIntegration:
         medium_estimate = obj.estimate_batch_cost(50)
         large_estimate = obj.estimate_batch_cost(200)
 
-        assert small_estimate.total_estimated_cost < medium_estimate.total_estimated_cost
-        assert medium_estimate.total_estimated_cost < large_estimate.total_estimated_cost
+        assert (
+            small_estimate.total_estimated_cost < medium_estimate.total_estimated_cost
+        )
+        assert (
+            medium_estimate.total_estimated_cost < large_estimate.total_estimated_cost
+        )
 
         # 2. Record some batch costs
         obj.record_batch_cost("batch_1", small_estimate.total_estimated_cost)
@@ -1415,7 +1419,9 @@ class TestCostTrackingMixinAdditionalBranches:
         # recent_average should be for last 10 batches (batch_5 to batch_14)
         # costs: 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15
         expected_recent_avg = sum(0.01 * i for i in range(6, 16)) / 10
-        assert stats["recent_average_cost"] == pytest.approx(expected_recent_avg, rel=1e-6)
+        assert stats["recent_average_cost"] == pytest.approx(
+            expected_recent_avg, rel=1e-6
+        )
 
     def test_confirmation_with_user_confirmed_cost_update(self):
         """Test that user_confirmed_cost is updated on confirmation."""
@@ -1447,4 +1453,3 @@ class TestCostTrackingMixinAdditionalBranches:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

@@ -29,7 +29,6 @@ from bookmark_processor.core.quality_reporter import (
     create_quality_report,
 )
 
-
 # Fixtures
 
 
@@ -204,9 +203,7 @@ class TestDescriptionMetrics:
 
     def test_average_confidence_calculation(self):
         """Test average confidence calculation."""
-        metrics = DescriptionMetrics(
-            confidence_scores=[0.9, 0.8, 0.7, 0.6]
-        )
+        metrics = DescriptionMetrics(confidence_scores=[0.9, 0.8, 0.7, 0.6])
         assert metrics.average_confidence == pytest.approx(0.75)
 
 
@@ -225,9 +222,7 @@ class TestTagMetrics:
 
     def test_unique_tag_count(self):
         """Test unique tag count property."""
-        metrics = TagMetrics(
-            unique_tags={"ai", "ml", "python", "tech"}
-        )
+        metrics = TagMetrics(unique_tags={"ai", "ml", "python", "tech"})
         assert metrics.unique_tag_count == 4
 
     def test_tagged_percentage_zero_total(self):
@@ -250,9 +245,7 @@ class TestTagMetrics:
 
     def test_avg_tags_per_bookmark_calculation(self):
         """Test average tags calculation."""
-        metrics = TagMetrics(
-            tag_counts=[3, 4, 2, 5, 1]
-        )
+        metrics = TagMetrics(tag_counts=[3, 4, 2, 5, 1])
         assert metrics.avg_tags_per_bookmark == 3.0
 
     def test_tag_coverage_score_zero(self):
@@ -287,23 +280,17 @@ class TestFolderMetrics:
 
     def test_total_folders(self):
         """Test total folders property."""
-        metrics = FolderMetrics(
-            unique_folders={"Tech", "Tech/AI", "Misc"}
-        )
+        metrics = FolderMetrics(unique_folders={"Tech", "Tech/AI", "Misc"})
         assert metrics.total_folders == 3
 
     def test_max_depth(self):
         """Test max depth property."""
-        metrics = FolderMetrics(
-            folder_depths=[1, 2, 3, 2, 1]
-        )
+        metrics = FolderMetrics(folder_depths=[1, 2, 3, 2, 1])
         assert metrics.max_depth == 3
 
     def test_avg_depth(self):
         """Test average depth calculation."""
-        metrics = FolderMetrics(
-            folder_depths=[1, 2, 3, 2, 2]
-        )
+        metrics = FolderMetrics(folder_depths=[1, 2, 3, 2, 2])
         assert metrics.avg_depth == 2.0
 
     def test_reorganized_percentage(self):
@@ -618,9 +605,7 @@ class TestCSVExport:
         """Test export with no review items."""
         reporter = QualityReporter(bookmarks=[])
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             path = Path(f.name)
 
         try:
@@ -640,9 +625,7 @@ class TestCSVExport:
             confidence_scores=confidence_scores,
         )
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             path = Path(f.name)
 
         try:
@@ -668,9 +651,7 @@ class TestCSVExport:
             confidence_scores=confidence_scores,
         )
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             path = Path(f.name)
 
         try:
@@ -694,9 +675,7 @@ class TestReportSaving:
         """Test saving report as markdown."""
         reporter = QualityReporter(bookmarks=sample_bookmarks)
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".md", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
             path = Path(f.name)
 
         try:
@@ -711,9 +690,7 @@ class TestReportSaving:
         """Test saving report as JSON."""
         reporter = QualityReporter(bookmarks=sample_bookmarks)
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             path = Path(f.name)
 
         try:
@@ -730,9 +707,7 @@ class TestReportSaving:
         """Test saving report with explicit style override."""
         reporter = QualityReporter(bookmarks=sample_bookmarks)
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             path = Path(f.name)
 
         try:
@@ -871,7 +846,7 @@ class TestEdgeCases:
 
         items = reporter.get_items_for_review()
         # Should handle special characters
-        assert all(b.url is not None for b in items if hasattr(b, 'url'))
+        assert all(b.url is not None for b in items if hasattr(b, "url"))
 
 
 # Integration Tests
@@ -916,9 +891,7 @@ class TestIntegration:
         assert metrics_data["overall"]["total_processed"] == 5
 
         # Export review items
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             path = Path(f.name)
 
         try:

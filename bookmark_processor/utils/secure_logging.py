@@ -43,7 +43,7 @@ class SecureLogger:
         # API Keys and tokens
         (
             re.compile(
-                r'(?i)(api[_-]?key|token|secret|password|auth)'
+                r"(?i)(api[_-]?key|token|secret|password|auth)"
                 r'["\s]*[:=]["\s]*([a-zA-Z0-9+/=_-]{10,})',
                 re.IGNORECASE,
             ),

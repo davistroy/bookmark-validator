@@ -25,7 +25,6 @@ from bookmark_processor.core.content_analyzer import ContentData
 from bookmark_processor.core.data_models import Bookmark, ProcessingStatus
 from bookmark_processor.utils.cost_tracker import CostTracker
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -136,7 +135,9 @@ def mock_cloud_processor():
     """Create a mock cloud AI processor."""
     mock = MagicMock()
     mock.is_available = True
-    mock.generate_description = MagicMock(return_value="Enhanced description from cloud AI")
+    mock.generate_description = MagicMock(
+        return_value="Enhanced description from cloud AI"
+    )
     return mock
 
 
@@ -312,7 +313,9 @@ class TestAIRouterInitialization:
         assert router.local is None
         assert router.cloud is mock_cloud_processor
 
-    def test_initialization_with_both_processors(self, mock_local_processor, mock_cloud_processor):
+    def test_initialization_with_both_processors(
+        self, mock_local_processor, mock_cloud_processor
+    ):
         """Test initialization with both processors."""
         router = AIRouter(
             local_processor=mock_local_processor,
@@ -384,7 +387,9 @@ class TestAIRouterRoutingLogic:
         assert decision.engine == "local"
         assert "Local-only mode" in decision.reason
 
-    def test_route_cloud_mode_with_available_cloud(self, sample_bookmark, mock_cloud_processor):
+    def test_route_cloud_mode_with_available_cloud(
+        self, sample_bookmark, mock_cloud_processor
+    ):
         """Test cloud mode routes to cloud when available."""
         config = HybridAIConfig(mode="cloud")
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -445,7 +450,9 @@ class TestAIRouterRoutingLogic:
         assert decision.engine == "local"
         assert "Cloud AI not available" in decision.reason
 
-    def test_route_hybrid_simple_content_threshold(self, sample_bookmark, mock_cloud_processor):
+    def test_route_hybrid_simple_content_threshold(
+        self, sample_bookmark, mock_cloud_processor
+    ):
         """Test hybrid mode routes simple content to local."""
         simple_content = ContentData(
             url="https://example.com",
@@ -462,7 +469,9 @@ class TestAIRouterRoutingLogic:
         assert "Simple content" in decision.reason
         assert "50 words" in decision.reason
 
-    def test_route_hybrid_documentation_to_cloud(self, sample_bookmark, technical_content, mock_cloud_processor):
+    def test_route_hybrid_documentation_to_cloud(
+        self, sample_bookmark, technical_content, mock_cloud_processor
+    ):
         """Test hybrid mode routes documentation to cloud."""
         config = HybridAIConfig(mode="hybrid", cloud_required_types=["documentation"])
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -472,7 +481,9 @@ class TestAIRouterRoutingLogic:
         assert decision.engine == "cloud"
         assert "documentation" in decision.reason.lower()
 
-    def test_route_hybrid_research_to_cloud(self, sample_bookmark, research_content, mock_cloud_processor):
+    def test_route_hybrid_research_to_cloud(
+        self, sample_bookmark, research_content, mock_cloud_processor
+    ):
         """Test hybrid mode routes research content to cloud."""
         config = HybridAIConfig(mode="hybrid", cloud_required_types=["research"])
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -482,7 +493,9 @@ class TestAIRouterRoutingLogic:
         assert decision.engine == "cloud"
         assert "research" in decision.reason.lower()
 
-    def test_route_hybrid_technical_to_cloud(self, sample_bookmark, mock_cloud_processor):
+    def test_route_hybrid_technical_to_cloud(
+        self, sample_bookmark, mock_cloud_processor
+    ):
         """Test hybrid mode routes technical content to cloud."""
         technical_content = ContentData(
             url="https://example.com/spec",
@@ -499,7 +512,9 @@ class TestAIRouterRoutingLogic:
         assert decision.engine == "cloud"
         assert "technical" in decision.reason.lower()
 
-    def test_route_hybrid_academic_to_cloud(self, sample_bookmark, academic_content, mock_cloud_processor):
+    def test_route_hybrid_academic_to_cloud(
+        self, sample_bookmark, academic_content, mock_cloud_processor
+    ):
         """Test hybrid mode routes academic content to cloud."""
         config = HybridAIConfig(mode="hybrid", cloud_required_types=["academic"])
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -509,7 +524,9 @@ class TestAIRouterRoutingLogic:
         assert decision.engine == "cloud"
         assert "academic" in decision.reason.lower()
 
-    def test_route_hybrid_low_confidence_escalation(self, sample_bookmark, sample_content, mock_cloud_processor):
+    def test_route_hybrid_low_confidence_escalation(
+        self, sample_bookmark, sample_content, mock_cloud_processor
+    ):
         """Test hybrid mode escalates low confidence to cloud."""
         config = HybridAIConfig(mode="hybrid", escalation_threshold=0.7)
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -521,7 +538,9 @@ class TestAIRouterRoutingLogic:
         assert "0.50" in decision.reason
         assert router.stats["escalated_to_cloud"] == 1
 
-    def test_route_hybrid_high_confidence_stays_local(self, sample_bookmark, sample_content, mock_cloud_processor):
+    def test_route_hybrid_high_confidence_stays_local(
+        self, sample_bookmark, sample_content, mock_cloud_processor
+    ):
         """Test hybrid mode keeps high confidence local."""
         config = HybridAIConfig(mode="hybrid", escalation_threshold=0.7)
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -531,7 +550,9 @@ class TestAIRouterRoutingLogic:
         assert decision.engine == "local"
         assert "Default routing" in decision.reason
 
-    def test_route_hybrid_threshold_boundary(self, sample_bookmark, sample_content, mock_cloud_processor):
+    def test_route_hybrid_threshold_boundary(
+        self, sample_bookmark, sample_content, mock_cloud_processor
+    ):
         """Test hybrid mode at exactly the escalation threshold."""
         config = HybridAIConfig(mode="hybrid", escalation_threshold=0.7)
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -544,7 +565,9 @@ class TestAIRouterRoutingLogic:
         decision = router.route(sample_bookmark, sample_content, local_confidence=0.69)
         assert decision.engine == "cloud"
 
-    def test_route_hybrid_default_to_local(self, sample_bookmark, sample_content, mock_cloud_processor):
+    def test_route_hybrid_default_to_local(
+        self, sample_bookmark, sample_content, mock_cloud_processor
+    ):
         """Test hybrid mode defaults to local for normal content."""
         # Content with word count above threshold but no cloud-required type
         normal_content = ContentData(
@@ -859,7 +882,9 @@ class TestAIRouterCloudAvailability:
 class TestAIRouterBookmarkProcessing:
     """Tests for AIRouter bookmark processing."""
 
-    def test_process_bookmark_local_only(self, sample_bookmark_with_status, mock_local_processor):
+    def test_process_bookmark_local_only(
+        self, sample_bookmark_with_status, mock_local_processor
+    ):
         """Test processing bookmark with local processor only."""
         config = HybridAIConfig(mode="local")
         router = AIRouter(local_processor=mock_local_processor, config=config)
@@ -870,7 +895,9 @@ class TestAIRouterBookmarkProcessing:
         assert router.stats["local_processed"] == 1
         mock_local_processor.process_bookmark.assert_called_once()
 
-    def test_process_bookmark_cloud_success(self, sample_bookmark_with_status, mock_cloud_processor):
+    def test_process_bookmark_cloud_success(
+        self, sample_bookmark_with_status, mock_cloud_processor
+    ):
         """Test processing bookmark with successful cloud processing."""
         config = HybridAIConfig(mode="cloud")
         router = AIRouter(cloud_processor=mock_cloud_processor, config=config)
@@ -881,7 +908,9 @@ class TestAIRouterBookmarkProcessing:
         assert result.processing_status.ai_processed is True
         assert router.stats["cloud_processed"] == 1
 
-    def test_process_bookmark_cloud_failure_fallback(self, sample_bookmark_with_status, mock_local_processor):
+    def test_process_bookmark_cloud_failure_fallback(
+        self, sample_bookmark_with_status, mock_local_processor
+    ):
         """Test processing falls back to local when cloud fails."""
         mock_cloud = MagicMock()
         mock_cloud.is_available = True
@@ -899,7 +928,9 @@ class TestAIRouterBookmarkProcessing:
         assert router.stats["local_processed"] == 1
         mock_local_processor.process_bookmark.assert_called_once()
 
-    def test_process_bookmark_cloud_returns_none_fallback(self, sample_bookmark_with_status, mock_local_processor):
+    def test_process_bookmark_cloud_returns_none_fallback(
+        self, sample_bookmark_with_status, mock_local_processor
+    ):
         """Test processing falls back to local when cloud returns None."""
         mock_cloud = MagicMock()
         mock_cloud.is_available = True
@@ -926,7 +957,9 @@ class TestAIRouterBookmarkProcessing:
         assert result is sample_bookmark  # Returns unchanged
         assert router.stats["local_processed"] == 0
 
-    def test_process_bookmark_records_cloud_cost(self, sample_bookmark_with_status, mock_cost_tracker):
+    def test_process_bookmark_records_cloud_cost(
+        self, sample_bookmark_with_status, mock_cost_tracker
+    ):
         """Test processing records cost for cloud processing."""
         mock_cloud = MagicMock()
         mock_cloud.is_available = True
@@ -958,7 +991,9 @@ class TestAIRouterCloudProcessing:
         result = router._process_with_cloud(sample_bookmark)
         assert result is None
 
-    def test_process_with_cloud_success(self, sample_bookmark_with_status, mock_cloud_processor):
+    def test_process_with_cloud_success(
+        self, sample_bookmark_with_status, mock_cloud_processor
+    ):
         """Test successful cloud processing."""
         router = AIRouter(cloud_processor=mock_cloud_processor)
         result = router._process_with_cloud(sample_bookmark_with_status)
@@ -1009,7 +1044,11 @@ class TestAIRouterBatchProcessing:
     def test_process_batch_multiple_bookmarks(self, mock_local_processor):
         """Test batch processing multiple bookmarks."""
         bookmarks = [
-            Bookmark(url=f"https://example.com/{i}", title=f"Article {i}", created=datetime.now())
+            Bookmark(
+                url=f"https://example.com/{i}",
+                title=f"Article {i}",
+                created=datetime.now(),
+            )
             for i in range(5)
         ]
 
@@ -1024,8 +1063,12 @@ class TestAIRouterBatchProcessing:
     def test_process_batch_with_content_data_map(self, mock_local_processor):
         """Test batch processing with content data map."""
         bookmarks = [
-            Bookmark(url="https://example.com/1", title="Article 1", created=datetime.now()),
-            Bookmark(url="https://example.com/2", title="Article 2", created=datetime.now()),
+            Bookmark(
+                url="https://example.com/1", title="Article 1", created=datetime.now()
+            ),
+            Bookmark(
+                url="https://example.com/2", title="Article 2", created=datetime.now()
+            ),
         ]
 
         content_data_map = {
@@ -1047,7 +1090,11 @@ class TestAIRouterBatchProcessing:
     def test_process_batch_with_progress_callback(self, mock_local_processor):
         """Test batch processing with progress callback."""
         bookmarks = [
-            Bookmark(url=f"https://example.com/{i}", title=f"Article {i}", created=datetime.now())
+            Bookmark(
+                url=f"https://example.com/{i}",
+                title=f"Article {i}",
+                created=datetime.now(),
+            )
             for i in range(3)
         ]
 
@@ -1066,11 +1113,19 @@ class TestAIRouterBatchProcessing:
         assert progress_calls[1] == (2, 3)
         assert progress_calls[2] == (3, 3)
 
-    def test_process_batch_mixed_routing(self, mock_local_processor, mock_cloud_processor):
+    def test_process_batch_mixed_routing(
+        self, mock_local_processor, mock_cloud_processor
+    ):
         """Test batch processing with mixed routing decisions."""
         bookmarks = [
-            Bookmark(url="https://example.com/simple", title="Simple", created=datetime.now()),
-            Bookmark(url="https://docs.example.com/api", title="API Docs", created=datetime.now()),
+            Bookmark(
+                url="https://example.com/simple", title="Simple", created=datetime.now()
+            ),
+            Bookmark(
+                url="https://docs.example.com/api",
+                title="API Docs",
+                created=datetime.now(),
+            ),
         ]
 
         content_data_map = {
@@ -1143,7 +1198,9 @@ class TestAIRouterStatistics:
         assert stats["local_percentage"] == 100.0
         assert stats["cloud_percentage"] == 0.0
 
-    def test_get_statistics_mixed_processing(self, mock_local_processor, mock_cloud_processor):
+    def test_get_statistics_mixed_processing(
+        self, mock_local_processor, mock_cloud_processor
+    ):
         """Test statistics with mixed processing."""
         router = AIRouter(
             local_processor=mock_local_processor,
@@ -1249,7 +1306,9 @@ class TestAIRouterEdgeCases:
     def test_process_batch_with_none_content_map(self, mock_local_processor):
         """Test batch processing handles None content map."""
         bookmarks = [
-            Bookmark(url="https://example.com/1", title="Article 1", created=datetime.now()),
+            Bookmark(
+                url="https://example.com/1", title="Article 1", created=datetime.now()
+            ),
         ]
 
         config = HybridAIConfig(mode="local")
@@ -1303,7 +1362,11 @@ class TestAIRouterConcurrency:
         mock_local_processor.process_bookmark.side_effect = track_call
 
         bookmarks = [
-            Bookmark(url=f"https://example.com/{i}", title=f"Article {i}", created=datetime.now())
+            Bookmark(
+                url=f"https://example.com/{i}",
+                title=f"Article {i}",
+                created=datetime.now(),
+            )
             for i in range(5)
         ]
 
@@ -1323,7 +1386,9 @@ class TestAIRouterConcurrency:
         router2 = AIRouter(local_processor=mock_local_processor, config=config)
 
         # Process with router1
-        bookmark = Bookmark(url="https://example.com", title="Test", created=datetime.now())
+        bookmark = Bookmark(
+            url="https://example.com", title="Test", created=datetime.now()
+        )
         router1.process_bookmark(bookmark)
 
         assert router1.stats["local_processed"] == 1
@@ -1344,7 +1409,11 @@ class TestAIRouterIntegrationScenarios:
         router = AIRouter(local_processor=mock_local_processor, config=config)
 
         bookmarks = [
-            Bookmark(url=f"https://example.com/{i}", title=f"Article {i}", created=datetime.now())
+            Bookmark(
+                url=f"https://example.com/{i}",
+                title=f"Article {i}",
+                created=datetime.now(),
+            )
             for i in range(5)
         ]
 
@@ -1361,7 +1430,9 @@ class TestAIRouterIntegrationScenarios:
         assert stats["cloud_processed"] == 0
         assert stats["local_percentage"] == 100.0
 
-    def test_full_workflow_hybrid_mode_with_escalation(self, mock_local_processor, mock_cloud_processor):
+    def test_full_workflow_hybrid_mode_with_escalation(
+        self, mock_local_processor, mock_cloud_processor
+    ):
         """Test complete workflow in hybrid mode with escalation."""
         config = HybridAIConfig(
             mode="hybrid",
@@ -1389,7 +1460,9 @@ class TestAIRouterIntegrationScenarios:
             content_categories=["documentation"],
         )
 
-        bookmark = Bookmark(url="https://example.com", title="Test", created=datetime.now())
+        bookmark = Bookmark(
+            url="https://example.com", title="Test", created=datetime.now()
+        )
 
         # Simple content -> local
         decision1 = router.route(bookmark, simple_content)
@@ -1404,7 +1477,9 @@ class TestAIRouterIntegrationScenarios:
         assert decision3.engine == "cloud"
         assert router.stats["escalated_to_cloud"] == 1
 
-    def test_budget_exhaustion_scenario(self, mock_local_processor, mock_cloud_processor):
+    def test_budget_exhaustion_scenario(
+        self, mock_local_processor, mock_cloud_processor
+    ):
         """Test budget exhaustion scenario."""
         mock_cost_tracker = MagicMock()
         mock_cost_tracker.session_cost = 0.0
@@ -1417,7 +1492,9 @@ class TestAIRouterIntegrationScenarios:
             cost_tracker=mock_cost_tracker,
         )
 
-        bookmark = Bookmark(url="https://example.com", title="Test", created=datetime.now())
+        bookmark = Bookmark(
+            url="https://example.com", title="Test", created=datetime.now()
+        )
 
         # First route - budget not exhausted
         decision1 = router.route(bookmark)
@@ -1443,6 +1520,7 @@ class TestAIRouterLogging:
     def test_initialization_logs_mode_and_budget(self, caplog):
         """Test initialization logs mode and budget."""
         import logging
+
         caplog.set_level(logging.INFO)
 
         config = HybridAIConfig(mode="hybrid", budget_cap=10.0)
@@ -1451,9 +1529,12 @@ class TestAIRouterLogging:
         # Check that logging occurred
         assert router.logger is not None
 
-    def test_cloud_failure_logs_warning(self, sample_bookmark, mock_local_processor, caplog):
+    def test_cloud_failure_logs_warning(
+        self, sample_bookmark, mock_local_processor, caplog
+    ):
         """Test cloud failure logs warning."""
         import logging
+
         caplog.set_level(logging.WARNING)
 
         mock_cloud = MagicMock()
@@ -1470,5 +1551,8 @@ class TestAIRouterLogging:
         router.process_bookmark(sample_bookmark)
 
         # Verify warning was logged
-        assert any("Cloud" in record.message or "falling back" in record.message
-                   for record in caplog.records if record.levelno >= logging.WARNING)
+        assert any(
+            "Cloud" in record.message or "falling back" in record.message
+            for record in caplog.records
+            if record.levelno >= logging.WARNING
+        )

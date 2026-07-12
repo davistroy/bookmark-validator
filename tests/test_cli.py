@@ -29,6 +29,7 @@ from bookmark_processor.core.data_models import Bookmark
 # Try to import Typer test utilities
 try:
     from typer.testing import CliRunner
+
     TYPER_AVAILABLE = True
 except ImportError:
     TYPER_AVAILABLE = False
@@ -46,7 +47,7 @@ def temp_csv_content():
     return (
         "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
         "1,Test Bookmark,,Test excerpt,https://example.com,Tech,python,2024-01-01T00:00:00Z,,,false\n"
-        "2,Another Bookmark,,Another excerpt,https://test.com,Research,\"ai, ml\",2024-01-02T00:00:00Z,,,false\n"
+        '2,Another Bookmark,,Another excerpt,https://test.com,Research,"ai, ml",2024-01-02T00:00:00Z,,,false\n'
     )
 
 
@@ -210,6 +211,7 @@ class TestParseSinceFunction:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 since_str = since_str.strip().lower()
                 if since_str.endswith("d"):
@@ -230,6 +232,7 @@ class TestParseSinceFunction:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 since_str = since_str.strip().lower()
                 if since_str.endswith("w"):
@@ -245,6 +248,7 @@ class TestParseSinceFunction:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 since_str = since_str.strip().lower()
                 if since_str.endswith("h"):
@@ -260,6 +264,7 @@ class TestParseSinceFunction:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 return datetime.fromisoformat(since_str.strip())
 
@@ -274,6 +279,7 @@ class TestParseSinceFunction:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 return datetime.fromisoformat(since_str.strip())
 
@@ -287,6 +293,7 @@ class TestParseSinceFunction:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 raise ValueError(f"Cannot parse date/duration: {since_str}")
 
@@ -299,6 +306,7 @@ class TestParseSinceFunction:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 since_str = since_str.strip().lower()
                 if since_str.endswith("d"):
@@ -318,6 +326,7 @@ class TestDisplayBookmarkPreview:
         try:
             from bookmark_processor.cli import _display_bookmark_preview
         except ImportError:
+
             def _display_bookmark_preview(bookmarks, console):
                 for b in bookmarks:
                     print(f"  - {b.title or b.url}")
@@ -330,6 +339,7 @@ class TestDisplayBookmarkPreview:
         """Test preview display with mocked console."""
         try:
             from bookmark_processor.cli import _display_bookmark_preview, RICH_AVAILABLE
+
             if not RICH_AVAILABLE:
                 pytest.skip("Rich not available")
         except ImportError:
@@ -344,6 +354,7 @@ class TestDisplayBookmarkPreview:
         try:
             from bookmark_processor.cli import _display_bookmark_preview
         except ImportError:
+
             def _display_bookmark_preview(bookmarks, console):
                 pass
 
@@ -536,7 +547,10 @@ class TestDisplayProcessingModeInfo:
     def test_display_mode_info_with_preview(self, mock_console):
         """Test displaying processing mode info with preview mode."""
         try:
-            from bookmark_processor.cli import _display_processing_mode_info, RICH_AVAILABLE
+            from bookmark_processor.cli import (
+                _display_processing_mode_info,
+                RICH_AVAILABLE,
+            )
             from bookmark_processor.core.processing_modes import ProcessingMode
             from bookmark_processor.core.filters import FilterChain
 
@@ -556,7 +570,10 @@ class TestDisplayProcessingModeInfo:
     def test_display_mode_info_with_dry_run(self, mock_console):
         """Test displaying processing mode info with dry-run mode."""
         try:
-            from bookmark_processor.cli import _display_processing_mode_info, RICH_AVAILABLE
+            from bookmark_processor.cli import (
+                _display_processing_mode_info,
+                RICH_AVAILABLE,
+            )
             from bookmark_processor.core.processing_modes import ProcessingMode
             from bookmark_processor.core.filters import FilterChain
 
@@ -575,7 +592,10 @@ class TestDisplayProcessingModeInfo:
     def test_display_mode_info_no_special_config(self, mock_console):
         """Test displaying mode info with no special configuration."""
         try:
-            from bookmark_processor.cli import _display_processing_mode_info, RICH_AVAILABLE
+            from bookmark_processor.cli import (
+                _display_processing_mode_info,
+                RICH_AVAILABLE,
+            )
             from bookmark_processor.core.processing_modes import ProcessingMode
             from bookmark_processor.core.filters import FilterChain
 
@@ -685,16 +705,17 @@ class TestLoadPlugins:
                 mock_loader.discover_plugins.return_value = ["test-plugin"]
                 mock_loader_class.return_value = mock_loader
 
-                with patch("bookmark_processor.plugins.PluginRegistry") as mock_registry_class:
+                with patch(
+                    "bookmark_processor.plugins.PluginRegistry"
+                ) as mock_registry_class:
                     mock_registry = MagicMock()
-                    mock_registry.load_plugins.return_value = {"test-plugin": MagicMock()}
+                    mock_registry.load_plugins.return_value = {
+                        "test-plugin": MagicMock()
+                    }
                     mock_registry_class.return_value = mock_registry
 
                     result = _load_plugins(
-                        "test-plugin",
-                        None,
-                        mock_console,
-                        verbose=True
+                        "test-plugin", None, mock_console, verbose=True
                     )
 
                     assert result is not None
@@ -879,6 +900,7 @@ class TestMonitorCommand:
         try:
             from bookmark_processor.cli import _parse_since
         except ImportError:
+
             def _parse_since(since_str):
                 since_str = since_str.strip().lower()
                 if since_str.endswith("d"):
@@ -930,9 +952,9 @@ class TestRollbackCommand:
                     "title": "Original Title 1",
                     "note": "Original note",
                     "tags": ["tag1"],
-                    "folder": "Tech"
+                    "folder": "Tech",
                 },
-            ]
+            ],
         }
 
         backup_file = tmp_path / "backup.json"
@@ -1077,9 +1099,18 @@ class TestEnhanceRaindropAsync:
             params = list(sig.parameters.keys())
 
             expected = [
-                "server_url", "token", "collection", "since_last_run",
-                "since", "dry_run", "preview_count", "verbose",
-                "ai_engine", "config", "console", "output_file"
+                "server_url",
+                "token",
+                "collection",
+                "since_last_run",
+                "since",
+                "dry_run",
+                "preview_count",
+                "verbose",
+                "ai_engine",
+                "config",
+                "console",
+                "output_file",
             ]
 
             for param in expected:
@@ -1130,6 +1161,7 @@ class TestRichAvailability:
 
             if RICH_AVAILABLE:
                 from bookmark_processor.cli import app
+
                 assert app is not None
         except ImportError:
             pytest.skip("CLI module not available")
@@ -1189,11 +1221,13 @@ class TestCLIFilterChainIntegration:
         """Test creating FilterChain with multiple filters."""
         from bookmark_processor.core.filters import FilterChain
 
-        chain = FilterChain.from_cli_args({
-            "filter_folder": "Tech/*",
-            "filter_tag": "python",
-            "filter_domain": "github.com",
-        })
+        chain = FilterChain.from_cli_args(
+            {
+                "filter_folder": "Tech/*",
+                "filter_tag": "python",
+                "filter_domain": "github.com",
+            }
+        )
 
         assert len(chain) == 3
 
@@ -1287,8 +1321,10 @@ class TestDataSourceHandling:
         """Test CSV data source value."""
         try:
             from bookmark_processor.cli import RICH_AVAILABLE
+
             if RICH_AVAILABLE:
                 from bookmark_processor.cli import DataSource
+
                 assert DataSource.csv.value == "csv"
         except ImportError:
             pytest.skip("Typer not available")
@@ -1297,8 +1333,10 @@ class TestDataSourceHandling:
         """Test Raindrop data source value."""
         try:
             from bookmark_processor.cli import RICH_AVAILABLE
+
             if RICH_AVAILABLE:
                 from bookmark_processor.cli import DataSource
+
                 assert DataSource.raindrop.value == "raindrop"
         except ImportError:
             pytest.skip("Typer not available")
@@ -1385,14 +1423,17 @@ class TestTyperCommands:
     def test_app_exists(self):
         """Test that the Typer app exists."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if RICH_AVAILABLE:
             from bookmark_processor.cli import app
+
             assert app is not None
 
     @pytest.mark.skipif(not TYPER_AVAILABLE, reason="Typer not available")
     def test_process_command_missing_output(self, cli_runner):
         """Test process command fails without required output."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1405,6 +1446,7 @@ class TestTyperCommands:
     def test_process_command_with_help(self, cli_runner):
         """Test process command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1412,12 +1454,16 @@ class TestTyperCommands:
 
         result = cli_runner.invoke(app, ["process", "--help"])
         assert result.exit_code == 0
-        assert "Process bookmark files" in result.stdout or "process" in result.stdout.lower()
+        assert (
+            "Process bookmark files" in result.stdout
+            or "process" in result.stdout.lower()
+        )
 
     @pytest.mark.skipif(not TYPER_AVAILABLE, reason="Typer not available")
     def test_create_config_command_help(self, cli_runner):
         """Test create-config command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1430,6 +1476,7 @@ class TestTyperCommands:
     def test_enhance_command_help(self, cli_runner):
         """Test enhance command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1442,6 +1489,7 @@ class TestTyperCommands:
     def test_export_command_help(self, cli_runner):
         """Test export command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1454,6 +1502,7 @@ class TestTyperCommands:
     def test_monitor_command_help(self, cli_runner):
         """Test monitor command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1466,6 +1515,7 @@ class TestTyperCommands:
     def test_config_command_help(self, cli_runner):
         """Test config command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1478,6 +1528,7 @@ class TestTyperCommands:
     def test_plugins_command_help(self, cli_runner):
         """Test plugins command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1490,6 +1541,7 @@ class TestTyperCommands:
     def test_rollback_command_help(self, cli_runner):
         """Test rollback command help."""
         from bookmark_processor.cli import RICH_AVAILABLE
+
         if not RICH_AVAILABLE:
             pytest.skip("Rich not available")
 
@@ -1613,8 +1665,12 @@ class TestCLIInterfaceArgparseFallback:
         cli._setup_argparse()
 
         # Check that input option exists
-        action_names = [a.option_strings for a in cli.parser._actions if hasattr(a, 'option_strings')]
-        has_input = any('--input' in opts or '-i' in opts for opts in action_names)
+        action_names = [
+            a.option_strings
+            for a in cli.parser._actions
+            if hasattr(a, "option_strings")
+        ]
+        has_input = any("--input" in opts or "-i" in opts for opts in action_names)
         assert has_input
 
     def test_argparse_has_output_option(self):
@@ -1625,8 +1681,12 @@ class TestCLIInterfaceArgparseFallback:
         cli.use_typer = False
         cli._setup_argparse()
 
-        action_names = [a.option_strings for a in cli.parser._actions if hasattr(a, 'option_strings')]
-        has_output = any('--output' in opts or '-o' in opts for opts in action_names)
+        action_names = [
+            a.option_strings
+            for a in cli.parser._actions
+            if hasattr(a, "option_strings")
+        ]
+        has_output = any("--output" in opts or "-o" in opts for opts in action_names)
         assert has_output
 
     def test_argparse_has_ai_engine_option(self):
@@ -1637,8 +1697,12 @@ class TestCLIInterfaceArgparseFallback:
         cli.use_typer = False
         cli._setup_argparse()
 
-        action_names = [a.option_strings for a in cli.parser._actions if hasattr(a, 'option_strings')]
-        has_ai_engine = any('--ai-engine' in opts for opts in action_names)
+        action_names = [
+            a.option_strings
+            for a in cli.parser._actions
+            if hasattr(a, "option_strings")
+        ]
+        has_ai_engine = any("--ai-engine" in opts for opts in action_names)
         assert has_ai_engine
 
     def test_argparse_has_batch_size_option(self):
@@ -1649,8 +1713,14 @@ class TestCLIInterfaceArgparseFallback:
         cli.use_typer = False
         cli._setup_argparse()
 
-        action_names = [a.option_strings for a in cli.parser._actions if hasattr(a, 'option_strings')]
-        has_batch_size = any('--batch-size' in opts or '-b' in opts for opts in action_names)
+        action_names = [
+            a.option_strings
+            for a in cli.parser._actions
+            if hasattr(a, "option_strings")
+        ]
+        has_batch_size = any(
+            "--batch-size" in opts or "-b" in opts for opts in action_names
+        )
         assert has_batch_size
 
 
@@ -1851,6 +1921,7 @@ class TestEnhanceCommandImplementation:
 
         if since:
             from bookmark_processor.cli import _parse_since
+
             filters["since"] = _parse_since(since)
 
         assert "since" in filters
@@ -1892,7 +1963,7 @@ class TestRollbackCommandImplementation:
         backup_data = {
             "timestamp": "2024-01-15T10:00:00",
             "bookmark_count": 5,
-            "bookmarks": []
+            "bookmarks": [],
         }
 
         with open(backup_file, "w") as f:
@@ -2044,7 +2115,9 @@ class TestDisplayFunctionsComplete:
 
         mock_console.print.assert_called()
 
-    def test_display_dry_run_summary_with_input_file(self, mock_console, temp_input_file):
+    def test_display_dry_run_summary_with_input_file(
+        self, mock_console, temp_input_file
+    ):
         """Test dry run summary with valid input file."""
         from bookmark_processor.cli import _display_dry_run_summary, RICH_AVAILABLE
         from bookmark_processor.core.filters import FilterChain
@@ -2062,7 +2135,9 @@ class TestDisplayFunctionsComplete:
         mock_config = MagicMock()
 
         # May print error about loading, but should not crash
-        _display_dry_run_summary(validated_args, filter_chain, mock_config, mock_console)
+        _display_dry_run_summary(
+            validated_args, filter_chain, mock_config, mock_console
+        )
 
     def test_print_config_details_with_all_engines(self, mock_console, tmp_path):
         """Test printing config details for all AI engines."""
@@ -2269,21 +2344,31 @@ class TestArgparseFallbackMode:
         input_file.touch()
 
         args = [
-            "--input", str(input_file),
-            "--output", str(tmp_path / "output.csv"),
-            "--config", str(tmp_path / "config.ini"),
+            "--input",
+            str(input_file),
+            "--output",
+            str(tmp_path / "output.csv"),
+            "--config",
+            str(tmp_path / "config.ini"),
             "--resume",
             "--verbose",
-            "--batch-size", "50",
-            "--max-retries", "5",
-            "--ai-engine", "claude",
+            "--batch-size",
+            "50",
+            "--max-retries",
+            "5",
+            "--ai-engine",
+            "claude",
             "--no-duplicates",
-            "--duplicate-strategy", "newest",
+            "--duplicate-strategy",
+            "newest",
             "--no-folders",
-            "--max-bookmarks-per-folder", "30",
+            "--max-bookmarks-per-folder",
+            "30",
             "--chrome-html",
-            "--html-output", str(tmp_path / "bookmarks.html"),
-            "--html-title", "My Bookmarks",
+            "--html-output",
+            str(tmp_path / "bookmarks.html"),
+            "--html-title",
+            "My Bookmarks",
         ]
 
         parsed = cli.parser.parse_args(args)
@@ -2312,7 +2397,9 @@ class TestArgparseFallbackMode:
 
         # Valid choices
         for engine in ["local", "claude", "openai"]:
-            parsed = cli.parser.parse_args(["--output", "out.csv", "--ai-engine", engine])
+            parsed = cli.parser.parse_args(
+                ["--output", "out.csv", "--ai-engine", engine]
+            )
             assert parsed.ai_engine == engine
 
         # Invalid choice should fail
@@ -2329,12 +2416,16 @@ class TestArgparseFallbackMode:
 
         # Valid choices
         for strategy in ["newest", "oldest", "most_complete", "highest_quality"]:
-            parsed = cli.parser.parse_args(["--output", "out.csv", "--duplicate-strategy", strategy])
+            parsed = cli.parser.parse_args(
+                ["--output", "out.csv", "--duplicate-strategy", strategy]
+            )
             assert parsed.duplicate_strategy == strategy
 
         # Invalid choice should fail
         with pytest.raises(SystemExit):
-            cli.parser.parse_args(["--output", "out.csv", "--duplicate-strategy", "invalid"])
+            cli.parser.parse_args(
+                ["--output", "out.csv", "--duplicate-strategy", "invalid"]
+            )
 
     def test_argparse_create_config_choices(self):
         """Test --create-config only accepts valid choices."""
@@ -2346,7 +2437,9 @@ class TestArgparseFallbackMode:
 
         # Valid choices
         for template in ["basic", "claude", "openai", "performance", "large-dataset"]:
-            parsed = cli.parser.parse_args(["--output", "out.csv", "--create-config", template])
+            parsed = cli.parser.parse_args(
+                ["--output", "out.csv", "--create-config", template]
+            )
             assert parsed.create_config == template
 
     def test_argparse_default_values(self):
@@ -2376,7 +2469,9 @@ class TestArgparseFallbackMode:
 
         # Mock _handle_create_config to avoid actual file operations
         with patch.object(cli, "_handle_create_config", return_value=0) as mock_handle:
-            result = cli._run_argparse(["--output", "out.csv", "--create-config", "basic"])
+            result = cli._run_argparse(
+                ["--output", "out.csv", "--create-config", "basic"]
+            )
 
             mock_handle.assert_called_once_with("basic")
             assert result == 0
@@ -2390,10 +2485,14 @@ class TestArgparseFallbackMode:
         cli._setup_argparse()
 
         # Non-existent input file should cause validation error
-        result = cli._run_argparse([
-            "--input", str(tmp_path / "nonexistent.csv"),
-            "--output", str(tmp_path / "output.csv")
-        ])
+        result = cli._run_argparse(
+            [
+                "--input",
+                str(tmp_path / "nonexistent.csv"),
+                "--output",
+                str(tmp_path / "output.csv"),
+            ]
+        )
 
         assert result == 1
 
@@ -2570,9 +2669,7 @@ class TestDisplayBookmarkPreviewEdgeCases:
         """Test preview with bookmark that has no title."""
         from bookmark_processor.cli import _display_bookmark_preview
 
-        bookmarks = [
-            Bookmark(url="https://example.com", title=None)
-        ]
+        bookmarks = [Bookmark(url="https://example.com", title=None)]
 
         # Should not raise
         _display_bookmark_preview(bookmarks, mock_console)
@@ -2581,9 +2678,7 @@ class TestDisplayBookmarkPreviewEdgeCases:
         """Test preview with bookmark that has empty tags."""
         from bookmark_processor.cli import _display_bookmark_preview
 
-        bookmarks = [
-            Bookmark(url="https://example.com", title="Test", tags=[])
-        ]
+        bookmarks = [Bookmark(url="https://example.com", title="Test", tags=[])]
 
         # Should not raise
         _display_bookmark_preview(bookmarks, mock_console)
@@ -2596,7 +2691,18 @@ class TestDisplayBookmarkPreviewEdgeCases:
             Bookmark(
                 url="https://example.com",
                 title="Test",
-                tags=["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"]
+                tags=[
+                    "tag1",
+                    "tag2",
+                    "tag3",
+                    "tag4",
+                    "tag5",
+                    "tag6",
+                    "tag7",
+                    "tag8",
+                    "tag9",
+                    "tag10",
+                ],
             )
         ]
 
@@ -2644,10 +2750,9 @@ class TestArgparseFullExecution:
                 mock_config_class.return_value = mock_config
 
                 with patch("bookmark_processor.cli.setup_logging"):
-                    result = cli._run_argparse([
-                        "--input", str(input_file),
-                        "--output", str(output_file)
-                    ])
+                    result = cli._run_argparse(
+                        ["--input", str(input_file), "--output", str(output_file)]
+                    )
 
                     assert result == 0
                     mock_processor.run_cli.assert_called_once()
@@ -2674,10 +2779,9 @@ class TestArgparseFullExecution:
         with patch("bookmark_processor.cli.Configuration") as mock_config_class:
             mock_config_class.side_effect = Exception("Config error")
 
-            result = cli._run_argparse([
-                "--input", str(input_file),
-                "--output", str(output_file)
-            ])
+            result = cli._run_argparse(
+                ["--input", str(input_file), "--output", str(output_file)]
+            )
 
             assert result == 1
 
@@ -2709,11 +2813,15 @@ class TestArgparseFullExecution:
                 mock_config_class.return_value = mock_config
 
                 with patch("bookmark_processor.cli.setup_logging"):
-                    result = cli._run_argparse([
-                        "--input", str(input_file),
-                        "--output", str(output_file),
-                        "--resume"
-                    ])
+                    result = cli._run_argparse(
+                        [
+                            "--input",
+                            str(input_file),
+                            "--output",
+                            str(output_file),
+                            "--resume",
+                        ]
+                    )
 
                     # Verify resume flag was passed
                     call_args = mock_processor.run_cli.call_args[0][0]
@@ -2747,11 +2855,15 @@ class TestArgparseFullExecution:
                 mock_config_class.return_value = mock_config
 
                 with patch("bookmark_processor.cli.setup_logging"):
-                    result = cli._run_argparse([
-                        "--input", str(input_file),
-                        "--output", str(output_file),
-                        "--verbose"
-                    ])
+                    result = cli._run_argparse(
+                        [
+                            "--input",
+                            str(input_file),
+                            "--output",
+                            str(output_file),
+                            "--verbose",
+                        ]
+                    )
 
                     call_args = mock_processor.run_cli.call_args[0][0]
                     assert call_args["verbose"] == True
@@ -2785,21 +2897,32 @@ class TestArgparseFullExecution:
                 mock_config_class.return_value = mock_config
 
                 with patch("bookmark_processor.cli.setup_logging"):
-                    result = cli._run_argparse([
-                        "--input", str(input_file),
-                        "--output", str(output_file),
-                        "--verbose",
-                        "--batch-size", "50",
-                        "--max-retries", "5",
-                        "--ai-engine", "local",
-                        "--no-duplicates",
-                        "--duplicate-strategy", "newest",
-                        "--no-folders",
-                        "--max-bookmarks-per-folder", "30",
-                        "--chrome-html",
-                        "--html-output", str(html_output),
-                        "--html-title", "Test Bookmarks"
-                    ])
+                    result = cli._run_argparse(
+                        [
+                            "--input",
+                            str(input_file),
+                            "--output",
+                            str(output_file),
+                            "--verbose",
+                            "--batch-size",
+                            "50",
+                            "--max-retries",
+                            "5",
+                            "--ai-engine",
+                            "local",
+                            "--no-duplicates",
+                            "--duplicate-strategy",
+                            "newest",
+                            "--no-folders",
+                            "--max-bookmarks-per-folder",
+                            "30",
+                            "--chrome-html",
+                            "--html-output",
+                            str(html_output),
+                            "--html-title",
+                            "Test Bookmarks",
+                        ]
+                    )
 
                     call_args = mock_processor.run_cli.call_args[0][0]
                     assert call_args["batch_size"] == 50
@@ -2869,11 +2992,16 @@ class TestValidationErrorHandling:
 
         cli = CLIInterface()
 
-        result = cli._run_argparse([
-            "--input", str(input_file),
-            "--output", str(output_file),
-            "--batch-size", "0"  # Invalid
-        ])
+        result = cli._run_argparse(
+            [
+                "--input",
+                str(input_file),
+                "--output",
+                str(output_file),
+                "--batch-size",
+                "0",  # Invalid
+            ]
+        )
 
         assert result == 1
 
@@ -2893,11 +3021,16 @@ class TestValidationErrorHandling:
 
         cli = CLIInterface()
 
-        result = cli._run_argparse([
-            "--input", str(input_file),
-            "--output", str(output_file),
-            "--batch-size", "2000"  # Too large
-        ])
+        result = cli._run_argparse(
+            [
+                "--input",
+                str(input_file),
+                "--output",
+                str(output_file),
+                "--batch-size",
+                "2000",  # Too large
+            ]
+        )
 
         assert result == 1
 
@@ -2917,11 +3050,16 @@ class TestValidationErrorHandling:
 
         cli = CLIInterface()
 
-        result = cli._run_argparse([
-            "--input", str(input_file),
-            "--output", str(output_file),
-            "--max-retries", "-1"  # Negative
-        ])
+        result = cli._run_argparse(
+            [
+                "--input",
+                str(input_file),
+                "--output",
+                str(output_file),
+                "--max-retries",
+                "-1",  # Negative
+            ]
+        )
 
         assert result == 1
 
@@ -2941,12 +3079,16 @@ class TestValidationErrorHandling:
 
         cli = CLIInterface()
 
-        result = cli._run_argparse([
-            "--input", str(input_file),
-            "--output", str(output_file),
-            "--resume",
-            "--clear-checkpoints"  # Conflicts with --resume
-        ])
+        result = cli._run_argparse(
+            [
+                "--input",
+                str(input_file),
+                "--output",
+                str(output_file),
+                "--resume",
+                "--clear-checkpoints",  # Conflicts with --resume
+            ]
+        )
 
         assert result == 1
 
@@ -2966,10 +3108,9 @@ class TestValidationErrorHandling:
 
         cli = CLIInterface()
 
-        result = cli._run_argparse([
-            "--input", str(input_file),
-            "--output", str(output_file)
-        ])
+        result = cli._run_argparse(
+            ["--input", str(input_file), "--output", str(output_file)]
+        )
 
         assert result == 1
 

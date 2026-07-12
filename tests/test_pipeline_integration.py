@@ -124,25 +124,25 @@ class TestPipelineIntegration:
                 url="https://docs.python.org/tutorial",
                 is_valid=True,
                 status_code=200,
-                final_url="https://docs.python.org/tutorial"
+                final_url="https://docs.python.org/tutorial",
             ),
             ValidationResult(
                 url="https://arxiv.org/abs/12345",
                 is_valid=True,
                 status_code=200,
-                final_url="https://arxiv.org/abs/12345"
+                final_url="https://arxiv.org/abs/12345",
             ),
             ValidationResult(
                 url="https://developer.mozilla.org/js",
                 is_valid=True,
                 status_code=200,
-                final_url="https://developer.mozilla.org/js"
+                final_url="https://developer.mozilla.org/js",
             ),
             ValidationResult(
                 url="http://example.com/broken",
                 is_valid=False,
                 status_code=404,
-                error_message="Not found"
+                error_message="Not found",
             ),
         ]
 
@@ -171,7 +171,10 @@ class TestPipelineIntegration:
     @pytest.mark.asyncio
     async def test_content_analysis_stage(self, temp_csv_file):
         """Test content analysis stage."""
-        from bookmark_processor.core.content_analyzer import ContentAnalyzer, ContentData
+        from bookmark_processor.core.content_analyzer import (
+            ContentAnalyzer,
+            ContentData,
+        )
 
         analyzer = ContentAnalyzer()
 
@@ -185,9 +188,7 @@ class TestPipelineIntegration:
             mock_content_data.content_categories = ["documentation"]
             mock_analyze.return_value = mock_content_data
 
-            content_data = analyzer.analyze_content(
-                "https://docs.python.org/tutorial"
-            )
+            content_data = analyzer.analyze_content("https://docs.python.org/tutorial")
 
             assert content_data.title == "Extracted Title"
             assert content_data.content_type == "documentation"
@@ -240,7 +241,9 @@ class TestPipelineIntegration:
         # Mock tag generation
         tag_generator = CorpusAwareTagGenerator(max_tags_per_bookmark=4)
 
-        with patch.object(tag_generator, "generate_tags_from_content") as mock_generate_tags:
+        with patch.object(
+            tag_generator, "generate_tags_from_content"
+        ) as mock_generate_tags:
             mock_generate_tags.return_value = [
                 "python",
                 "tutorial",
@@ -314,7 +317,10 @@ class TestPipelineIntegration:
     @pytest.mark.asyncio
     async def test_checkpoint_and_resume(self, temp_csv_file, mock_config):
         """Test checkpoint and resume functionality."""
-        from bookmark_processor.core.checkpoint_manager import CheckpointManager, ProcessingState
+        from bookmark_processor.core.checkpoint_manager import (
+            CheckpointManager,
+            ProcessingState,
+        )
         import tempfile
 
         checkpoint_manager = CheckpointManager("test_checkpoint_dir")
@@ -328,7 +334,7 @@ class TestPipelineIntegration:
             input_file=temp_csv_file,
             output_file=output_file,
             total_bookmarks=4,
-            config={"batch_size": 100}
+            config={"batch_size": 100},
         )
 
         # Update the state with progress
@@ -357,26 +363,45 @@ class TestPipelineIntegration:
         Path(output_file).unlink(missing_ok=True)
 
     @pytest.mark.asyncio
-    async def test_complete_pipeline_workflow(
-        self, temp_csv_file, mock_config
-    ):
+    async def test_complete_pipeline_workflow(self, temp_csv_file, mock_config):
         """Test complete end-to-end pipeline workflow."""
         from bookmark_processor.core.data_models import Bookmark
         from datetime import datetime
 
         # Define mock URL validation results
         url_validation_results = {
-            "https://docs.python.org/tutorial": (True, {"status_code": 200, "final_url": "https://docs.python.org/tutorial"}),
-            "https://arxiv.org/abs/12345": (True, {"status_code": 200, "final_url": "https://arxiv.org/abs/12345"}),
-            "https://developer.mozilla.org/js": (True, {"status_code": 200, "final_url": "https://developer.mozilla.org/js"}),
-            "https://invalid-url-that-does-not-exist.example": (False, {"status_code": 404, "error": "Not found"}),
+            "https://docs.python.org/tutorial": (
+                True,
+                {"status_code": 200, "final_url": "https://docs.python.org/tutorial"},
+            ),
+            "https://arxiv.org/abs/12345": (
+                True,
+                {"status_code": 200, "final_url": "https://arxiv.org/abs/12345"},
+            ),
+            "https://developer.mozilla.org/js": (
+                True,
+                {"status_code": 200, "final_url": "https://developer.mozilla.org/js"},
+            ),
+            "https://invalid-url-that-does-not-exist.example": (
+                False,
+                {"status_code": 404, "error": "Not found"},
+            ),
         }
 
         # Define mock AI description results
         ai_results = {
-            "https://docs.python.org/tutorial": ("Enhanced Python tutorial for beginners", {"provider": "local", "success": True}),
-            "https://arxiv.org/abs/12345": ("Comprehensive AI research paper", {"provider": "local", "success": True}),
-            "https://developer.mozilla.org/js": ("Complete JavaScript development guide", {"provider": "local", "success": True}),
+            "https://docs.python.org/tutorial": (
+                "Enhanced Python tutorial for beginners",
+                {"provider": "local", "success": True},
+            ),
+            "https://arxiv.org/abs/12345": (
+                "Comprehensive AI research paper",
+                {"provider": "local", "success": True},
+            ),
+            "https://developer.mozilla.org/js": (
+                "Complete JavaScript development guide",
+                {"provider": "local", "success": True},
+            ),
         }
 
         # Create output file
@@ -401,7 +426,10 @@ class TestPipelineIntegration:
 
             if is_valid:
                 # AI description generation (simulated sync call)
-                ai_result = ai_results.get(bookmark.url, (bookmark.note, {"provider": "fallback", "success": True}))
+                ai_result = ai_results.get(
+                    bookmark.url,
+                    (bookmark.note, {"provider": "fallback", "success": True}),
+                )
                 description, ai_metadata = ai_result
 
                 # Create processed bookmark as Bookmark object
@@ -688,6 +716,7 @@ class TestCompletePipelineWorkflow:
         # Cleanup
         Path(pipeline_config.output_file).unlink(missing_ok=True)
         import shutil
+
         if Path(pipeline_config.checkpoint_dir).exists():
             shutil.rmtree(pipeline_config.checkpoint_dir, ignore_errors=True)
 
@@ -741,7 +770,9 @@ class TestCompletePipelineWorkflow:
                 status_code=404,
             ),
             ValidationResult(
-                url="https://docs.python.org/howto/index.html", is_valid=True, status_code=200
+                url="https://docs.python.org/howto/index.html",
+                is_valid=True,
+                status_code=200,
             ),
             ValidationResult(
                 url="https://deeplearning.ai/courses", is_valid=True, status_code=200
@@ -881,7 +912,9 @@ class TestCompletePipelineWorkflow:
             pipeline._stage_generate_tags()
 
             # Verify tag assignments
-            assert len(pipeline.tag_assignments) == 7  # Valid bookmarks only (8 - 1 invalid)
+            assert (
+                len(pipeline.tag_assignments) == 7
+            )  # Valid bookmarks only (8 - 1 invalid)
             for tags in pipeline.tag_assignments.values():
                 assert len(tags) == 3
                 assert all(tag in ["tag1", "tag2", "tag3"] for tag in tags)
@@ -1057,12 +1090,14 @@ class TestPipelinePerformanceAndScaling:
         def mock_batch_validate(urls, **kwargs):
             results = []
             for url in urls:
-                results.append(ValidationResult(
-                    url=url,
-                    is_valid=True,
-                    status_code=200,
-                    final_url=url,
-                ))
+                results.append(
+                    ValidationResult(
+                        url=url,
+                        is_valid=True,
+                        status_code=200,
+                        final_url=url,
+                    )
+                )
             return results
 
         # Mock all external dependencies for performance testing
@@ -1140,7 +1175,7 @@ class TestCloudAIPipelineIntegration:
                         "tags": ["test", "article"],
                         "category": "Article",
                         "confidence": 0.95,
-                    }
+                    },
                 }
             ],
             "usage": {"input_tokens": 150, "output_tokens": 40},

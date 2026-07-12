@@ -630,7 +630,7 @@ def clean_environment():
     """Clean environment before and after each test."""
     # Store original values
     original_env = {}
-    
+
     # Environment variables that should be cleaned between tests
     # but NOT the core test mode variables that should persist
     env_vars_to_clean = [
@@ -645,11 +645,11 @@ def clean_environment():
         "BOOKMARK_PROCESSOR_CHECKPOINT_DB",
         "BOOKMARK_PROCESSOR_PROGRESS_DB",
     ]
-    
+
     # Preserve essential test environment variables set by pytest_configure
     essential_test_vars = [
         "BOOKMARK_PROCESSOR_TEST_MODE",
-        "BOOKMARK_PROCESSOR_LOG_LEVEL", 
+        "BOOKMARK_PROCESSOR_LOG_LEVEL",
         "BOOKMARK_PROCESSOR_OFFLINE_MODE",
     ]
 

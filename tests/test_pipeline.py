@@ -317,7 +317,9 @@ class TestBookmarkProcessingPipeline:
     def test_execute_with_resume(self, pipeline, sample_bookmarks):
         """Test executing with resume from checkpoint."""
         # Skip this test as checkpoint resume is complex and tested elsewhere
-        pytest.skip("Checkpoint resume logic is complex and tested in integration tests")
+        pytest.skip(
+            "Checkpoint resume logic is complex and tested in integration tests"
+        )
 
     def test_execute_with_validation_failures(self, pipeline, sample_bookmarks):
         """Test executing with some validation failures."""

@@ -62,7 +62,9 @@ class PluginMetadata:
     description: str = ""
     author: str = ""
     requires: List[str] = field(default_factory=list)  # Required plugin dependencies
-    provides: List[str] = field(default_factory=list)  # Capabilities this plugin provides
+    provides: List[str] = field(
+        default_factory=list
+    )  # Capabilities this plugin provides
     hooks: List[PluginHook] = field(default_factory=list)  # Hooks this plugin uses
     config_schema: Optional[Dict[str, Any]] = None  # JSON Schema for config validation
 
@@ -248,9 +250,7 @@ class ValidatorPlugin(BookmarkPlugin):
         ]
 
     @abstractmethod
-    def validate(
-        self, url: str, content: Optional[str] = None
-    ) -> ValidationResult:
+    def validate(self, url: str, content: Optional[str] = None) -> ValidationResult:
         """
         Validate a URL.
 
@@ -307,9 +307,7 @@ class AIProcessorPlugin(BookmarkPlugin):
         ]
 
     @abstractmethod
-    def generate_description(
-        self, bookmark: "Bookmark", content: str
-    ) -> str:
+    def generate_description(self, bookmark: "Bookmark", content: str) -> str:
         """
         Generate a description for a bookmark.
 
@@ -370,9 +368,7 @@ class OutputPlugin(BookmarkPlugin):
         return [PluginHook.PRE_EXPORT, PluginHook.POST_EXPORT]
 
     @abstractmethod
-    def export(
-        self, bookmarks: List["Bookmark"], output_path: Path
-    ) -> None:
+    def export(self, bookmarks: List["Bookmark"], output_path: Path) -> None:
         """
         Export bookmarks to the output format.
 
@@ -474,9 +470,7 @@ class ContentEnhancerPlugin(BookmarkPlugin):
         return [PluginHook.POST_CONTENT_FETCH, PluginHook.CONTENT_FILTER]
 
     @abstractmethod
-    def enhance_content(
-        self, bookmark: "Bookmark", content: str
-    ) -> str:
+    def enhance_content(self, bookmark: "Bookmark", content: str) -> str:
         """
         Enhance or transform fetched content.
 

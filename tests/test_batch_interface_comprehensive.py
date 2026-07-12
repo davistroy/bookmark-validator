@@ -61,12 +61,14 @@ class MockURLValidatorBase:
         max_workers=10,
     ):
         """Mock batch validation."""
-        self.batch_validate_calls.append({
-            "urls": urls,
-            "progress_callback": progress_callback,
-            "batch_size": batch_size,
-            "max_workers": max_workers,
-        })
+        self.batch_validate_calls.append(
+            {
+                "urls": urls,
+                "progress_callback": progress_callback,
+                "batch_size": batch_size,
+                "max_workers": max_workers,
+            }
+        )
 
         results = []
         for i, url in enumerate(urls):
@@ -91,6 +93,7 @@ class MockURLValidator(MockURLValidatorBase, BatchProcessorMixin):
 
     This simulates a URLValidator instance with the batch interface mixed in.
     """
+
     pass
 
 
@@ -457,7 +460,9 @@ class TestCreateEnhancedBatchProcessor:
         assert call_kwargs["config"] == custom_config
 
     @patch("bookmark_processor.core.batch_validator.EnhancedBatchProcessor")
-    def test_create_batch_processor_with_progress_callback(self, mock_enhanced_processor):
+    def test_create_batch_processor_with_progress_callback(
+        self, mock_enhanced_processor
+    ):
         """Test creating batch processor with progress callback."""
         validator = MockURLValidator(max_concurrent=10)
         mock_enhanced_processor.return_value = MagicMock()
@@ -507,7 +512,9 @@ class TestCreateEnhancedBatchProcessor:
         assert config.budget_limit == 100.0
 
     @patch("bookmark_processor.core.batch_validator.EnhancedBatchProcessor")
-    def test_create_batch_processor_default_config_values(self, mock_enhanced_processor):
+    def test_create_batch_processor_default_config_values(
+        self, mock_enhanced_processor
+    ):
         """Test that default config has expected values."""
         validator = MockURLValidator(max_concurrent=10)
         mock_enhanced_processor.return_value = MagicMock()
@@ -605,7 +612,9 @@ class TestBatchProcessorMixinIntegration:
         validator = MockURLValidator(max_concurrent=10)
         validator.stats.average_response_time = 0.5  # Fast responses
 
-        with patch("bookmark_processor.core.batch_validator.EnhancedBatchProcessor") as mock:
+        with patch(
+            "bookmark_processor.core.batch_validator.EnhancedBatchProcessor"
+        ) as mock:
             mock.return_value = MagicMock()
             processor = validator.create_enhanced_batch_processor()
 
@@ -757,7 +766,9 @@ class TestLogging:
         validator = MockURLValidator(max_concurrent=5)
         urls = [f"https://example{i}.com" for i in range(5)]
 
-        with patch("bookmark_processor.core.url_validator.batch_interface.logging") as mock_logging:
+        with patch(
+            "bookmark_processor.core.url_validator.batch_interface.logging"
+        ) as mock_logging:
             result = validator.process_batch(urls, "logging_test")
 
             # Should log info about starting the batch
@@ -768,7 +779,9 @@ class TestLogging:
         validator = MockURLValidator(max_concurrent=5, success_rate=1.0)
         urls = [f"https://example{i}.com" for i in range(5)]
 
-        with patch("bookmark_processor.core.url_validator.batch_interface.logging") as mock_logging:
+        with patch(
+            "bookmark_processor.core.url_validator.batch_interface.logging"
+        ) as mock_logging:
             result = validator.process_batch(urls, "logging_test")
 
             # Should log completion statistics

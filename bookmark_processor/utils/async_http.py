@@ -48,14 +48,16 @@ class RateLimitConfig:
     per_domain_limit: float = 2.0
 
     # Domain-specific overrides
-    domain_limits: Dict[str, float] = field(default_factory=lambda: {
-        "github.com": 1.5,
-        "google.com": 2.0,
-        "youtube.com": 2.0,
-        "linkedin.com": 2.0,
-        "twitter.com": 1.5,
-        "facebook.com": 3.0,
-    })
+    domain_limits: Dict[str, float] = field(
+        default_factory=lambda: {
+            "github.com": 1.5,
+            "google.com": 2.0,
+            "youtube.com": 2.0,
+            "linkedin.com": 2.0,
+            "twitter.com": 1.5,
+            "facebook.com": 3.0,
+        }
+    )
 
 
 class AsyncRateLimiter:
@@ -230,7 +232,7 @@ class AsyncHTTPClient:
             attempt += 1
             if attempt <= self.max_retries and retry:
                 # Exponential backoff
-                delay = min(2 ** attempt, 30)
+                delay = min(2**attempt, 30)
                 await asyncio.sleep(delay)
 
         elapsed = asyncio.get_event_loop().time() - start_time
@@ -286,13 +288,19 @@ class AsyncHTTPClient:
             await asyncio.gather(*tasks, return_exceptions=True)
 
         # Return results in original order
-        return [results.get(i, HTTPResponse(
-            url=urls[i],
-            status_code=0,
-            headers={},
-            is_success=False,
-            error="Task failed",
-        )) for i in range(len(urls))]
+        return [
+            results.get(
+                i,
+                HTTPResponse(
+                    url=urls[i],
+                    status_code=0,
+                    headers={},
+                    is_success=False,
+                    error="Task failed",
+                ),
+            )
+            for i in range(len(urls))
+        ]
 
     async def head(
         self,

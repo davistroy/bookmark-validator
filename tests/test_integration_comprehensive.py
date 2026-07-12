@@ -208,7 +208,9 @@ class TestComprehensiveIntegration:
                     )
                     # If we get here, processing handled the malformed input gracefully
                     # Should have 0 or very few valid bookmarks
-                    assert results.total_bookmarks <= 2, "Malformed input should have minimal bookmarks"
+                    assert (
+                        results.total_bookmarks <= 2
+                    ), "Malformed input should have minimal bookmarks"
                 except Exception:
                     # Also acceptable - malformed input can raise exceptions
                     pass
@@ -279,6 +281,7 @@ class TestComprehensiveIntegration:
                 # Verify output file was created and has content
                 assert output_file.exists()
                 import pandas as pd
+
                 output_df = pd.read_csv(output_file)
                 assert len(output_df) > 0
 
@@ -365,7 +368,9 @@ class TestComprehensiveIntegration:
                 # Verify processing results
                 assert processing_results is not None
                 assert processing_results.total_bookmarks == 30
-                assert processing_results.valid_bookmarks >= 20  # 90% network success rate
+                assert (
+                    processing_results.valid_bookmarks >= 20
+                )  # 90% network success rate
                 assert processing_results.processing_time > 0
 
     @pytest.mark.slow

@@ -225,9 +225,7 @@ class InteractiveProcessor:
         """Set callback for progress updates."""
         self._on_progress = callback
 
-    def set_on_save(
-        self, callback: Callable[[List[ProcessedBookmark]], None]
-    ) -> None:
+    def set_on_save(self, callback: Callable[[List[ProcessedBookmark]], None]) -> None:
         """Set callback for save events."""
         self._on_save = callback
 
@@ -384,9 +382,7 @@ class InteractiveProcessor:
             folder_confidence=folder_confidence,
         )
 
-    def _get_or_compute_changes(
-        self, bookmark: Bookmark
-    ) -> Optional[ProposedChanges]:
+    def _get_or_compute_changes(self, bookmark: Bookmark) -> Optional[ProposedChanges]:
         """Get cached changes or compute new ones."""
         if bookmark.url in self.pending_changes:
             return self.pending_changes[bookmark.url]
@@ -625,8 +621,12 @@ class InteractiveProcessor:
 
         # URL and title
         title = bookmark.get_effective_title()
-        self.console.print(f"[cyan]URL:[/cyan] {bookmark.url[:80]}{'...' if len(bookmark.url) > 80 else ''}")
-        self.console.print(f"[cyan]Title:[/cyan] {title[:60]}{'...' if len(title) > 60 else ''}")
+        self.console.print(
+            f"[cyan]URL:[/cyan] {bookmark.url[:80]}{'...' if len(bookmark.url) > 80 else ''}"
+        )
+        self.console.print(
+            f"[cyan]Title:[/cyan] {title[:60]}{'...' if len(title) > 60 else ''}"
+        )
 
         # Confidence indicator
         confidence_style = self._get_confidence_style(changes.overall_confidence)
@@ -791,7 +791,9 @@ class InteractiveProcessor:
         """Display session summary."""
         if not RICH_AVAILABLE or not self.console:
             print("\nSession Summary:")
-            print(f"  Processed: {self.stats.processed_count}/{self.stats.total_bookmarks}")
+            print(
+                f"  Processed: {self.stats.processed_count}/{self.stats.total_bookmarks}"
+            )
             print(f"  Accepted all: {self.stats.accepted_all}")
             print(f"  Skipped: {self.stats.skipped}")
             return
@@ -876,7 +878,9 @@ class InteractiveProcessor:
 
     def _prompt_action_plain(self) -> InteractiveAction:
         """Prompt for action without Rich."""
-        print("\n[A]ccept all | [D]escription | [T]ags | [F]older | [S]kip | [Q]uit | [H]elp")
+        print(
+            "\n[A]ccept all | [D]escription | [T]ags | [F]older | [S]kip | [Q]uit | [H]elp"
+        )
 
         try:
             response = input("Action [a]: ").strip().lower() or "a"
@@ -922,7 +926,9 @@ class InteractiveProcessor:
         if not RICH_AVAILABLE or not self.console:
             print(f"Current tags: {', '.join(current)}")
             try:
-                new_tags = input("New tags (comma-separated, empty to cancel): ").strip()
+                new_tags = input(
+                    "New tags (comma-separated, empty to cancel): "
+                ).strip()
                 if not new_tags:
                     return None
                 return [t.strip() for t in new_tags.split(",") if t.strip()]

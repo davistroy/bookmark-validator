@@ -26,9 +26,9 @@ class HybridAIConfig:
     escalation_threshold: float = 0.7  # Confidence below this escalates to cloud
     budget_cap: float = 5.00  # USD maximum budget
     simple_threshold: int = 200  # Word count threshold for simple content
-    cloud_required_types: List[str] = field(default_factory=lambda: [
-        "documentation", "research", "technical", "academic"
-    ])
+    cloud_required_types: List[str] = field(
+        default_factory=lambda: ["documentation", "research", "technical", "academic"]
+    )
     # Track costs per session
     track_costs: bool = True
     # Default model preferences
@@ -56,9 +56,10 @@ class HybridAIConfig:
             escalation_threshold=data.get("escalation_threshold", 0.7),
             budget_cap=data.get("budget_cap", 5.00),
             simple_threshold=data.get("simple_threshold", 200),
-            cloud_required_types=data.get("cloud_required_types", [
-                "documentation", "research", "technical", "academic"
-            ]),
+            cloud_required_types=data.get(
+                "cloud_required_types",
+                ["documentation", "research", "technical", "academic"],
+            ),
             track_costs=data.get("track_costs", True),
             local_model=data.get("local_model", "facebook/bart-large-cnn"),
             cloud_provider=data.get("cloud_provider", "claude"),
@@ -240,7 +241,10 @@ class AIRouter:
                 )
 
         # Check 5: Low local confidence -> escalate to cloud
-        if local_confidence is not None and local_confidence < self.config.escalation_threshold:
+        if (
+            local_confidence is not None
+            and local_confidence < self.config.escalation_threshold
+        ):
             self.stats["escalated_to_cloud"] += 1
             return RoutingDecision(
                 engine="cloud",
@@ -328,9 +332,13 @@ class AIRouter:
                     self._record_cost(decision.estimated_cost)
                     return result
                 # Fallback to local if cloud fails
-                self.logger.warning(f"Cloud processing failed for {bookmark.url}, falling back to local")
+                self.logger.warning(
+                    f"Cloud processing failed for {bookmark.url}, falling back to local"
+                )
             except Exception as e:
-                self.logger.warning(f"Cloud error for {bookmark.url}: {e}, falling back to local")
+                self.logger.warning(
+                    f"Cloud error for {bookmark.url}: {e}, falling back to local"
+                )
 
         # Local processing
         if self.local:
@@ -428,7 +436,9 @@ class AIRouter:
             stats["cloud_percentage"] = 0.0
 
         if self.cost_tracker:
-            stats["remaining_budget"] = max(0, self.config.budget_cap - self.cost_tracker.session_cost)
+            stats["remaining_budget"] = max(
+                0, self.config.budget_cap - self.cost_tracker.session_cost
+            )
         else:
             stats["remaining_budget"] = self.config.budget_cap
 

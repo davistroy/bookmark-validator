@@ -59,7 +59,7 @@ class ExportError(Exception):
         message: str,
         format_name: Optional[str] = None,
         path: Optional[Path] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         self.message = message
         self.format_name = format_name
@@ -75,7 +75,9 @@ class ExportError(Exception):
         if self.path:
             parts.append(f"(path: {self.path})")
         if self.original_error:
-            parts.append(f"Caused by: {type(self.original_error).__name__}: {self.original_error}")
+            parts.append(
+                f"Caused by: {type(self.original_error).__name__}: {self.original_error}"
+            )
         return " ".join(parts)
 
 
@@ -97,11 +99,7 @@ class BookmarkExporter(ABC):
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
     @abstractmethod
-    def export(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
-    ) -> ExportResult:
+    def export(self, bookmarks: List[Bookmark], output_path: Path) -> ExportResult:
         """
         Export bookmarks to the specified path.
 
@@ -168,9 +166,7 @@ class BookmarkExporter(ABC):
         return warnings
 
     def prepare_output_path(
-        self,
-        output_path: Union[str, Path],
-        is_directory: bool = False
+        self, output_path: Union[str, Path], is_directory: bool = False
     ) -> Path:
         """
         Prepare and validate the output path.
@@ -198,22 +194,20 @@ class BookmarkExporter(ABC):
                 f"Permission denied creating path: {path}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
         except Exception as e:
             raise ExportError(
                 f"Failed to prepare output path: {path}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
 
         return path
 
     def bookmark_to_dict(
-        self,
-        bookmark: Bookmark,
-        include_metadata: bool = True
+        self, bookmark: Bookmark, include_metadata: bool = True
     ) -> Dict[str, Any]:
         """
         Convert a bookmark to a dictionary for serialization.
@@ -231,11 +225,7 @@ class BookmarkExporter(ABC):
             "description": bookmark.get_effective_description(),
             "folder": bookmark.folder,
             "tags": bookmark.get_final_tags(),
-            "created": (
-                bookmark.created.isoformat()
-                if bookmark.created
-                else None
-            ),
+            "created": (bookmark.created.isoformat() if bookmark.created else None),
         }
 
         if include_metadata:
@@ -278,8 +268,9 @@ class BookmarkExporter(ABC):
 
         # Replace problematic characters
         import re
+
         sanitized = re.sub(r'[<>:"/\\|?*]', "_", name)
-        sanitized = re.sub(r'\s+', " ", sanitized)
+        sanitized = re.sub(r"\s+", " ", sanitized)
         sanitized = sanitized.strip(". ")
 
         # Truncate if necessary

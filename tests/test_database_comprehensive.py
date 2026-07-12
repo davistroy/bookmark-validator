@@ -32,7 +32,6 @@ from bookmark_processor.core.database import (
     RunComparison,
 )
 
-
 # ============ Fixtures ============
 
 
@@ -131,10 +130,7 @@ def populated_db(db: BookmarkDatabase, sample_bookmarks: list) -> BookmarkDataba
             db.mark_processed(bookmark, ai_engine="test", run_id=run_id)
 
     db.complete_processing_run(
-        run_id=run_id,
-        total_processed=4,
-        total_succeeded=3,
-        total_failed=1
+        run_id=run_id, total_processed=4, total_succeeded=3, total_failed=1
     )
 
     return db
@@ -160,8 +156,16 @@ class TestProcessingRunDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (1, "2024-01-15T10:00:00", "2024-01-15T10:30:00", "test_source",
-             100, 95, 5, "abc123")
+            (
+                1,
+                "2024-01-15T10:00:00",
+                "2024-01-15T10:30:00",
+                "test_source",
+                100,
+                95,
+                5,
+                "abc123",
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -214,9 +218,7 @@ class TestProcessingRunDataclass:
                 total_failed INTEGER, config_hash TEXT
             )
         """)
-        conn.execute(
-            "INSERT INTO test VALUES (1, NULL, NULL, 'test', 0, 0, 0, NULL)"
-        )
+        conn.execute("INSERT INTO test VALUES (1, NULL, NULL, 'test', 0, 0, 0, NULL)")
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
 
@@ -285,9 +287,17 @@ class TestBookmarkRecordDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("https://example.com", "hash123", "2024-01-15T10:00:00",
-             "claude", "Test description", "tag1, tag2, tag3",
-             "Tech", "Test Title", "processed")
+            (
+                "https://example.com",
+                "hash123",
+                "2024-01-15T10:00:00",
+                "claude",
+                "Test description",
+                "tag1, tag2, tag3",
+                "Tech",
+                "Test Title",
+                "processed",
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -316,8 +326,17 @@ class TestBookmarkRecordDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("https://example.com", "hash123", "2024-01-15T10:00:00",
-             "claude", "Test", "", "Tech", "Test", "processed")
+            (
+                "https://example.com",
+                "hash123",
+                "2024-01-15T10:00:00",
+                "claude",
+                "Test",
+                "",
+                "Tech",
+                "Test",
+                "processed",
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -339,8 +358,17 @@ class TestBookmarkRecordDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("https://example.com", "hash123", "2024-01-15T10:00:00",
-             "claude", "Test", None, "Tech", "Test", "processed")
+            (
+                "https://example.com",
+                "hash123",
+                "2024-01-15T10:00:00",
+                "claude",
+                "Test",
+                None,
+                "Tech",
+                "Test",
+                "processed",
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -362,8 +390,16 @@ class TestBookmarkRecordDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            ("https://example.com", "hash123", "2024-01-15T10:00:00",
-             "claude", "Test", "tag1", "Tech", "Test")
+            (
+                "https://example.com",
+                "hash123",
+                "2024-01-15T10:00:00",
+                "claude",
+                "Test",
+                "tag1",
+                "Tech",
+                "Test",
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -385,8 +421,17 @@ class TestBookmarkRecordDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("https://example.com", "hash123", "2024-01-15T10:00:00",
-             "claude", "Test", "tag1", "Tech", "Test", None)
+            (
+                "https://example.com",
+                "hash123",
+                "2024-01-15T10:00:00",
+                "claude",
+                "Test",
+                "tag1",
+                "Tech",
+                "Test",
+                None,
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -408,8 +453,17 @@ class TestBookmarkRecordDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("https://example.com", "hash123", None,
-             "claude", "Test", "tag1", "Tech", "Test", "processed")
+            (
+                "https://example.com",
+                "hash123",
+                None,
+                "claude",
+                "Test",
+                "tag1",
+                "Tech",
+                "Test",
+                "processed",
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -433,8 +487,17 @@ class TestBookmarkRecordDataclass:
         """)
         conn.execute(
             "INSERT INTO test VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("https://example.com", "hash123", "2024-01-15T10:00:00",
-             "claude", "Test", "  tag1  ,  ,  tag2  ", "Tech", "Test", "processed")
+            (
+                "https://example.com",
+                "hash123",
+                "2024-01-15T10:00:00",
+                "claude",
+                "Test",
+                "  tag1  ,  ,  tag2  ",
+                "Tech",
+                "Test",
+                "processed",
+            ),
         )
         row = conn.execute("SELECT * FROM test").fetchone()
         conn.close()
@@ -518,14 +581,24 @@ class TestRunComparisonDataclass:
     def test_total_changes(self):
         """Test total_changes property."""
         run1 = ProcessingRun(
-            id=1, started_at=datetime.now(), completed_at=datetime.now(),
-            source="test", total_processed=0, total_succeeded=0,
-            total_failed=0, config_hash=None
+            id=1,
+            started_at=datetime.now(),
+            completed_at=datetime.now(),
+            source="test",
+            total_processed=0,
+            total_succeeded=0,
+            total_failed=0,
+            config_hash=None,
         )
         run2 = ProcessingRun(
-            id=2, started_at=datetime.now(), completed_at=datetime.now(),
-            source="test", total_processed=0, total_succeeded=0,
-            total_failed=0, config_hash=None
+            id=2,
+            started_at=datetime.now(),
+            completed_at=datetime.now(),
+            source="test",
+            total_processed=0,
+            total_succeeded=0,
+            total_failed=0,
+            config_hash=None,
         )
 
         comparison = RunComparison(
@@ -542,14 +615,24 @@ class TestRunComparisonDataclass:
     def test_total_changes_empty(self):
         """Test total_changes with empty lists."""
         run1 = ProcessingRun(
-            id=1, started_at=datetime.now(), completed_at=datetime.now(),
-            source="test", total_processed=0, total_succeeded=0,
-            total_failed=0, config_hash=None
+            id=1,
+            started_at=datetime.now(),
+            completed_at=datetime.now(),
+            source="test",
+            total_processed=0,
+            total_succeeded=0,
+            total_failed=0,
+            config_hash=None,
         )
         run2 = ProcessingRun(
-            id=2, started_at=datetime.now(), completed_at=datetime.now(),
-            source="test", total_processed=0, total_succeeded=0,
-            total_failed=0, config_hash=None
+            id=2,
+            started_at=datetime.now(),
+            completed_at=datetime.now(),
+            source="test",
+            total_processed=0,
+            total_succeeded=0,
+            total_failed=0,
+            config_hash=None,
         )
 
         comparison = RunComparison(
@@ -566,14 +649,24 @@ class TestRunComparisonDataclass:
     def test_to_dict_limits_results(self):
         """Test to_dict limits large result lists to 100."""
         run1 = ProcessingRun(
-            id=1, started_at=datetime.now(), completed_at=datetime.now(),
-            source="test", total_processed=0, total_succeeded=0,
-            total_failed=0, config_hash=None
+            id=1,
+            started_at=datetime.now(),
+            completed_at=datetime.now(),
+            source="test",
+            total_processed=0,
+            total_succeeded=0,
+            total_failed=0,
+            config_hash=None,
         )
         run2 = ProcessingRun(
-            id=2, started_at=datetime.now(), completed_at=datetime.now(),
-            source="test", total_processed=0, total_succeeded=0,
-            total_failed=0, config_hash=None
+            id=2,
+            started_at=datetime.now(),
+            completed_at=datetime.now(),
+            source="test",
+            total_processed=0,
+            total_succeeded=0,
+            total_failed=0,
+            config_hash=None,
         )
 
         # Create lists larger than 100
@@ -622,9 +715,7 @@ class TestBookmarkDatabaseInit:
     def test_init_creates_tables(self, db: BookmarkDatabase):
         """Test that initialization creates all required tables."""
         with db._get_connection() as conn:
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = {row[0] for row in cursor.fetchall()}
 
         assert "processed_bookmarks" in tables
@@ -634,9 +725,7 @@ class TestBookmarkDatabaseInit:
     def test_init_creates_indexes(self, db: BookmarkDatabase):
         """Test that initialization creates indexes."""
         with db._get_connection() as conn:
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='index'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='index'")
             indexes = {row[0] for row in cursor.fetchall()}
 
         assert "idx_processed_at" in indexes
@@ -646,9 +735,7 @@ class TestBookmarkDatabaseInit:
     def test_init_creates_views(self, db: BookmarkDatabase):
         """Test that initialization creates views."""
         with db._get_connection() as conn:
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='view'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='view'")
             views = {row[0] for row in cursor.fetchall()}
 
         assert "failed_bookmarks" in views
@@ -730,7 +817,9 @@ class TestComputeHash:
         assert hash1 is not None
         assert len(hash1) == 32  # MD5 hex digest length
 
-    def test_compute_hash_deterministic(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_compute_hash_deterministic(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test hash is deterministic."""
         hash1 = db._compute_hash(sample_bookmark)
         hash2 = db._compute_hash(sample_bookmark)
@@ -776,7 +865,9 @@ class TestComputeHash:
 class TestMarkProcessed:
     """Tests for mark_processed method."""
 
-    def test_mark_processed_basic(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_mark_processed_basic(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test basic mark_processed."""
         db.mark_processed(sample_bookmark, ai_engine="claude")
 
@@ -784,20 +875,24 @@ class TestMarkProcessed:
         assert len(records) == 1
         assert records[0].url == sample_bookmark.url
 
-    def test_mark_processed_with_custom_hash(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_mark_processed_with_custom_hash(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test mark_processed with pre-computed hash."""
         db.mark_processed(sample_bookmark, content_hash="custom_hash_123")
 
         with db._get_connection() as conn:
             cursor = conn.execute(
                 "SELECT content_hash FROM processed_bookmarks WHERE url = ?",
-                (sample_bookmark.url,)
+                (sample_bookmark.url,),
             )
             row = cursor.fetchone()
 
         assert row["content_hash"] == "custom_hash_123"
 
-    def test_mark_processed_with_run_id(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_mark_processed_with_run_id(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test mark_processed creates history when run_id provided."""
         run_id = db.start_processing_run("test")
         db.mark_processed(sample_bookmark, run_id=run_id)
@@ -807,7 +902,9 @@ class TestMarkProcessed:
         assert history[0]["run_id"] == run_id
         assert history[0]["change_type"] == "processed"
 
-    def test_mark_processed_updates_existing(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_mark_processed_updates_existing(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test mark_processed updates existing record."""
         db.mark_processed(sample_bookmark, ai_engine="openai")
         db.mark_processed(sample_bookmark, ai_engine="claude")
@@ -817,14 +914,16 @@ class TestMarkProcessed:
             count = cursor.fetchone()[0]
             cursor = conn.execute(
                 "SELECT ai_engine FROM processed_bookmarks WHERE url = ?",
-                (sample_bookmark.url,)
+                (sample_bookmark.url,),
             )
             engine = cursor.fetchone()["ai_engine"]
 
         assert count == 1
         assert engine == "claude"
 
-    def test_mark_processed_stores_tags(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_mark_processed_stores_tags(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test tags are stored correctly."""
         db.mark_processed(sample_bookmark)
 
@@ -832,7 +931,9 @@ class TestMarkProcessed:
         # optimized_tags should be used if available
         assert "testing" in records[0].tags or "automation" in records[0].tags
 
-    def test_mark_processed_status_custom(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_mark_processed_status_custom(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test mark_processed with custom status."""
         db.mark_processed(sample_bookmark, status="pending")
 
@@ -969,21 +1070,27 @@ class TestFullTextSearch:
         results = populated_db.search_content("xyznonexistent123")
         assert len(results) == 0
 
-    def test_search_content_fts_disabled_uses_fallback(self, db_no_fts: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_search_content_fts_disabled_uses_fallback(
+        self, db_no_fts: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test search falls back to LIKE when FTS disabled."""
         db_no_fts.mark_processed(sample_bookmark)
 
         results = db_no_fts.search_content("example")
         assert len(results) >= 1
 
-    def test_fallback_search(self, db_no_fts: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_fallback_search(
+        self, db_no_fts: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test _fallback_search directly."""
         db_no_fts.mark_processed(sample_bookmark)
 
         results = db_no_fts._fallback_search("Test", limit=10)
         assert len(results) >= 1
 
-    def test_fallback_search_with_limit(self, db_no_fts: BookmarkDatabase, sample_bookmarks: list):
+    def test_fallback_search_with_limit(
+        self, db_no_fts: BookmarkDatabase, sample_bookmarks: list
+    ):
         """Test fallback search respects limit."""
         for bookmark in sample_bookmarks:
             db_no_fts.mark_processed(bookmark)
@@ -998,7 +1105,9 @@ class TestFullTextSearch:
 class TestProcessingHistory:
     """Tests for processing history."""
 
-    def test_get_processing_history(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_get_processing_history(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test getting processing history."""
         run_id = db.start_processing_run("test")
         db.mark_processed(sample_bookmark, run_id=run_id)
@@ -1009,7 +1118,9 @@ class TestProcessingHistory:
         assert history[0]["url"] == sample_bookmark.url
         assert history[0]["source"] == "test"
 
-    def test_get_processing_history_multiple_runs(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_get_processing_history_multiple_runs(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test history accumulates across runs."""
         # First run
         run_id1 = db.start_processing_run("run1")
@@ -1056,7 +1167,9 @@ class TestRunComparison:
         assert sample_bookmarks[2].url in comparison.new_bookmarks
         assert sample_bookmarks[1].url in comparison.removed_bookmarks
 
-    def test_compare_runs_with_changes(self, db: BookmarkDatabase, sample_bookmarks: list):
+    def test_compare_runs_with_changes(
+        self, db: BookmarkDatabase, sample_bookmarks: list
+    ):
         """Test run comparison detects content changes."""
         # First run
         run_id1 = db.start_processing_run("run1")
@@ -1123,10 +1236,7 @@ class TestRunManagement:
         """Test completing a processing run."""
         run_id = db.start_processing_run("test")
         db.complete_processing_run(
-            run_id=run_id,
-            total_processed=100,
-            total_succeeded=95,
-            total_failed=5
+            run_id=run_id, total_processed=100, total_succeeded=95, total_failed=5
         )
 
         runs = db.get_run_history(limit=1)
@@ -1178,16 +1288,22 @@ class TestRunManagement:
 class TestStateTracking:
     """Tests for state tracking methods."""
 
-    def test_needs_processing_new_bookmark(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_needs_processing_new_bookmark(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test needs_processing returns True for new bookmark."""
         assert db.needs_processing(sample_bookmark) is True
 
-    def test_needs_processing_already_processed(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_needs_processing_already_processed(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test needs_processing returns False for processed bookmark."""
         db.mark_processed(sample_bookmark)
         assert db.needs_processing(sample_bookmark) is False
 
-    def test_needs_processing_content_changed(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_needs_processing_content_changed(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test needs_processing returns True for changed bookmark."""
         db.mark_processed(sample_bookmark)
 
@@ -1248,7 +1364,9 @@ class TestStatistics:
         assert stats["total_runs"] == 0
         assert stats.get("by_status", {}) == {}
 
-    def test_get_statistics_avg_tags(self, db: BookmarkDatabase, sample_bookmarks: list):
+    def test_get_statistics_avg_tags(
+        self, db: BookmarkDatabase, sample_bookmarks: list
+    ):
         """Test average tags calculation."""
         for bookmark in sample_bookmarks:
             db.mark_processed(bookmark)
@@ -1283,7 +1401,7 @@ class TestErrorHandling:
 
     def test_query_failed_handles_error(self, db: BookmarkDatabase):
         """Test query_failed handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.query_failed()
 
@@ -1291,7 +1409,7 @@ class TestErrorHandling:
 
     def test_query_by_date_handles_error(self, db: BookmarkDatabase):
         """Test query_by_date handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.query_by_date()
 
@@ -1299,7 +1417,7 @@ class TestErrorHandling:
 
     def test_query_by_status_handles_error(self, db: BookmarkDatabase):
         """Test query_by_status handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.query_by_status("processed")
 
@@ -1307,7 +1425,7 @@ class TestErrorHandling:
 
     def test_query_by_folder_handles_error(self, db: BookmarkDatabase):
         """Test query_by_folder handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.query_by_folder("Tech")
 
@@ -1315,7 +1433,7 @@ class TestErrorHandling:
 
     def test_query_by_tag_handles_error(self, db: BookmarkDatabase):
         """Test query_by_tag handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.query_by_tag("python")
 
@@ -1323,7 +1441,7 @@ class TestErrorHandling:
 
     def test_get_processing_history_handles_error(self, db: BookmarkDatabase):
         """Test get_processing_history handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.get_processing_history("https://test.com")
 
@@ -1331,7 +1449,7 @@ class TestErrorHandling:
 
     def test_compare_runs_handles_error(self, db: BookmarkDatabase):
         """Test compare_runs handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.compare_runs(1, 2)
 
@@ -1339,37 +1457,41 @@ class TestErrorHandling:
 
     def test_get_run_history_handles_error(self, db: BookmarkDatabase):
         """Test get_run_history handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.get_run_history()
 
         assert result == []
 
-    def test_needs_processing_handles_error(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_needs_processing_handles_error(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test needs_processing returns True on error."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.needs_processing(sample_bookmark)
 
         assert result is True
 
-    def test_mark_processed_raises_on_error(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_mark_processed_raises_on_error(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test mark_processed raises exception on database error."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             with pytest.raises(sqlite3.Error):
                 db.mark_processed(sample_bookmark)
 
     def test_mark_failed_handles_error(self, db: BookmarkDatabase):
         """Test mark_failed logs error but doesn't raise."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             # Should not raise
             db.mark_failed("https://test.com", "Error")
 
     def test_start_processing_run_raises_on_error(self, db: BookmarkDatabase):
         """Test start_processing_run raises exception on database error."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             with pytest.raises(sqlite3.Error):
                 db.start_processing_run("test")
@@ -1378,14 +1500,14 @@ class TestErrorHandling:
         """Test complete_processing_run logs error but doesn't raise."""
         run_id = db.start_processing_run("test")
 
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             # Should not raise
             db.complete_processing_run(run_id, total_processed=50)
 
     def test_get_statistics_handles_error(self, db: BookmarkDatabase):
         """Test get_statistics handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db.get_statistics()
 
@@ -1393,14 +1515,14 @@ class TestErrorHandling:
 
     def test_vacuum_handles_error(self, db: BookmarkDatabase):
         """Test vacuum handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             # Should not raise
             db.vacuum()
 
     def test_fallback_search_handles_error(self, db: BookmarkDatabase):
         """Test _fallback_search handles database errors gracefully."""
-        with patch.object(db, '_get_connection') as mock_conn:
+        with patch.object(db, "_get_connection") as mock_conn:
             mock_conn.side_effect = sqlite3.Error("Test error")
             result = db._fallback_search("test", limit=10)
 
@@ -1433,7 +1555,9 @@ class TestFTSTriggers:
         results = db.search_content("Unique Updated Title XYZ")
         assert len(results) >= 1
 
-    def test_fts_search_multiple_fields(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_fts_search_multiple_fields(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test FTS searches across multiple fields."""
         db.mark_processed(sample_bookmark)
 
@@ -1458,8 +1582,17 @@ class TestDatabaseSchema:
             cursor = conn.execute("PRAGMA table_info(processed_bookmarks)")
             columns = {row[1] for row in cursor.fetchall()}
 
-        expected = {"url", "content_hash", "processed_at", "ai_engine",
-                   "description", "tags", "folder", "title", "status"}
+        expected = {
+            "url",
+            "content_hash",
+            "processed_at",
+            "ai_engine",
+            "description",
+            "tags",
+            "folder",
+            "title",
+            "status",
+        }
         assert expected.issubset(columns)
 
     def test_schema_processing_runs_columns(self, db: BookmarkDatabase):
@@ -1468,8 +1601,16 @@ class TestDatabaseSchema:
             cursor = conn.execute("PRAGMA table_info(processing_runs)")
             columns = {row[1] for row in cursor.fetchall()}
 
-        expected = {"id", "started_at", "completed_at", "source",
-                   "total_processed", "total_succeeded", "total_failed", "config_hash"}
+        expected = {
+            "id",
+            "started_at",
+            "completed_at",
+            "source",
+            "total_processed",
+            "total_succeeded",
+            "total_failed",
+            "config_hash",
+        }
         assert expected.issubset(columns)
 
     def test_schema_bookmark_history_columns(self, db: BookmarkDatabase):
@@ -1478,8 +1619,18 @@ class TestDatabaseSchema:
             cursor = conn.execute("PRAGMA table_info(bookmark_history)")
             columns = {row[1] for row in cursor.fetchall()}
 
-        expected = {"id", "url", "run_id", "content_hash", "description",
-                   "tags", "folder", "title", "changed_at", "change_type"}
+        expected = {
+            "id",
+            "url",
+            "run_id",
+            "content_hash",
+            "description",
+            "tags",
+            "folder",
+            "title",
+            "changed_at",
+            "change_type",
+        }
         assert expected.issubset(columns)
 
 
@@ -1489,7 +1640,9 @@ class TestDatabaseSchema:
 class TestIntegration:
     """Integration tests for complete workflows."""
 
-    def test_full_processing_workflow(self, db: BookmarkDatabase, sample_bookmarks: list):
+    def test_full_processing_workflow(
+        self, db: BookmarkDatabase, sample_bookmarks: list
+    ):
         """Test complete processing workflow."""
         # Start run
         run_id = db.start_processing_run("integration_test", config_hash="test123")
@@ -1510,7 +1663,7 @@ class TestIntegration:
             run_id=run_id,
             total_processed=len(sample_bookmarks),
             total_succeeded=succeeded,
-            total_failed=failed
+            total_failed=failed,
         )
 
         # Verify results
@@ -1521,7 +1674,9 @@ class TestIntegration:
         assert len(runs) == 1
         assert runs[0].total_processed == len(sample_bookmarks)
 
-    def test_multiple_runs_comparison(self, db: BookmarkDatabase, sample_bookmarks: list):
+    def test_multiple_runs_comparison(
+        self, db: BookmarkDatabase, sample_bookmarks: list
+    ):
         """Test comparing multiple processing runs."""
         # First run: process all bookmarks
         run_id1 = db.start_processing_run("run1")
@@ -1544,7 +1699,9 @@ class TestIntegration:
         assert len(comparison.removed_bookmarks) == 1
         assert sample_bookmarks[-1].url in comparison.removed_bookmarks
 
-    def test_search_after_processing(self, db: BookmarkDatabase, sample_bookmarks: list):
+    def test_search_after_processing(
+        self, db: BookmarkDatabase, sample_bookmarks: list
+    ):
         """Test search functionality after processing."""
         for bookmark in sample_bookmarks:
             db.mark_processed(bookmark)
@@ -1556,7 +1713,9 @@ class TestIntegration:
         ml_results = db.search_content("machine learning")
         assert len(ml_results) >= 1
 
-    def test_state_tracking_across_runs(self, db: BookmarkDatabase, sample_bookmark: Bookmark):
+    def test_state_tracking_across_runs(
+        self, db: BookmarkDatabase, sample_bookmark: Bookmark
+    ):
         """Test state tracking persists across runs."""
         # First run
         run_id1 = db.start_processing_run("run1")

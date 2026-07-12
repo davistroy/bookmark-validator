@@ -73,10 +73,7 @@ class TestCSVDataSourceLoading:
 
     def test_load_from_nonexistent_file(self, temp_dir):
         """Test loading from non-existent file raises error."""
-        source = CSVDataSource(
-            temp_dir / "nonexistent.csv",
-            temp_dir / "output.csv"
-        )
+        source = CSVDataSource(temp_dir / "nonexistent.csv", temp_dir / "output.csv")
 
         with pytest.raises(DataSourceReadError) as exc_info:
             source.fetch_bookmarks()
@@ -114,8 +111,7 @@ class TestCSVDataSourceFiltering:
         # Load all first to check we have programming bookmarks
         all_bookmarks = source.fetch_bookmarks()
         programming_count = sum(
-            1 for b in all_bookmarks
-            if b.folder and "Programming" in b.folder
+            1 for b in all_bookmarks if b.folder and "Programming" in b.folder
         )
 
         # Filter by folder
@@ -158,9 +154,7 @@ class TestCSVDataSourceUpdates:
 
         # Create updated version
         updated = Bookmark(
-            url=original_url,
-            title="Updated Title",
-            folder="Updated/Folder"
+            url=original_url, title="Updated Title", folder="Updated/Folder"
         )
 
         result = source.update_bookmark(updated)
@@ -210,9 +204,7 @@ class TestCSVDataSourceUpdates:
         initial_count = source.get_bookmark_count()
 
         new_bookmark = Bookmark(
-            url="http://newbookmark.com",
-            title="New Bookmark",
-            folder="Test"
+            url="http://newbookmark.com", title="New Bookmark", folder="Test"
         )
 
         result = source.add_bookmark(new_bookmark)
@@ -283,10 +275,7 @@ class TestCSVDataSourceSaving:
 
     def test_save_without_loading_raises_error(self, temp_dir):
         """Test saving without loading raises error."""
-        source = CSVDataSource(
-            temp_dir / "input.csv",
-            temp_dir / "output.csv"
-        )
+        source = CSVDataSource(temp_dir / "input.csv", temp_dir / "output.csv")
 
         with pytest.raises(DataSourceValidationError):
             source.save()
@@ -295,8 +284,7 @@ class TestCSVDataSourceSaving:
         """Test that save to invalid location raises error."""
         # Use a path that's likely to fail on write
         source = CSVDataSource(
-            sample_csv_file,
-            Path("/nonexistent/directory/output.csv")
+            sample_csv_file, Path("/nonexistent/directory/output.csv")
         )
 
         source.fetch_bookmarks()
@@ -341,9 +329,7 @@ class TestCSVDataSourceWithMockedHandler:
         ]
 
         source = CSVDataSource(
-            temp_dir / "input.csv",
-            temp_dir / "output.csv",
-            csv_handler=mock_handler
+            temp_dir / "input.csv", temp_dir / "output.csv", csv_handler=mock_handler
         )
 
         bookmarks = source.fetch_bookmarks()
@@ -357,9 +343,7 @@ class TestCSVDataSourceWithMockedHandler:
         mock_handler.load_and_transform_csv.side_effect = Exception("Handler error")
 
         source = CSVDataSource(
-            temp_dir / "input.csv",
-            temp_dir / "output.csv",
-            csv_handler=mock_handler
+            temp_dir / "input.csv", temp_dir / "output.csv", csv_handler=mock_handler
         )
 
         with pytest.raises(DataSourceReadError) as exc_info:
@@ -394,14 +378,12 @@ class TestCSVDataSourceEdgeCases:
                 url="http://test.com/path?q=search&x=1",
                 title='Title with "quotes" and <brackets>',
                 folder="Path/With/Slashes",
-                tags=["tag-with-dash", "tag_with_underscore"]
+                tags=["tag-with-dash", "tag_with_underscore"],
             )
         ]
 
         source = CSVDataSource(
-            temp_dir / "input.csv",
-            temp_dir / "output.csv",
-            csv_handler=mock_handler
+            temp_dir / "input.csv", temp_dir / "output.csv", csv_handler=mock_handler
         )
 
         bookmarks = source.fetch_bookmarks()
@@ -439,7 +421,7 @@ class TestCSVDataSourceIntegration:
             url="http://newsite.example.com",
             title="New Site",
             folder="Test/New",
-            tags=["new", "test"]
+            tags=["new", "test"],
         )
         source.add_bookmark(new_bookmark)
 
@@ -455,7 +437,8 @@ class TestCSVDataSourceIntegration:
 
         # Verify file content (check CSV has rows)
         import csv
-        with open(output_path, 'r', encoding='utf-8') as f:
+
+        with open(output_path, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
             rows = list(reader)
             # Header + data rows (initial_count + 1 new bookmark)

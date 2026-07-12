@@ -8,7 +8,6 @@ and other validation-related helpers.
 from typing import Optional
 from urllib.parse import urlparse
 
-
 # URLs to skip validation (known problematic patterns)
 SKIP_PATTERNS = [
     "javascript:",

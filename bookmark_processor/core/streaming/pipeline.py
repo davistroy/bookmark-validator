@@ -229,6 +229,7 @@ class StreamingPipeline:
         """Lazy initialization of URL validator."""
         if self._url_validator is None:
             from ..url_validator import URLValidator
+
             self._url_validator = URLValidator(
                 timeout=self.config.url_timeout,
                 max_concurrent=self.config.max_concurrent_requests,
@@ -240,15 +241,15 @@ class StreamingPipeline:
         """Lazy initialization of content analyzer."""
         if self._content_analyzer is None:
             from ..content_analyzer import ContentAnalyzer
-            self._content_analyzer = ContentAnalyzer(
-                timeout=self.config.url_timeout
-            )
+
+            self._content_analyzer = ContentAnalyzer(timeout=self.config.url_timeout)
         return self._content_analyzer
 
     def _get_ai_processor(self):
         """Lazy initialization of AI processor."""
         if self._ai_processor is None and self.config.ai_enabled:
             from ..ai_processor import EnhancedAIProcessor
+
             self._ai_processor = EnhancedAIProcessor(
                 max_description_length=self.config.max_description_length
             )
@@ -258,6 +259,7 @@ class StreamingPipeline:
         """Lazy initialization of tag generator."""
         if self._tag_generator is None:
             from ..tag_generator import CorpusAwareTagGenerator
+
             self._tag_generator = CorpusAwareTagGenerator(
                 target_tag_count=self.config.target_tag_count,
                 max_tags_per_bookmark=self.config.max_tags_per_bookmark,
@@ -280,17 +282,14 @@ class StreamingPipeline:
         """
         reader = StreamingBookmarkReader(self.config.input_file)
         writer = StreamingBookmarkWriter(
-            self.config.output_file,
-            flush_interval=self.config.flush_interval
+            self.config.output_file, flush_interval=self.config.flush_interval
         )
 
         with writer:
             return self.execute_streaming(reader, writer)
 
     def execute_streaming(
-        self,
-        reader: StreamingBookmarkReader,
-        writer: StreamingBookmarkWriter
+        self, reader: StreamingBookmarkReader, writer: StreamingBookmarkWriter
     ) -> StreamingPipelineResults:
         """
         Execute pipeline with provided reader and writer.
@@ -347,20 +346,22 @@ class StreamingPipeline:
                     for bookmark in processed_batch:
                         state_tracker.mark_processed(
                             bookmark,
-                            ai_engine="local" if self.config.ai_enabled else "none"
+                            ai_engine="local" if self.config.ai_enabled else "none",
                         )
 
                 # Progress callback
                 if self.config.progress_callback:
                     total_estimate = reader.total_count or self.stats.total_read
                     self.config.progress_callback(
-                        f"Batch {batch_num}",
-                        self.stats.total_processed,
-                        total_estimate
+                        f"Batch {batch_num}", self.stats.total_processed, total_estimate
                     )
 
                 # Checkpoint periodically
-                if batch_num % (self.config.checkpoint_interval // self.config.batch_size + 1) == 0:
+                if (
+                    batch_num
+                    % (self.config.checkpoint_interval // self.config.batch_size + 1)
+                    == 0
+                ):
                     self._save_checkpoint()
 
             # Complete processing run
@@ -368,7 +369,7 @@ class StreamingPipeline:
                 state_tracker.complete_processing_run(
                     total_processed=self.stats.total_processed,
                     total_succeeded=self.stats.validation_success,
-                    total_failed=self.stats.validation_failed
+                    total_failed=self.stats.validation_failed,
                 )
 
             self.stats.end_time = datetime.now()
@@ -380,9 +381,7 @@ class StreamingPipeline:
             )
 
             return StreamingPipelineResults(
-                stats=self.stats,
-                config=self.config,
-                completed=True
+                stats=self.stats, config=self.config, completed=True
             )
 
         except Exception as e:
@@ -393,7 +392,7 @@ class StreamingPipeline:
                 stats=self.stats,
                 config=self.config,
                 completed=False,
-                error_message=str(e)
+                error_message=str(e),
             )
 
     def _process_batch(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
@@ -443,11 +442,13 @@ class StreamingPipeline:
 
             except Exception as e:
                 self.stats.total_errors += 1
-                self.stats.errors.append({
-                    "url": bookmark.url,
-                    "error": str(e),
-                    "timestamp": datetime.now().isoformat()
-                })
+                self.stats.errors.append(
+                    {
+                        "url": bookmark.url,
+                        "error": str(e),
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
                 self.logger.debug(f"Error processing {bookmark.url}: {e}")
 
         return processed
@@ -508,9 +509,7 @@ class StreamingPipeline:
             return None
 
     def _process_ai(
-        self,
-        bookmark: Bookmark,
-        content_data: Optional[Dict[str, Any]]
+        self, bookmark: Bookmark, content_data: Optional[Dict[str, Any]]
     ) -> Optional[str]:
         """
         Process AI description generation.
@@ -530,10 +529,7 @@ class StreamingPipeline:
                 if content_data:
                     content = content_data.get("content", "") or ""
 
-                result = processor.process_single(
-                    bookmark,
-                    content=content
-                )
+                result = processor.process_single(bookmark, content=content)
 
                 if result and result.enhanced_description:
                     bookmark.enhanced_description = result.enhanced_description
@@ -547,9 +543,7 @@ class StreamingPipeline:
             return None
 
     def _generate_tags(
-        self,
-        bookmark: Bookmark,
-        content_data: Optional[Dict[str, Any]]
+        self, bookmark: Bookmark, content_data: Optional[Dict[str, Any]]
     ) -> List[str]:
         """
         Generate tags for a bookmark.
@@ -566,8 +560,7 @@ class StreamingPipeline:
             if generator:
                 # Use single bookmark tag generation
                 tags = generator.generate_for_single_bookmark(
-                    bookmark,
-                    content_data=content_data
+                    bookmark, content_data=content_data
                 )
                 bookmark.processing_status.tags_optimized = True
                 return tags

@@ -44,7 +44,7 @@ class StreamingBookmarkWriter:
         self,
         output_path: Union[str, Path],
         encoding: str = "utf-8-sig",
-        flush_interval: int = 10
+        flush_interval: int = 10,
     ):
         """
         Initialize the streaming writer.
@@ -91,17 +91,12 @@ class StreamingBookmarkWriter:
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            self._file = open(
-                self.output_path,
-                "w",
-                newline="",
-                encoding=self.encoding
-            )
+            self._file = open(self.output_path, "w", newline="", encoding=self.encoding)
             self._writer = csv.DictWriter(
                 self._file,
                 fieldnames=self.IMPORT_COLUMNS,
                 quoting=csv.QUOTE_ALL,
-                extrasaction="ignore"
+                extrasaction="ignore",
             )
             self._writer.writeheader()
             self._file.flush()
@@ -275,7 +270,7 @@ class AppendingBookmarkWriter(StreamingBookmarkWriter):
         self,
         output_path: Union[str, Path],
         encoding: str = "utf-8-sig",
-        flush_interval: int = 10
+        flush_interval: int = 10,
     ):
         """
         Initialize the appending writer.
@@ -307,16 +302,13 @@ class AppendingBookmarkWriter(StreamingBookmarkWriter):
         try:
             mode = "a" if file_exists else "w"
             self._file = open(
-                self.output_path,
-                mode,
-                newline="",
-                encoding=self.encoding
+                self.output_path, mode, newline="", encoding=self.encoding
             )
             self._writer = csv.DictWriter(
                 self._file,
                 fieldnames=self.IMPORT_COLUMNS,
                 quoting=csv.QUOTE_ALL,
-                extrasaction="ignore"
+                extrasaction="ignore",
             )
 
             # Only write header for new files

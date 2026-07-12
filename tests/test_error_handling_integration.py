@@ -186,7 +186,9 @@ class TestErrorHandlingIntegration:
                 )
             return results
 
-        with patch.object(pipeline.url_validator, "batch_validate", side_effect=mock_batch_validate):
+        with patch.object(
+            pipeline.url_validator, "batch_validate", side_effect=mock_batch_validate
+        ):
             # Mock AI processing - return the bookmarks with enhanced descriptions
             def mock_ai_batch_process(bookmarks, **kwargs):
                 # process_batch returns List[Bookmark], not List[AIProcessingResult]
@@ -218,7 +220,10 @@ class TestErrorHandlingIntegration:
 
         # Mock validation to return results matching actual bookmark URLs
         def mock_batch_validate(urls, **kwargs):
-            return [ValidationResult(url=url, is_valid=True, status_code=200, final_url=url) for url in urls]
+            return [
+                ValidationResult(url=url, is_valid=True, status_code=200, final_url=url)
+                for url in urls
+            ]
 
         # Mock AI processing to return bookmarks
         def mock_ai_batch_process(bookmarks, **kwargs):
@@ -228,8 +233,16 @@ class TestErrorHandlingIntegration:
 
         # Start processing and create checkpoint
         with (
-            patch.object(pipeline.url_validator, "batch_validate", side_effect=mock_batch_validate),
-            patch.object(pipeline.ai_processor, "process_batch", side_effect=mock_ai_batch_process),
+            patch.object(
+                pipeline.url_validator,
+                "batch_validate",
+                side_effect=mock_batch_validate,
+            ),
+            patch.object(
+                pipeline.ai_processor,
+                "process_batch",
+                side_effect=mock_ai_batch_process,
+            ),
         ):
             # Start processing to create checkpoint
             pipeline._stage_load_bookmarks()
@@ -247,8 +260,16 @@ class TestErrorHandlingIntegration:
         pipeline2 = BookmarkProcessingPipeline(error_config)
 
         with (
-            patch.object(pipeline2.url_validator, "batch_validate", side_effect=mock_batch_validate),
-            patch.object(pipeline2.ai_processor, "process_batch", side_effect=mock_ai_batch_process),
+            patch.object(
+                pipeline2.url_validator,
+                "batch_validate",
+                side_effect=mock_batch_validate,
+            ),
+            patch.object(
+                pipeline2.ai_processor,
+                "process_batch",
+                side_effect=mock_ai_batch_process,
+            ),
         ):
             # Should fall back to new processing
             results = pipeline2.execute()
@@ -269,7 +290,10 @@ class TestErrorHandlingIntegration:
 
         # Mock validation to return results matching actual bookmark URLs
         def mock_batch_validate(urls, **kwargs):
-            return [ValidationResult(url=url, is_valid=True, status_code=200, final_url=url) for url in urls]
+            return [
+                ValidationResult(url=url, is_valid=True, status_code=200, final_url=url)
+                for url in urls
+            ]
 
         # Mock AI processing to return bookmarks
         def mock_ai_batch_process(bookmarks, **kwargs):
@@ -278,8 +302,16 @@ class TestErrorHandlingIntegration:
             return bookmarks
 
         with (
-            patch.object(pipeline.url_validator, "batch_validate", side_effect=mock_batch_validate),
-            patch.object(pipeline.ai_processor, "process_batch", side_effect=mock_ai_batch_process),
+            patch.object(
+                pipeline.url_validator,
+                "batch_validate",
+                side_effect=mock_batch_validate,
+            ),
+            patch.object(
+                pipeline.ai_processor,
+                "process_batch",
+                side_effect=mock_ai_batch_process,
+            ),
         ):
             # Mock file system error during output generation
             def mock_save_with_error(*args, **kwargs):
@@ -316,7 +348,10 @@ class TestErrorHandlingIntegration:
 
         # Mock validation to return results matching actual bookmark URLs
         def mock_batch_validate(urls, **kwargs):
-            return [ValidationResult(url=url, is_valid=True, status_code=200, final_url=url) for url in urls]
+            return [
+                ValidationResult(url=url, is_valid=True, status_code=200, final_url=url)
+                for url in urls
+            ]
 
         # Mock AI processing to return bookmarks
         def mock_ai_batch_process(bookmarks, **kwargs):
@@ -325,8 +360,16 @@ class TestErrorHandlingIntegration:
             return bookmarks
 
         with (
-            patch.object(pipeline.url_validator, "batch_validate", side_effect=mock_batch_validate),
-            patch.object(pipeline.ai_processor, "process_batch", side_effect=mock_ai_batch_process),
+            patch.object(
+                pipeline.url_validator,
+                "batch_validate",
+                side_effect=mock_batch_validate,
+            ),
+            patch.object(
+                pipeline.ai_processor,
+                "process_batch",
+                side_effect=mock_ai_batch_process,
+            ),
         ):
             # Should handle memory pressure gracefully
             results = pipeline.execute()
@@ -501,8 +544,12 @@ class TestErrorCategorization:
         conn_error = ConnectionError("Connection failed")
         error_details = error_handler.categorize_error(conn_error)
         assert error_details.category == ErrorCategory.NETWORK
-        assert error_details.severity == ErrorSeverity.MEDIUM  # Actual implementation uses MEDIUM
-        assert error_details.is_recoverable is True  # API uses is_recoverable not is_retryable
+        assert (
+            error_details.severity == ErrorSeverity.MEDIUM
+        )  # Actual implementation uses MEDIUM
+        assert (
+            error_details.is_recoverable is True
+        )  # API uses is_recoverable not is_retryable
 
         # Timeout errors - message must contain "timeout" keyword
         timeout_error = Timeout("Request timeout occurred")
@@ -514,7 +561,9 @@ class TestErrorCategorization:
         # HTTP errors (categorized as PROCESSING with "HTTP" in message, not API_ERROR)
         http_error = HTTPError("HTTP 500 Internal Server Error")
         error_details = error_handler.categorize_error(http_error)
-        assert error_details.category == ErrorCategory.API_ERROR  # 500 triggers API_ERROR
+        assert (
+            error_details.category == ErrorCategory.API_ERROR
+        )  # 500 triggers API_ERROR
         assert error_details.severity == ErrorSeverity.HIGH
         assert error_details.is_recoverable is True
 
@@ -523,14 +572,18 @@ class TestErrorCategorization:
         # Invalid URL format - "Invalid" triggers VALIDATION category
         url_error = ValueError("Invalid URL format")
         error_details = error_handler.categorize_error(url_error)
-        assert error_details.category == ErrorCategory.VALIDATION  # "invalid" in message
+        assert (
+            error_details.category == ErrorCategory.VALIDATION
+        )  # "invalid" in message
         assert error_details.severity == ErrorSeverity.LOW
         assert error_details.is_recoverable is False  # API uses is_recoverable
 
         # JSON parsing error - categorized as PROCESSING since no special keyword
         json_error = json.JSONDecodeError("Invalid JSON", "doc", 0)
         error_details = error_handler.categorize_error(json_error)
-        assert error_details.category == ErrorCategory.VALIDATION  # "Invalid" in message
+        assert (
+            error_details.category == ErrorCategory.VALIDATION
+        )  # "Invalid" in message
         assert error_details.severity == ErrorSeverity.LOW
         assert error_details.is_recoverable is False
 
@@ -539,7 +592,9 @@ class TestErrorCategorization:
         # Permission error - categorized as PROCESSING (no special keyword match)
         perm_error = PermissionError("Permission denied")
         error_details = error_handler.categorize_error(perm_error)
-        assert error_details.category == ErrorCategory.PROCESSING  # No system keyword match
+        assert (
+            error_details.category == ErrorCategory.PROCESSING
+        )  # No system keyword match
         assert error_details.severity == ErrorSeverity.MEDIUM
         assert error_details.is_recoverable is True  # Default is recoverable
 
@@ -568,7 +623,9 @@ class TestRetryMechanisms:
         """Create retry handler for testing."""
         return RetryHandler(default_max_retries=3, default_base_delay=0.1)
 
-    @pytest.mark.skip(reason="retry_async method not implemented in current RetryHandler API")
+    @pytest.mark.skip(
+        reason="retry_async method not implemented in current RetryHandler API"
+    )
     @pytest.mark.asyncio
     async def test_exponential_backoff_retry(self, retry_handler):
         """Test exponential backoff retry strategy."""
@@ -597,7 +654,9 @@ class TestRetryMechanisms:
             delay2 = (attempt_delays[2] - attempt_delays[1]).total_seconds()
             assert delay2 >= delay1  # Second delay should be longer
 
-    @pytest.mark.skip(reason="retry_async method not implemented in current RetryHandler API")
+    @pytest.mark.skip(
+        reason="retry_async method not implemented in current RetryHandler API"
+    )
     @pytest.mark.asyncio
     async def test_retry_with_permanent_failure(self, retry_handler):
         """Test retry behavior with permanent failures."""
@@ -611,9 +670,13 @@ class TestRetryMechanisms:
         with pytest.raises(ValueError, match="Permanent error"):
             await retry_handler.retry_async(always_failing_operation)
 
-        assert attempt_count[0] == retry_handler.default_max_retries + 1  # Initial + retries
+        assert (
+            attempt_count[0] == retry_handler.default_max_retries + 1
+        )  # Initial + retries
 
-    @pytest.mark.skip(reason="retry_async method not implemented in current RetryHandler API")
+    @pytest.mark.skip(
+        reason="retry_async method not implemented in current RetryHandler API"
+    )
     @pytest.mark.asyncio
     async def test_retry_with_non_retryable_error(self, retry_handler):
         """Test that non-retryable errors are not retried."""
@@ -651,7 +714,9 @@ class TestGracefulDegradation:
         bookmark.url = "https://example.com"
 
         # Test the basic description fallback
-        description, metadata = await fallback_strategy.create_basic_description(bookmark)
+        description, metadata = await fallback_strategy.create_basic_description(
+            bookmark
+        )
 
         # Should get fallback description from note
         assert description is not None
@@ -682,14 +747,19 @@ class TestGracefulDegradation:
             # The analyzer enhances with existing data even on error
             assert content_data.url == "https://example.com"
             # On error, main_content contains error message, not user note
-            assert "error" in content_data.main_content.lower() or "Request error" in content_data.main_content
+            assert (
+                "error" in content_data.main_content.lower()
+                or "Request error" in content_data.main_content
+            )
 
     @pytest.mark.asyncio
     async def test_tag_generation_fallback(self):
         """Test tag generation fallback when AI fails."""
         from bookmark_processor.core.tag_generator import CorpusAwareTagGenerator
 
-        tag_generator = CorpusAwareTagGenerator(target_tag_count=10, max_tags_per_bookmark=5)
+        tag_generator = CorpusAwareTagGenerator(
+            target_tag_count=10, max_tags_per_bookmark=5
+        )
 
         # Use the generate_tags_from_content method which extracts tags from text
         # This tests the keyword extraction fallback (no AI involved in this method)

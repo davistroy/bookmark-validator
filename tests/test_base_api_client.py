@@ -23,7 +23,6 @@ from bookmark_processor.utils.error_handler import (
     ServiceUnavailableError,
 )
 
-
 # ============================================================================
 # Concrete Implementation for Testing
 # ============================================================================

@@ -119,7 +119,9 @@ class TestProcessingStages:
 
     def test_stage_list(self):
         """Test stage_list property."""
-        stages = ProcessingStages.VALIDATION | ProcessingStages.AI | ProcessingStages.TAGS
+        stages = (
+            ProcessingStages.VALIDATION | ProcessingStages.AI | ProcessingStages.TAGS
+        )
         stage_list = stages.stage_list
 
         assert "validation" in stage_list
@@ -253,7 +255,9 @@ class TestProcessingMode:
 
     def test_get_description_limited_stages(self):
         """Test description with limited stages."""
-        mode = ProcessingMode(stages=ProcessingStages.VALIDATION | ProcessingStages.TAGS)
+        mode = ProcessingMode(
+            stages=ProcessingStages.VALIDATION | ProcessingStages.TAGS
+        )
         desc = mode.get_description()
 
         assert "stages:" in desc
@@ -334,9 +338,7 @@ class TestProcessingModeFromCLI:
 
     def test_from_cli_args_explicit_stages(self):
         """Test explicit stages argument."""
-        mode = ProcessingMode.from_cli_args({
-            "stages": ["validation", "ai", "tags"]
-        })
+        mode = ProcessingMode.from_cli_args({"stages": ["validation", "ai", "tags"]})
 
         assert mode.should_validate
         assert not mode.should_extract_content
@@ -346,11 +348,13 @@ class TestProcessingModeFromCLI:
 
     def test_from_cli_args_multiple_skips(self):
         """Test multiple skip arguments."""
-        mode = ProcessingMode.from_cli_args({
-            "skip_validation": True,
-            "skip_ai": True,
-            "skip_folders": True,
-        })
+        mode = ProcessingMode.from_cli_args(
+            {
+                "skip_validation": True,
+                "skip_ai": True,
+                "skip_folders": True,
+            }
+        )
 
         assert not mode.should_validate
         assert mode.should_extract_content
@@ -538,8 +542,7 @@ class TestProcessingModeIntegration:
         """Test various mode combinations work correctly."""
         # Preview with limited stages
         mode = ProcessingMode(
-            stages=ProcessingStages.VALIDATION | ProcessingStages.AI,
-            preview_count=5
+            stages=ProcessingStages.VALIDATION | ProcessingStages.AI, preview_count=5
         )
 
         assert mode.is_preview

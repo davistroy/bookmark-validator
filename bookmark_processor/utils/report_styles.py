@@ -13,10 +13,10 @@ from typing import Any, Dict, List, Optional
 class ReportStyle(Enum):
     """Enumeration of supported report output styles."""
 
-    RICH = "rich"           # Rich console with colors/icons
-    PLAIN = "plain"         # Plain text for piping
-    MARKDOWN = "markdown"   # Markdown format
-    JSON = "json"           # JSON format for programmatic access
+    RICH = "rich"  # Rich console with colors/icons
+    PLAIN = "plain"  # Plain text for piping
+    MARKDOWN = "markdown"  # Markdown format
+    JSON = "json"  # JSON format for programmatic access
 
 
 @dataclass
@@ -113,7 +113,6 @@ ICONS: Dict[str, str] = {
     "pending": "⏳",
     "complete": "✓",
     "failed": "✗",
-
     # Category icons
     "description": "📝",
     "tags": "🏷️",
@@ -125,13 +124,11 @@ ICONS: Dict[str, str] = {
     "chart": "📊",
     "metrics": "📈",
     "quality": "⭐",
-
     # Action icons
     "processing": "🔄",
     "validation": "🔍",
     "ai": "🤖",
     "checkpoint": "💾",
-
     # Alert icons
     "attention": "🔔",
     "critical": "🚨",

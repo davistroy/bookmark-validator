@@ -30,7 +30,6 @@ from bookmark_processor.utils.integrated_validation import (
 )
 from bookmark_processor.utils.input_validator import ValidationResult
 
-
 # ============================================================================
 # Test Fixtures
 # ============================================================================
@@ -441,7 +440,9 @@ class TestValidateBookmarkRecord:
         self, integrated_validator, valid_bookmark_data
     ):
         """Test that successful validation updates statistics."""
-        initial_success = integrated_validator.validation_stats["successful_validations"]
+        initial_success = integrated_validator.validation_stats[
+            "successful_validations"
+        ]
         integrated_validator.validate_bookmark_record(valid_bookmark_data)
         # Stats should be updated
         total = integrated_validator.validation_stats["total_validations"]
@@ -669,9 +670,7 @@ class TestGetValidationStatistics:
 class TestResetStatistics:
     """Tests for reset_statistics method."""
 
-    def test_resets_all_stats_to_zero(
-        self, integrated_validator, valid_bookmark_data
-    ):
+    def test_resets_all_stats_to_zero(self, integrated_validator, valid_bookmark_data):
         """Test that all statistics are reset to zero."""
         # Perform some validations first
         integrated_validator.validate_bookmark_record(valid_bookmark_data)
@@ -688,9 +687,7 @@ class TestResetStatistics:
         assert stats["data_recoveries"] == 0
         assert stats["warnings_issued"] == 0
 
-    def test_reset_allows_fresh_start(
-        self, integrated_validator, valid_bookmark_data
-    ):
+    def test_reset_allows_fresh_start(self, integrated_validator, valid_bookmark_data):
         """Test that reset allows a fresh start."""
         # First round
         integrated_validator.validate_bookmark_record(valid_bookmark_data)
@@ -1076,7 +1073,9 @@ class TestEdgeCasesAndErrorHandling:
         # Should process all without crashing
         assert integrated_validator.validation_stats["total_validations"] >= 1000
 
-    def test_concurrent_access_to_stats(self, integrated_validator, valid_bookmark_data):
+    def test_concurrent_access_to_stats(
+        self, integrated_validator, valid_bookmark_data
+    ):
         """Test that statistics tracking is consistent."""
         import threading
 

@@ -128,8 +128,15 @@ class TestFolderNode:
 
     def test_is_bookmarks_bar_true(self):
         """Test is_bookmarks_bar returns True for bookmark bar names."""
-        test_names = ["Bookmarks bar", "bookmarks bar", "BOOKMARKS BAR",
-                      "Bookmarks_bar", "bookmarks_bar", "toolbar", "TOOLBAR"]
+        test_names = [
+            "Bookmarks bar",
+            "bookmarks bar",
+            "BOOKMARKS BAR",
+            "Bookmarks_bar",
+            "bookmarks_bar",
+            "toolbar",
+            "TOOLBAR",
+        ]
 
         for name in test_names:
             node = FolderNode(name)
@@ -187,7 +194,7 @@ class TestChromeHTMLGenerator:
 
     def test_escape_html_all_special_chars(self):
         """Test HTML escaping with all special characters."""
-        input_text = '<script>"alert(\'XSS\')&</script>'
+        input_text = "<script>\"alert('XSS')&</script>"
         expected = "&lt;script&gt;&quot;alert(&#x27;XSS&#x27;)&amp;&lt;/script&gt;"
         assert self.generator._escape_html(input_text) == expected
 
@@ -209,9 +216,7 @@ class TestChromeHTMLGenerator:
         """Test generating HTML for bookmark with created date."""
         created_time = datetime(2024, 1, 15, 12, 30, 0, tzinfo=timezone.utc)
         bookmark = Bookmark(
-            url="https://example.com",
-            title="Test",
-            created=created_time
+            url="https://example.com", title="Test", created=created_time
         )
         html = self.generator._generate_bookmark_html(bookmark)
 
@@ -227,10 +232,7 @@ class TestChromeHTMLGenerator:
 
     def test_generate_bookmark_html_special_chars_in_title(self):
         """Test generating HTML with special characters in title."""
-        bookmark = Bookmark(
-            url="https://example.com",
-            title='Test <"Title"> & More'
-        )
+        bookmark = Bookmark(url="https://example.com", title='Test <"Title"> & More')
         html = self.generator._generate_bookmark_html(bookmark)
 
         assert "&lt;" in html
@@ -240,10 +242,7 @@ class TestChromeHTMLGenerator:
 
     def test_generate_bookmark_html_special_chars_in_url(self):
         """Test generating HTML with special characters in URL."""
-        bookmark = Bookmark(
-            url="https://example.com?q=test&lang=en",
-            title="Test"
-        )
+        bookmark = Bookmark(url="https://example.com?q=test&lang=en", title="Test")
         html = self.generator._generate_bookmark_html(bookmark)
 
         assert "https://example.com?q=test&amp;lang=en" in html
@@ -274,11 +273,7 @@ class TestChromeHTMLGenerator:
 
     def test_build_folder_hierarchy_simple_folder(self):
         """Test bookmark with simple folder path."""
-        bookmark = Bookmark(
-            url="https://example.com",
-            title="Test",
-            folder="Tech"
-        )
+        bookmark = Bookmark(url="https://example.com", title="Test", folder="Tech")
         root = self.generator._build_folder_hierarchy([bookmark])
 
         other_bookmarks = root.children["Other bookmarks"]
@@ -289,9 +284,7 @@ class TestChromeHTMLGenerator:
     def test_build_folder_hierarchy_nested_folder(self):
         """Test bookmark with nested folder path."""
         bookmark = Bookmark(
-            url="https://example.com",
-            title="Test",
-            folder="Tech/Programming/Python"
+            url="https://example.com", title="Test", folder="Tech/Programming/Python"
         )
         root = self.generator._build_folder_hierarchy([bookmark])
 
@@ -305,9 +298,7 @@ class TestChromeHTMLGenerator:
     def test_build_folder_hierarchy_bookmarks_bar(self):
         """Test bookmark with Bookmarks bar prefix."""
         bookmark = Bookmark(
-            url="https://example.com",
-            title="Test",
-            folder="Bookmarks bar/Quick Links"
+            url="https://example.com", title="Test", folder="Bookmarks bar/Quick Links"
         )
         root = self.generator._build_folder_hierarchy([bookmark])
 
@@ -319,9 +310,7 @@ class TestChromeHTMLGenerator:
     def test_build_folder_hierarchy_toolbar(self):
         """Test bookmark with toolbar prefix."""
         bookmark = Bookmark(
-            url="https://example.com",
-            title="Test",
-            folder="toolbar/Quick Links"
+            url="https://example.com", title="Test", folder="toolbar/Quick Links"
         )
         root = self.generator._build_folder_hierarchy([bookmark])
 
@@ -357,9 +346,7 @@ class TestChromeHTMLGenerator:
     def test_build_folder_hierarchy_empty_path_parts(self):
         """Test folder path with empty parts gets cleaned."""
         bookmark = Bookmark(
-            url="https://example.com",
-            title="Test",
-            folder="Tech//Programming///Python"
+            url="https://example.com", title="Test", folder="Tech//Programming///Python"
         )
         root = self.generator._build_folder_hierarchy([bookmark])
 
@@ -372,9 +359,7 @@ class TestChromeHTMLGenerator:
     def test_build_folder_hierarchy_whitespace_in_folder(self):
         """Test folder path with whitespace gets trimmed."""
         bookmark = Bookmark(
-            url="https://example.com",
-            title="Test",
-            folder="  Tech  /  Programming  "
+            url="https://example.com", title="Test", folder="  Tech  /  Programming  "
         )
         root = self.generator._build_folder_hierarchy([bookmark])
 
@@ -494,7 +479,9 @@ class TestChromeHTMLGenerator:
         root.add_child("Bookmarks bar")
         root.add_child("Other bookmarks")
 
-        html = self.generator._generate_html_content(root, "Title <with> & \"special\" chars")
+        html = self.generator._generate_html_content(
+            root, 'Title <with> & "special" chars'
+        )
 
         assert "&lt;with&gt;" in html
         assert "&amp;" in html
@@ -504,9 +491,7 @@ class TestChromeHTMLGenerator:
         """Test that generate_html creates a file."""
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "bookmarks.html"
-            bookmarks = [
-                Bookmark(url="https://example.com", title="Example")
-            ]
+            bookmarks = [Bookmark(url="https://example.com", title="Example")]
 
             self.generator.generate_html(bookmarks, output_path)
 
@@ -519,9 +504,7 @@ class TestChromeHTMLGenerator:
         """Test generate_html accepts string path."""
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = str(Path(tmpdir) / "bookmarks.html")
-            bookmarks = [
-                Bookmark(url="https://example.com", title="Example")
-            ]
+            bookmarks = [Bookmark(url="https://example.com", title="Example")]
 
             self.generator.generate_html(bookmarks, output_path)
 
@@ -544,7 +527,9 @@ class TestChromeHTMLGenerator:
             output_path = Path(tmpdir) / "bookmarks.html"
             bookmarks = []
 
-            self.generator.generate_html(bookmarks, output_path, title="My Custom Bookmarks")
+            self.generator.generate_html(
+                bookmarks, output_path, title="My Custom Bookmarks"
+            )
 
             content = output_path.read_text(encoding="utf-8")
             assert "<TITLE>My Custom Bookmarks</TITLE>" in content
@@ -640,38 +625,36 @@ class TestChromeHTMLGenerator:
                     url="https://python.org",
                     title="Python",
                     folder="Programming/Languages",
-                    created=datetime(2024, 1, 1, tzinfo=timezone.utc)
+                    created=datetime(2024, 1, 1, tzinfo=timezone.utc),
                 ),
                 Bookmark(
                     url="https://github.com",
                     title="GitHub",
                     folder="Development/Tools",
-                    created=datetime(2024, 1, 2, tzinfo=timezone.utc)
+                    created=datetime(2024, 1, 2, tzinfo=timezone.utc),
                 ),
                 Bookmark(
                     url="https://stackoverflow.com",
                     title="Stack Overflow",
                     folder="Programming/Resources",
-                    created=datetime(2024, 1, 3, tzinfo=timezone.utc)
+                    created=datetime(2024, 1, 3, tzinfo=timezone.utc),
                 ),
                 Bookmark(
                     url="https://news.ycombinator.com",
                     title="Hacker News",
                     folder="Bookmarks bar/Daily",
-                    created=datetime(2024, 1, 4, tzinfo=timezone.utc)
+                    created=datetime(2024, 1, 4, tzinfo=timezone.utc),
                 ),
                 Bookmark(
                     url="https://example.com",
                     title="No Folder",
                     folder="",
-                    created=datetime(2024, 1, 5, tzinfo=timezone.utc)
+                    created=datetime(2024, 1, 5, tzinfo=timezone.utc),
                 ),
             ]
 
             self.generator.generate_html(
-                bookmarks,
-                output_path,
-                title="My Test Bookmarks"
+                bookmarks, output_path, title="My Test Bookmarks"
             )
 
             content = output_path.read_text(encoding="utf-8")
@@ -748,7 +731,9 @@ class TestEdgeCases:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "bookmarks.html"
             bookmarks = [
-                Bookmark(url=f"https://example{i}.com", title=f"Test {i}", folder="Same")
+                Bookmark(
+                    url=f"https://example{i}.com", title=f"Test {i}", folder="Same"
+                )
                 for i in range(100)
             ]
 
@@ -762,7 +747,11 @@ class TestEdgeCases:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "bookmarks.html"
             bookmarks = [
-                Bookmark(url="https://example.com", title="Test", folder="Caf\u00e9/B\u00e4cker")
+                Bookmark(
+                    url="https://example.com",
+                    title="Test",
+                    folder="Caf\u00e9/B\u00e4cker",
+                )
             ]
 
             self.generator.generate_html(bookmarks, output_path)
@@ -808,7 +797,7 @@ class TestEdgeCases:
                     Bookmark(
                         url=f"https://example{i}.com",
                         title=f"Test {i}",
-                        folder=f"{folder_prefix}/Subfolder"
+                        folder=f"{folder_prefix}/Subfolder",
                     )
                 ]
 

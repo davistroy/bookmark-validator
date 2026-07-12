@@ -47,7 +47,6 @@ class Configuration:
         self._manager.update_from_cli_args(args)
         self._config = self._manager.config
 
-
     def get_model_cache_dir(self) -> Path:
         """Get AI model cache directory with environment variable expansion."""
         cache_dir = "~/.cache/bookmark-processor/models"

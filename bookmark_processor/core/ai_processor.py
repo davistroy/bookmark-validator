@@ -432,7 +432,7 @@ class EnhancedAIProcessor:
     ) -> List[Bookmark]:
         """
         Alias for process_batch to maintain backward compatibility.
-        
+
         Args:
             bookmarks: List of bookmarks to process
             content_data_map: Optional mapping of URLs to content data

@@ -14,7 +14,6 @@ from typing import Any, Dict, Optional, Tuple
 
 from bookmark_processor.core.data_models import Bookmark
 
-
 # ============================================================================
 # Unified Exception Hierarchy for Bookmark Processor
 # ============================================================================

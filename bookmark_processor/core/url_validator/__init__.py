@@ -93,23 +93,21 @@ def _get_enhanced_batch_processor():
 
     # Get the path to batch_validator.py
     core_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    batch_validator_path = os.path.join(core_dir, 'batch_validator.py')
+    batch_validator_path = os.path.join(core_dir, "batch_validator.py")
 
     # Check if already loaded
-    module_name = 'bookmark_processor.core._batch_validator'
+    module_name = "bookmark_processor.core._batch_validator"
     if module_name in sys.modules:
         return sys.modules[module_name].EnhancedBatchProcessor
 
     # Load from file path with proper package info for relative imports
     spec = importlib.util.spec_from_file_location(
-        module_name,
-        batch_validator_path,
-        submodule_search_locations=[]
+        module_name, batch_validator_path, submodule_search_locations=[]
     )
     if spec and spec.loader:
         module = importlib.util.module_from_spec(spec)
         # Set up module's package info so relative imports work
-        module.__package__ = 'bookmark_processor.core'
+        module.__package__ = "bookmark_processor.core"
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
         return module.EnhancedBatchProcessor

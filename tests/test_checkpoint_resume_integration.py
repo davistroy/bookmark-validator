@@ -261,7 +261,7 @@ class TestCheckpointResumeIntegration:
                 url=url, is_valid=True, status_code=200
             )
             test_bookmark = Bookmark(
-                id=str(i+2),  # Starting from 2 since first one was id=1
+                id=str(i + 2),  # Starting from 2 since first one was id=1
                 title=f"Title for {url}",
                 url=url,
                 note=f"Test note for {url}",
@@ -672,11 +672,14 @@ class TestCheckpointResumeIntegration:
             first_resume_count = sum(
                 1
                 for r in pipeline2.ai_results.values()
-                if hasattr(r, 'processing_method') and r.processing_method == "first_resume"
+                if hasattr(r, "processing_method")
+                and r.processing_method == "first_resume"
             )
 
             # Verify first resume produced at least 1 result (from checkpoint)
-            assert first_resume_count >= 1, "Should have at least one result from first resume"
+            assert (
+                first_resume_count >= 1
+            ), "Should have at least one result from first resume"
 
         # Cleanup
         pipeline2._cleanup_resources()

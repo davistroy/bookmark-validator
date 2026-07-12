@@ -43,7 +43,7 @@ class NotionExporter(BookmarkExporter):
         tag_separator: str = ", ",
         date_format: str = "%Y-%m-%d",
         use_notion_date_format: bool = True,
-        custom_columns: Optional[List[str]] = None
+        custom_columns: Optional[List[str]] = None,
     ):
         """
         Initialize the Notion exporter.
@@ -71,11 +71,7 @@ class NotionExporter(BookmarkExporter):
     def file_extension(self) -> str:
         return "csv"
 
-    def export(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
-    ) -> ExportResult:
+    def export(self, bookmarks: List[Bookmark], output_path: Path) -> ExportResult:
         """
         Export bookmarks to a Notion-compatible CSV file.
 
@@ -92,10 +88,7 @@ class NotionExporter(BookmarkExporter):
         warnings = self.validate_bookmarks(bookmarks)
 
         if not bookmarks:
-            raise ExportError(
-                "No bookmarks to export",
-                format_name=self.format_name
-            )
+            raise ExportError("No bookmarks to export", format_name=self.format_name)
 
         # Prepare output path
         path = self.prepare_output_path(output_path)
@@ -122,11 +115,8 @@ class NotionExporter(BookmarkExporter):
                 path=path,
                 count=len(bookmarks),
                 format_name=self.format_name,
-                additional_info={
-                    "columns": columns,
-                    "file_size": path.stat().st_size
-                },
-                warnings=warnings
+                additional_info={"columns": columns, "file_size": path.stat().st_size},
+                warnings=warnings,
             )
 
         except PermissionError as e:
@@ -134,14 +124,14 @@ class NotionExporter(BookmarkExporter):
                 f"Permission denied writing to {path}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
         except Exception as e:
             raise ExportError(
                 f"Failed to export Notion CSV: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
 
     def _get_columns(self) -> List[str]:
@@ -152,12 +142,9 @@ class NotionExporter(BookmarkExporter):
             columns.append("Status")
 
         if self.include_processing_info:
-            columns.extend([
-                "URL Validated",
-                "Content Extracted",
-                "AI Processed",
-                "Tags Optimized"
-            ])
+            columns.extend(
+                ["URL Validated", "Content Extracted", "AI Processed", "Tags Optimized"]
+            )
 
         # Add custom columns
         for col in self.custom_columns:
@@ -186,7 +173,9 @@ class NotionExporter(BookmarkExporter):
         if self.include_processing_info:
             status = bookmark.processing_status
             row["URL Validated"] = "Yes" if status and status.url_validated else "No"
-            row["Content Extracted"] = "Yes" if status and status.content_extracted else "No"
+            row["Content Extracted"] = (
+                "Yes" if status and status.content_extracted else "No"
+            )
             row["AI Processed"] = "Yes" if status and status.ai_processed else "No"
             row["Tags Optimized"] = "Yes" if status and status.tags_optimized else "No"
 
@@ -204,11 +193,7 @@ class NotionExporter(BookmarkExporter):
             return ""
         return dt.strftime(self.date_format)
 
-    def _truncate_description(
-        self,
-        description: str,
-        max_length: int = 2000
-    ) -> str:
+    def _truncate_description(self, description: str, max_length: int = 2000) -> str:
         """Truncate description to fit Notion's limits."""
         if not description:
             return ""
@@ -217,7 +202,7 @@ class NotionExporter(BookmarkExporter):
         if len(description) <= max_length:
             return description
 
-        return description[:max_length - 3] + "..."
+        return description[: max_length - 3] + "..."
 
     def _determine_status(self, bookmark: Bookmark) -> str:
         """Determine the status for a bookmark."""
@@ -244,7 +229,7 @@ class NotionExporter(BookmarkExporter):
         self,
         bookmarks: List[Bookmark],
         output_path: Path,
-        relation_field: str = "Related"
+        relation_field: str = "Related",
     ) -> ExportResult:
         """
         Export bookmarks with relation suggestions based on shared tags.
@@ -297,10 +282,7 @@ class NotionExporter(BookmarkExporter):
                 path=path,
                 count=len(bookmarks),
                 format_name=f"{self.format_name} (with relations)",
-                additional_info={
-                    "columns": columns,
-                    "relation_field": relation_field
-                }
+                additional_info={"columns": columns, "relation_field": relation_field},
             )
 
         except Exception as e:
@@ -308,5 +290,5 @@ class NotionExporter(BookmarkExporter):
                 f"Failed to export Notion CSV with relations: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )

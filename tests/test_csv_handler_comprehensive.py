@@ -29,7 +29,6 @@ from bookmark_processor.utils.error_handler import (
     CSVValidationError,
 )
 
-
 # =============================================================================
 # Test Fixtures
 # =============================================================================
@@ -78,7 +77,9 @@ def valid_export_data():
 def temp_csv_file(valid_export_data):
     """Create a temporary CSV file with valid export data."""
     df = pd.DataFrame(valid_export_data)
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".csv", delete=False, encoding="utf-8"
+    ) as f:
         df.to_csv(f, index=False)
         temp_path = f.name
     yield temp_path
@@ -104,8 +105,17 @@ class TestRaindropCSVHandlerInit:
     def test_export_columns(self, handler):
         """Test that export columns are correctly defined."""
         expected_columns = [
-            "id", "title", "note", "excerpt", "url", "folder",
-            "tags", "created", "cover", "highlights", "favorite"
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
         ]
         assert handler.EXPORT_COLUMNS == expected_columns
         assert handler.export_columns == expected_columns
@@ -172,19 +182,21 @@ class TestColumnMapping:
 
     def test_normalize_column_names(self, handler):
         """Test column name normalization."""
-        df = pd.DataFrame({
-            "ID": ["1"],
-            "TITLE": ["Test"],
-            "NOTE": [""],
-            "EXCERPT": [""],
-            "URL": ["https://example.com"],
-            "FOLDER": [""],
-            "TAGS": [""],
-            "CREATED": [""],
-            "COVER": [""],
-            "HIGHLIGHTS": [""],
-            "FAVORITE": ["false"],
-        })
+        df = pd.DataFrame(
+            {
+                "ID": ["1"],
+                "TITLE": ["Test"],
+                "NOTE": [""],
+                "EXCERPT": [""],
+                "URL": ["https://example.com"],
+                "FOLDER": [""],
+                "TAGS": [""],
+                "CREATED": [""],
+                "COVER": [""],
+                "HIGHLIGHTS": [""],
+                "FAVORITE": ["false"],
+            }
+        )
         normalized = handler.normalize_column_names(df)
         assert "id" in normalized.columns
         assert "title" in normalized.columns
@@ -192,19 +204,21 @@ class TestColumnMapping:
 
     def test_normalize_mixed_case_columns(self, handler):
         """Test normalizing mixed case column names."""
-        df = pd.DataFrame({
-            "Id": ["1"],
-            "Title": ["Test"],
-            "Note": [""],
-            "Excerpt": [""],
-            "Url": ["https://example.com"],
-            "Folder": [""],
-            "Tags": [""],
-            "Created": [""],
-            "Cover": [""],
-            "Highlights": [""],
-            "Favorite": ["false"],
-        })
+        df = pd.DataFrame(
+            {
+                "Id": ["1"],
+                "Title": ["Test"],
+                "Note": [""],
+                "Excerpt": [""],
+                "Url": ["https://example.com"],
+                "Folder": [""],
+                "Tags": [""],
+                "Created": [""],
+                "Cover": [""],
+                "Highlights": [""],
+                "Favorite": ["false"],
+            }
+        )
         normalized = handler.normalize_column_names(df)
         # All columns should be normalized to lowercase
         for col in handler.EXPORT_COLUMNS:
@@ -299,7 +313,7 @@ class TestTagFormatting:
     def test_parse_tags_removes_quotes(self, handler):
         """Test that quotes are removed from tags."""
         tags = handler._parse_tags_field('"tag1", "tag2"')
-        assert all("\"" not in tag for tag in tags)
+        assert all('"' not in tag for tag in tags)
 
     def test_parse_tags_filters_short_tags(self, handler):
         """Test that single character tags are filtered."""
@@ -765,7 +779,7 @@ class TestReadWriteOperations:
         # Create a file with invalid encoding
         path = os.path.join(temp_dir, "invalid_encoding.csv")
         with open(path, "wb") as f:
-            f.write(b'\xff\xfe')  # Invalid UTF-8 start
+            f.write(b"\xff\xfe")  # Invalid UTF-8 start
 
         with pytest.raises(CSVParsingError):
             handler._try_parse_csv(path, ["utf-8"])
@@ -781,19 +795,21 @@ class TestDataFrameTransformation:
 
     def test_transform_row_to_bookmark(self, handler):
         """Test transforming single row to Bookmark."""
-        row = pd.Series({
-            "id": "1",
-            "title": "Test Title",
-            "note": "Test Note",
-            "excerpt": "Test Excerpt",
-            "url": "https://example.com",
-            "folder": "Test/Folder",
-            "tags": "tag1, tag2",
-            "created": "2024-01-01T00:00:00Z",
-            "cover": "",
-            "highlights": "",
-            "favorite": "true",
-        })
+        row = pd.Series(
+            {
+                "id": "1",
+                "title": "Test Title",
+                "note": "Test Note",
+                "excerpt": "Test Excerpt",
+                "url": "https://example.com",
+                "folder": "Test/Folder",
+                "tags": "tag1, tag2",
+                "created": "2024-01-01T00:00:00Z",
+                "cover": "",
+                "highlights": "",
+                "favorite": "true",
+            }
+        )
         bookmark = handler.transform_row_to_bookmark(row)
 
         assert bookmark.url == "https://example.com"
@@ -803,13 +819,15 @@ class TestDataFrameTransformation:
 
     def test_transform_row_missing_url(self, handler):
         """Test that missing URL raises error."""
-        row = pd.Series({
-            "id": "1",
-            "title": "Test",
-            "url": "",
-            "folder": "",
-            "tags": "",
-        })
+        row = pd.Series(
+            {
+                "id": "1",
+                "title": "Test",
+                "url": "",
+                "folder": "",
+                "tags": "",
+            }
+        )
         with pytest.raises(CSVValidationError):
             handler.transform_row_to_bookmark(row)
 
@@ -880,10 +898,12 @@ class TestDataFrameTransformation:
 
     def test_clean_dataframe_values(self, handler):
         """Test cleaning DataFrame values."""
-        df = pd.DataFrame({
-            "title": ["  Spaced  ", "Normal", None],
-            "url": ["https://example.com", "  https://test.com  ", ""],
-        })
+        df = pd.DataFrame(
+            {
+                "title": ["  Spaced  ", "Normal", None],
+                "url": ["https://example.com", "  https://test.com  ", ""],
+            }
+        )
         cleaned = handler._clean_dataframe_values(df)
 
         assert cleaned.iloc[0]["title"] == "Spaced"
@@ -910,7 +930,9 @@ class TestFieldCleaning:
     def test_clean_url_field(self, handler):
         """Test URL field cleaning."""
         assert handler._clean_url_field("https://example.com") == "https://example.com"
-        assert handler._clean_url_field("  https://example.com  ") == "https://example.com"
+        assert (
+            handler._clean_url_field("  https://example.com  ") == "https://example.com"
+        )
         assert handler._clean_url_field("www.example.com") == "https://www.example.com"
         assert handler._clean_url_field("example.com") == "https://example.com"
         assert handler._clean_url_field("") == ""
@@ -1042,7 +1064,11 @@ class TestDataQualityChecks:
         # Create data with unique non-empty IDs to avoid duplicate ID error
         data = {col: ["val1", "val2", "val3"] for col in handler.EXPORT_COLUMNS}
         data["id"] = ["1", "2", "3"]  # Unique IDs
-        data["url"] = ["https://example1.com", "https://example2.com", "https://example3.com"]
+        data["url"] = [
+            "https://example1.com",
+            "https://example2.com",
+            "https://example3.com",
+        ]
         data["title"] = ["Title 1", "Title 2", "Title 3"]
         df = pd.DataFrame(data)
         path = os.path.join(temp_dir, "valid_rows.csv")
@@ -1215,19 +1241,21 @@ class TestEdgeCases:
 
     def test_whitespace_only_fields(self, handler):
         """Test handling fields with only whitespace."""
-        row = pd.Series({
-            "id": "   ",
-            "title": "   ",
-            "note": "   ",
-            "excerpt": "   ",
-            "url": "https://example.com",
-            "folder": "   ",
-            "tags": "   ",
-            "created": "   ",
-            "cover": "   ",
-            "highlights": "   ",
-            "favorite": "   ",
-        })
+        row = pd.Series(
+            {
+                "id": "   ",
+                "title": "   ",
+                "note": "   ",
+                "excerpt": "   ",
+                "url": "https://example.com",
+                "folder": "   ",
+                "tags": "   ",
+                "created": "   ",
+                "cover": "   ",
+                "highlights": "   ",
+                "favorite": "   ",
+            }
+        )
         bookmark = handler.transform_row_to_bookmark(row)
         assert bookmark.url == "https://example.com"
         assert bookmark.title == ""
@@ -1257,19 +1285,21 @@ class TestEdgeCases:
     def test_very_long_url(self, handler):
         """Test handling very long URLs."""
         long_path = "a" * 2000
-        row = pd.Series({
-            "id": "1",
-            "title": "Test",
-            "note": "",
-            "excerpt": "",
-            "url": f"https://example.com/{long_path}",
-            "folder": "",
-            "tags": "",
-            "created": "",
-            "cover": "",
-            "highlights": "",
-            "favorite": "false",
-        })
+        row = pd.Series(
+            {
+                "id": "1",
+                "title": "Test",
+                "note": "",
+                "excerpt": "",
+                "url": f"https://example.com/{long_path}",
+                "folder": "",
+                "tags": "",
+                "created": "",
+                "cover": "",
+                "highlights": "",
+                "favorite": "false",
+            }
+        )
         bookmark = handler.transform_row_to_bookmark(row)
         assert len(bookmark.url) > 2000
 
@@ -1282,19 +1312,21 @@ class TestEdgeCases:
         """Test handling of pandas NA values."""
         import numpy as np
 
-        row = pd.Series({
-            "id": pd.NA,
-            "title": np.nan,
-            "note": None,
-            "excerpt": "",
-            "url": "https://example.com",
-            "folder": pd.NA,
-            "tags": np.nan,
-            "created": None,
-            "cover": "",
-            "highlights": "",
-            "favorite": pd.NA,
-        })
+        row = pd.Series(
+            {
+                "id": pd.NA,
+                "title": np.nan,
+                "note": None,
+                "excerpt": "",
+                "url": "https://example.com",
+                "folder": pd.NA,
+                "tags": np.nan,
+                "created": None,
+                "cover": "",
+                "highlights": "",
+                "favorite": pd.NA,
+            }
+        )
         bookmark = handler.transform_row_to_bookmark(row)
         assert bookmark.url == "https://example.com"
         assert bookmark.title == ""
@@ -1435,38 +1467,42 @@ class TestAdditionalCoverage:
 
     def test_validate_structure_wrong_columns(self, handler):
         """Test validation fails with wrong column names."""
-        df = pd.DataFrame({
-            "wrong1": ["1"],
-            "wrong2": ["Test"],
-            "wrong3": [""],
-            "wrong4": [""],
-            "wrong5": ["https://example.com"],
-            "wrong6": [""],
-            "wrong7": [""],
-            "wrong8": [""],
-            "wrong9": [""],
-            "wrong10": [""],
-            "wrong11": ["false"],
-        })
+        df = pd.DataFrame(
+            {
+                "wrong1": ["1"],
+                "wrong2": ["Test"],
+                "wrong3": [""],
+                "wrong4": [""],
+                "wrong5": ["https://example.com"],
+                "wrong6": [""],
+                "wrong7": [""],
+                "wrong8": [""],
+                "wrong9": [""],
+                "wrong10": [""],
+                "wrong11": ["false"],
+            }
+        )
         with pytest.raises(CSVFormatError) as exc_info:
             handler.validate_export_structure(df)
         assert "Missing" in str(exc_info.value)
 
     def test_validate_structure_extra_and_missing(self, handler):
         """Test validation reports extra columns."""
-        df = pd.DataFrame({
-            "id": ["1"],
-            "title": ["Test"],
-            "note": [""],
-            "excerpt": [""],
-            "url": ["https://example.com"],
-            "folder": [""],
-            "tags": [""],
-            "created": [""],
-            "cover": [""],
-            "extra": [""],  # Extra column instead of highlights
-            "favorite": ["false"],
-        })
+        df = pd.DataFrame(
+            {
+                "id": ["1"],
+                "title": ["Test"],
+                "note": [""],
+                "excerpt": [""],
+                "url": ["https://example.com"],
+                "folder": [""],
+                "tags": [""],
+                "created": [""],
+                "cover": [""],
+                "extra": [""],  # Extra column instead of highlights
+                "favorite": ["false"],
+            }
+        )
         with pytest.raises(CSVFormatError) as exc_info:
             handler.validate_export_structure(df)
         assert "Unexpected columns" in str(exc_info.value)
@@ -1524,7 +1560,12 @@ class TestAdditionalCoverage:
             "title": ["T1", "T2", "T3", "T4"],
             "note": ["", "", "", ""],
             "excerpt": ["", "", "", ""],
-            "url": ["javascript:void(0)", "data:text/html", "not-url", "https://valid.com"],
+            "url": [
+                "javascript:void(0)",
+                "data:text/html",
+                "not-url",
+                "https://valid.com",
+            ],
             "folder": ["", "", "", ""],
             "tags": ["", "", "", ""],
             "created": ["", "", "", ""],
@@ -1565,13 +1606,16 @@ class TestAdditionalCoverage:
             f.write(content)
 
         diagnosis = handler.diagnose_csv_issues(path)
-        assert len(diagnosis["parsing_errors"]) > 0 or len(diagnosis["structure_issues"]) > 0
+        assert (
+            len(diagnosis["parsing_errors"]) > 0
+            or len(diagnosis["structure_issues"]) > 0
+        )
 
     def test_diagnose_csv_parsing_failure(self, handler, temp_dir):
         """Test diagnosis reports parsing failures."""
         path = os.path.join(temp_dir, "invalid.csv")
         with open(path, "wb") as f:
-            f.write(b'\xff\xfe\x00\x00')  # Invalid content
+            f.write(b"\xff\xfe\x00\x00")  # Invalid content
 
         diagnosis = handler.diagnose_csv_issues(path)
         assert len(diagnosis["suggestions"]) > 0
@@ -1589,11 +1633,13 @@ class TestAdditionalCoverage:
 
     def test_transform_row_exception(self, handler):
         """Test transform_row handles unexpected exceptions."""
-        row = pd.Series({
-            "id": "1",
-            "title": "Test",
-            "url": "https://example.com",
-        })
+        row = pd.Series(
+            {
+                "id": "1",
+                "title": "Test",
+                "url": "https://example.com",
+            }
+        )
         # Missing other fields should still work
         bookmark = handler.transform_row_to_bookmark(row)
         assert bookmark.url == "https://example.com"
@@ -1765,7 +1811,10 @@ class TestAdditionalCoverage:
             mock_detect.return_value = {"encoding": "iso-8859-1", "confidence": 0.3}
             diagnosis = handler.diagnose_csv_issues(path)
             # Should suggest UTF-8 conversion
-            assert any("UTF-8" in s or "encoding" in s.lower() for s in diagnosis["suggestions"])
+            assert any(
+                "UTF-8" in s or "encoding" in s.lower()
+                for s in diagnosis["suggestions"]
+            )
 
     def test_diagnosis_structure_issues_suggestion(self, handler, temp_dir):
         """Test diagnosis adds suggestion for structure issues.
@@ -1832,15 +1881,18 @@ class TestAdditionalCoverage:
 
     def test_transform_row_unexpected_exception(self, handler):
         """Test transform_row wraps unexpected exceptions."""
+
         # Create a row that causes unexpected error
         class BadValue:
             def __str__(self):
                 raise RuntimeError("Cannot convert to string")
 
-        row = pd.Series({
-            "id": BadValue(),
-            "url": "https://example.com",
-        })
+        row = pd.Series(
+            {
+                "id": BadValue(),
+                "url": "https://example.com",
+            }
+        )
 
         with pytest.raises(CSVValidationError) as exc_info:
             handler.transform_row_to_bookmark(row)
@@ -1905,7 +1957,7 @@ class TestAdditionalCoverage:
         path = os.path.join(temp_dir, "unparseable.csv")
         with open(path, "wb") as f:
             # Write some binary data
-            f.write(b'\x00\x01\x02\x03' * 100)
+            f.write(b"\x00\x01\x02\x03" * 100)
 
         # pandas may actually parse this - check if it raises or returns something
         try:
@@ -1939,7 +1991,12 @@ class TestAdditionalCoverage:
             "title": ["T1", "T2", "", ""],  # 50% missing
             "note": ["", "", "", ""],
             "excerpt": ["", "", "", ""],
-            "url": ["https://ex1.com", "https://ex2.com", "https://ex3.com", "https://ex4.com"],
+            "url": [
+                "https://ex1.com",
+                "https://ex2.com",
+                "https://ex3.com",
+                "https://ex4.com",
+            ],
             "folder": ["", "", "", ""],
             "tags": ["", "", "", ""],
             "created": ["", "", "", ""],
@@ -2042,12 +2099,14 @@ class TestFinalCoveragePush:
     def test_url_validation_with_various_protocols(self, handler):
         """Test URL format validation with different protocols."""
         # Test the internal URL validation logic
-        row = pd.Series({
-            "id": "1",
-            "title": "Test",
-            "url": "ftp://files.example.com",  # Valid FTP URL
-            "folder": "",
-        })
+        row = pd.Series(
+            {
+                "id": "1",
+                "title": "Test",
+                "url": "ftp://files.example.com",  # Valid FTP URL
+                "folder": "",
+            }
+        )
         bookmark = handler.transform_row_to_bookmark(row)
         assert "ftp://" in bookmark.url
 
@@ -2108,26 +2167,30 @@ class TestFinalCoveragePush:
     def test_transform_row_with_non_series_input(self, handler):
         """Test transform_row handles dict input."""
         # Pass a dict instead of Series
-        row = pd.Series({
-            "id": "1",
-            "title": "Test",
-            "note": "",
-            "excerpt": "",
-            "url": "https://example.com",
-            "folder": "",
-            "tags": "",
-            "created": "",
-            "cover": "",
-            "highlights": "",
-            "favorite": "false",
-        })
+        row = pd.Series(
+            {
+                "id": "1",
+                "title": "Test",
+                "note": "",
+                "excerpt": "",
+                "url": "https://example.com",
+                "folder": "",
+                "tags": "",
+                "created": "",
+                "cover": "",
+                "highlights": "",
+                "favorite": "false",
+            }
+        )
         bookmark = handler.transform_row_to_bookmark(row)
         assert bookmark.url == "https://example.com"
 
     def test_load_export_csv_with_empty_returned_df(self, handler, temp_dir):
         """Test load_export_csv handles empty DataFrame after fallback."""
         # Create a file with only headers
-        content = "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+        content = (
+            "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+        )
         path = os.path.join(temp_dir, "headers_only.csv")
         with open(path, "w") as f:
             f.write(content)
@@ -2174,6 +2237,3 @@ class TestFinalCoveragePush:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
-
-

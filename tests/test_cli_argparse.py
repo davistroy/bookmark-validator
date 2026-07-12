@@ -22,7 +22,6 @@ import pytest
 from bookmark_processor.cli_argparse import CLIInterface, main
 from bookmark_processor.utils.validation import ValidationError
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
@@ -92,8 +91,7 @@ class TestParserCreation:
     def test_parser_formatter_class(self, cli_interface):
         """Test that parser uses RawDescriptionHelpFormatter."""
         assert (
-            cli_interface.parser.formatter_class
-            == argparse.RawDescriptionHelpFormatter
+            cli_interface.parser.formatter_class == argparse.RawDescriptionHelpFormatter
         )
 
 
@@ -340,7 +338,13 @@ class TestParserArguments:
 
     def test_create_config_valid_choices(self, cli_interface):
         """Test --create-config accepts valid choices."""
-        for config_type in ["basic", "claude", "openai", "performance", "large-dataset"]:
+        for config_type in [
+            "basic",
+            "claude",
+            "openai",
+            "performance",
+            "large-dataset",
+        ]:
             args = cli_interface.parse_args(["--create-config", config_type])
             assert args.create_config == config_type
 
@@ -439,7 +443,12 @@ class TestArgumentValidation:
                 mock_validate_output.return_value = sample_output_csv
 
                 args = cli_interface.parse_args(
-                    ["--input", str(sample_input_csv), "--output", str(sample_output_csv)]
+                    [
+                        "--input",
+                        str(sample_input_csv),
+                        "--output",
+                        str(sample_output_csv),
+                    ]
                 )
                 validated = cli_interface.validate_args(args)
 
@@ -701,7 +710,9 @@ class TestHelpText:
 class TestCreateConfigHandling:
     """Test --create-config option handling."""
 
-    def test_handle_create_config_unknown_type(self, cli_interface, temp_dir, monkeypatch):
+    def test_handle_create_config_unknown_type(
+        self, cli_interface, temp_dir, monkeypatch
+    ):
         """Test handling of unknown config type."""
         monkeypatch.chdir(temp_dir)
         result = cli_interface._handle_create_config("unknown")
@@ -728,7 +739,9 @@ class TestCreateConfigHandling:
             # Don't create the template file
 
             # Patch __file__ to point to our temp dir
-            with patch.object(cli_module, "__file__", str(temp_dir / "cli_argparse.py")):
+            with patch.object(
+                cli_module, "__file__", str(temp_dir / "cli_argparse.py")
+            ):
                 result = cli_interface._handle_create_config("basic")
                 # Should fail because template doesn't exist
                 assert result == 1
@@ -746,7 +759,10 @@ class TestCreateConfigHandling:
         with patch("builtins.input", return_value="n"):
             # We need to provide a valid template path
             import bookmark_processor.cli_argparse
-            config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
+
+            config_dir = (
+                Path(bookmark_processor.cli_argparse.__file__).parent / "config"
+            )
             template_file = config_dir / "user_config.toml.template"
 
             # Create the template if it doesn't exist for the test
@@ -763,6 +779,7 @@ class TestCreateConfigHandling:
         (temp_dir / "user_config.toml").write_text("existing")
 
         import bookmark_processor.cli_argparse
+
         config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
         template_file = config_dir / "user_config.toml.template"
 
@@ -780,6 +797,7 @@ class TestCreateConfigHandling:
         monkeypatch.chdir(temp_dir)
 
         import bookmark_processor.cli_argparse
+
         config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
         template_file = config_dir / "user_config.toml.template"
 
@@ -795,6 +813,7 @@ class TestCreateConfigHandling:
         monkeypatch.chdir(temp_dir)
 
         import bookmark_processor.cli_argparse
+
         config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
         template_file = config_dir / "claude_config.toml.template"
 
@@ -809,6 +828,7 @@ class TestCreateConfigHandling:
         monkeypatch.chdir(temp_dir)
 
         import bookmark_processor.cli_argparse
+
         config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
         template_file = config_dir / "openai_config.toml.template"
 
@@ -823,6 +843,7 @@ class TestCreateConfigHandling:
         monkeypatch.chdir(temp_dir)
 
         import bookmark_processor.cli_argparse
+
         config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
         template_file = config_dir / "local_performance.toml.template"
 
@@ -837,6 +858,7 @@ class TestCreateConfigHandling:
         monkeypatch.chdir(temp_dir)
 
         import bookmark_processor.cli_argparse
+
         config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
         template_file = config_dir / "large_dataset.toml.template"
 
@@ -844,15 +866,16 @@ class TestCreateConfigHandling:
             result = cli_interface._handle_create_config("large-dataset")
             assert result == 0
 
-    def test_handle_create_config_exception(
-        self, cli_interface, temp_dir, monkeypatch
-    ):
+    def test_handle_create_config_exception(self, cli_interface, temp_dir, monkeypatch):
         """Test exception handling during config creation."""
         monkeypatch.chdir(temp_dir)
 
         with patch("shutil.copy2", side_effect=Exception("Permission denied")):
             import bookmark_processor.cli_argparse
-            config_dir = Path(bookmark_processor.cli_argparse.__file__).parent / "config"
+
+            config_dir = (
+                Path(bookmark_processor.cli_argparse.__file__).parent / "config"
+            )
             template_file = config_dir / "user_config.toml.template"
 
             if config_dir.exists() and template_file.exists():
@@ -870,7 +893,9 @@ class TestRunMethod:
 
     def test_run_returns_error_on_validation_error(self, cli_interface):
         """Test that run returns 1 on ValidationError."""
-        result = cli_interface.run(["--input", "nonexistent.csv", "--output", "out.csv"])
+        result = cli_interface.run(
+            ["--input", "nonexistent.csv", "--output", "out.csv"]
+        )
         assert result == 1
 
     def test_run_with_create_config(self, cli_interface, temp_dir, monkeypatch):

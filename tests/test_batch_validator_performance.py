@@ -16,7 +16,9 @@ from unittest.mock import MagicMock, Mock, patch, AsyncMock
 import pytest
 
 from bookmark_processor.core.batch_types import BatchConfig, BatchResult
-from bookmark_processor.core.batch_validator.performance import PerformanceOptimizationMixin
+from bookmark_processor.core.batch_validator.performance import (
+    PerformanceOptimizationMixin,
+)
 
 
 class ConcretePerformanceMixin(PerformanceOptimizationMixin):
@@ -338,7 +340,7 @@ class TestAutoTuneBatchSize:
             (50, 0.1),
         ]
 
-        with patch('logging.info') as mock_log:
+        with patch("logging.info") as mock_log:
             mixin._auto_tune_batch_size()
             # Should not log any change
             for call in mock_log.call_args_list:
@@ -365,7 +367,7 @@ class TestAutoTuneBatchSize:
             (50, 0.2),
         ]
 
-        with patch('logging.info') as mock_log:
+        with patch("logging.info") as mock_log:
             mixin._auto_tune_batch_size()
             # Should log the change
             mock_log.assert_called()
@@ -518,7 +520,7 @@ class TestAdaptConcurrencyLimits:
             (10, 0.5),
         ]
 
-        with patch('logging.info') as mock_log:
+        with patch("logging.info") as mock_log:
             mixin._adapt_concurrency_limits()
             mock_log.assert_called()
             call_args = str(mock_log.call_args)
@@ -652,7 +654,7 @@ class TestApplyDomainRateLimiting:
         # Invalid URL - should not crash
         url = "not-a-valid-url"
 
-        with patch('logging.debug') as mock_log:
+        with patch("logging.debug") as mock_log:
             await mixin._apply_domain_rate_limiting(url)
             # Should log debug message about failure
             # The function catches exceptions and adds minimal delay
@@ -667,8 +669,8 @@ class TestApplyDomainRateLimiting:
 
         # Mock urlparse to raise an exception
         with patch(
-            'bookmark_processor.core.batch_validator.performance.urlparse',
-            side_effect=ValueError("Forced URL parse error")
+            "bookmark_processor.core.batch_validator.performance.urlparse",
+            side_effect=ValueError("Forced URL parse error"),
         ):
             start = time.time()
             await mixin._apply_domain_rate_limiting(url)

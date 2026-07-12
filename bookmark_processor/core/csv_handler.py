@@ -847,9 +847,7 @@ class RaindropCSVHandler:
             # URL seems valid, just clean it up
             url = re.sub(r"\s", "", url)  # Remove any whitespace
 
-        elif url.startswith(
-            ("javascript:", "data:", "mailto:", "ftp:", "file:")
-        ):
+        elif url.startswith(("javascript:", "data:", "mailto:", "ftp:", "file:")):
             # Special protocols - don't modify
             pass
 

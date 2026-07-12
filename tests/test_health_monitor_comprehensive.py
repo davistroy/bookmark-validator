@@ -23,7 +23,6 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch, PropertyMock
 
 import pytest
 
-
 # Check if httpx is available for health monitoring
 try:
     import httpx
@@ -35,6 +34,7 @@ try:
         WaybackMachineClient,
         HTTPX_AVAILABLE,
     )
+
     HTTPX_INSTALLED = True
 except ImportError:
     HTTPX_INSTALLED = False
@@ -48,17 +48,16 @@ except ImportError:
 
 from bookmark_processor.core.data_models import Bookmark
 
-
 # Skip all tests if httpx is not available
 pytestmark = pytest.mark.skipif(
-    not HTTPX_INSTALLED,
-    reason="httpx is required for health monitoring tests"
+    not HTTPX_INSTALLED, reason="httpx is required for health monitoring tests"
 )
 
 
 # =========================================================================
 # Fixtures
 # =========================================================================
+
 
 @pytest.fixture
 def sample_bookmarks() -> List[Bookmark]:
@@ -127,7 +126,7 @@ def mock_state_tracker_with_data():
     tracker.get_processed_info.return_value = {
         "url": "https://example.com",
         "content_hash": "abc123",
-        "processed_at": "2024-01-01T00:00:00"
+        "processed_at": "2024-01-01T00:00:00",
     }
     return tracker
 
@@ -135,6 +134,7 @@ def mock_state_tracker_with_data():
 # =========================================================================
 # HealthCheckResult Comprehensive Tests
 # =========================================================================
+
 
 class TestHealthCheckResultComprehensive:
     """Comprehensive tests for HealthCheckResult dataclass."""
@@ -152,7 +152,7 @@ class TestHealthCheckResultComprehensive:
             wayback_url="https://web.archive.org/web/20240101/https://example.com",
             response_time=0.5,
             error_message=None,
-            content_hash="abc123"
+            content_hash="abc123",
         )
 
         assert result.url == "https://example.com"
@@ -168,10 +168,7 @@ class TestHealthCheckResultComprehensive:
 
     def test_create_minimal_result(self):
         """Test creating result with minimal required fields."""
-        result = HealthCheckResult(
-            url="https://example.com",
-            status="healthy"
-        )
+        result = HealthCheckResult(url="https://example.com", status="healthy")
 
         assert result.url == "https://example.com"
         assert result.status == "healthy"
@@ -185,10 +182,7 @@ class TestHealthCheckResultComprehensive:
 
     def test_str_representation_short_url(self):
         """Test string representation with short URL."""
-        result = HealthCheckResult(
-            url="https://example.com",
-            status="dead"
-        )
+        result = HealthCheckResult(url="https://example.com", status="dead")
 
         str_repr = str(result)
         assert "dead" in str_repr
@@ -197,10 +191,7 @@ class TestHealthCheckResultComprehensive:
     def test_str_representation_long_url(self):
         """Test string representation with long URL (>50 chars)."""
         long_url = "https://example.com/this/is/a/very/long/path/to/a/resource/that/exceeds/fifty/characters"
-        result = HealthCheckResult(
-            url=long_url,
-            status="healthy"
-        )
+        result = HealthCheckResult(url=long_url, status="healthy")
 
         str_repr = str(result)
         assert "healthy" in str_repr
@@ -208,13 +199,17 @@ class TestHealthCheckResultComprehensive:
 
     def test_all_status_values(self):
         """Test all valid status values."""
-        statuses = ["healthy", "redirected", "dead", "timeout", "content_changed", "error"]
+        statuses = [
+            "healthy",
+            "redirected",
+            "dead",
+            "timeout",
+            "content_changed",
+            "error",
+        ]
 
         for status in statuses:
-            result = HealthCheckResult(
-                url="https://example.com",
-                status=status
-            )
+            result = HealthCheckResult(url="https://example.com", status=status)
             assert result.status == status
 
     def test_result_with_error_message(self):
@@ -222,7 +217,7 @@ class TestHealthCheckResultComprehensive:
         result = HealthCheckResult(
             url="https://example.com",
             status="error",
-            error_message="Connection refused"
+            error_message="Connection refused",
         )
 
         assert result.status == "error"
@@ -232,9 +227,7 @@ class TestHealthCheckResultComprehensive:
         """Test result with Wayback Machine URL."""
         wayback = "https://web.archive.org/web/20240101000000/https://example.com"
         result = HealthCheckResult(
-            url="https://example.com",
-            status="dead",
-            wayback_url=wayback
+            url="https://example.com", status="dead", wayback_url=wayback
         )
 
         assert result.status == "dead"
@@ -244,6 +237,7 @@ class TestHealthCheckResultComprehensive:
 # =========================================================================
 # HealthReport Comprehensive Tests
 # =========================================================================
+
 
 class TestHealthReportComprehensive:
     """Comprehensive tests for HealthReport dataclass."""
@@ -269,7 +263,7 @@ class TestHealthReportComprehensive:
             archived=0,
             results=results,
             checked_at=now,
-            duration_seconds=2.5
+            duration_seconds=2.5,
         )
 
         assert report.total == 3
@@ -297,7 +291,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         assert report.healthy_percentage == 75.0
@@ -314,7 +308,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         expected = (1 / 3) * 100
@@ -332,7 +326,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         assert report.healthy_percentage == 0.0
@@ -349,7 +343,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         assert report.healthy_percentage == 100.0
@@ -362,7 +356,9 @@ class TestHealthReportComprehensive:
             HealthCheckResult(url="https://dead.example.com", status="dead"),
             HealthCheckResult(url="https://timeout.example.com", status="timeout"),
             HealthCheckResult(url="https://redirect.example.com", status="redirected"),
-            HealthCheckResult(url="https://changed.example.com", status="content_changed"),
+            HealthCheckResult(
+                url="https://changed.example.com", status="content_changed"
+            ),
             HealthCheckResult(url="https://error.example.com", status="error"),
         ]
 
@@ -376,7 +372,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         problematic = report.problematic
@@ -400,7 +396,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         assert len(report.problematic) == 0
@@ -417,7 +413,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         str_repr = str(report)
@@ -447,7 +443,7 @@ class TestHealthReportComprehensive:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         assert report.total == 6
@@ -457,6 +453,7 @@ class TestHealthReportComprehensive:
 # =========================================================================
 # WaybackMachineClient Comprehensive Tests
 # =========================================================================
+
 
 class TestWaybackMachineClientComprehensive:
     """Comprehensive tests for WaybackMachineClient."""
@@ -473,7 +470,10 @@ class TestWaybackMachineClientComprehensive:
 
     def test_api_endpoints(self):
         """Test API endpoint constants."""
-        assert WaybackMachineClient.AVAILABILITY_API == "https://archive.org/wayback/available"
+        assert (
+            WaybackMachineClient.AVAILABILITY_API
+            == "https://archive.org/wayback/available"
+        )
         assert WaybackMachineClient.SAVE_API == "https://web.archive.org/save/"
 
     @pytest.mark.asyncio
@@ -487,12 +487,12 @@ class TestWaybackMachineClientComprehensive:
             "archived_snapshots": {
                 "closest": {
                     "available": True,
-                    "url": "https://web.archive.org/web/20240101/https://example.com"
+                    "url": "https://web.archive.org/web/20240101/https://example.com",
                 }
             }
         }
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -512,7 +512,7 @@ class TestWaybackMachineClientComprehensive:
         mock_response.status_code = 200
         mock_response.json.return_value = {"archived_snapshots": {}}
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -534,12 +534,12 @@ class TestWaybackMachineClientComprehensive:
             "archived_snapshots": {
                 "closest": {
                     "available": False,
-                    "url": "https://web.archive.org/web/20240101/https://example.com"
+                    "url": "https://web.archive.org/web/20240101/https://example.com",
                 }
             }
         }
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -558,7 +558,7 @@ class TestWaybackMachineClientComprehensive:
         mock_response = MagicMock()
         mock_response.status_code = 500
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -574,7 +574,7 @@ class TestWaybackMachineClientComprehensive:
         """Test checking availability when exception occurs."""
         client = WaybackMachineClient()
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -594,7 +594,7 @@ class TestWaybackMachineClientComprehensive:
         mock_response.status_code = 200
         mock_response.url = "https://web.archive.org/web/20240101/https://example.com"
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -613,7 +613,7 @@ class TestWaybackMachineClientComprehensive:
         mock_response = MagicMock()
         mock_response.status_code = 503
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -629,7 +629,7 @@ class TestWaybackMachineClientComprehensive:
         """Test archiving when exception occurs."""
         client = WaybackMachineClient()
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -644,6 +644,7 @@ class TestWaybackMachineClientComprehensive:
 # =========================================================================
 # BookmarkHealthMonitor Comprehensive Tests
 # =========================================================================
+
 
 class TestBookmarkHealthMonitorComprehensive:
     """Comprehensive tests for BookmarkHealthMonitor."""
@@ -663,10 +664,7 @@ class TestBookmarkHealthMonitorComprehensive:
     def test_init_with_custom_values(self):
         """Test monitor initialization with custom values."""
         monitor = BookmarkHealthMonitor(
-            max_concurrent=10,
-            timeout=60.0,
-            follow_redirects=False,
-            max_redirects=3
+            max_concurrent=10, timeout=60.0, follow_redirects=False, max_redirects=3
         )
 
         assert monitor.max_concurrent == 10
@@ -720,7 +718,7 @@ class TestBookmarkHealthMonitorComprehensive:
         mock_response.status_code = 200
         mock_response.history = []
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -742,15 +740,15 @@ class TestBookmarkHealthMonitorComprehensive:
         def progress_callback(current, total, result):
             progress_calls.append((current, total, result.status))
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(
-                url="https://example.com",
-                status="healthy"
+                url="https://example.com", status="healthy"
             )
 
             report = await monitor.check_health(
-                sample_bookmarks[:1],
-                progress_callback=progress_callback
+                sample_bookmarks[:1], progress_callback=progress_callback
             )
 
         assert len(progress_calls) == 1
@@ -765,16 +763,16 @@ class TestBookmarkHealthMonitorComprehensive:
         def bad_callback(current, total, result):
             raise RuntimeError("Callback error")
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(
-                url="https://example.com",
-                status="healthy"
+                url="https://example.com", status="healthy"
             )
 
             # Should not raise, callback errors are caught
             report = await monitor.check_health(
-                [single_bookmark],
-                progress_callback=bad_callback
+                [single_bookmark], progress_callback=bad_callback
             )
 
         assert report.total == 1
@@ -788,7 +786,7 @@ class TestBookmarkHealthMonitorComprehensive:
         mock_response.status_code = 200
         mock_response.history = []
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -809,7 +807,7 @@ class TestBookmarkHealthMonitorComprehensive:
         mock_response.history = [MagicMock()]  # Non-empty history indicates redirect
         mock_response.url = "https://www.example.com"
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -830,7 +828,7 @@ class TestBookmarkHealthMonitorComprehensive:
         mock_response.status_code = 404
         mock_response.history = []
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -851,12 +849,17 @@ class TestBookmarkHealthMonitorComprehensive:
         class MockClientTimeout:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 return False
+
             async def head(self, url):
                 raise httpx.TimeoutException("Timeout")
 
-        with patch('bookmark_processor.core.health_monitor.httpx.AsyncClient', return_value=MockClientTimeout()):
+        with patch(
+            "bookmark_processor.core.health_monitor.httpx.AsyncClient",
+            return_value=MockClientTimeout(),
+        ):
             result = await monitor._check_single(single_bookmark)
 
         assert result.status == "timeout"
@@ -870,12 +873,17 @@ class TestBookmarkHealthMonitorComprehensive:
         class MockClientTooManyRedirects:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 return False
+
             async def head(self, url):
                 raise httpx.TooManyRedirects("Too many redirects")
 
-        with patch('bookmark_processor.core.health_monitor.httpx.AsyncClient', return_value=MockClientTooManyRedirects()):
+        with patch(
+            "bookmark_processor.core.health_monitor.httpx.AsyncClient",
+            return_value=MockClientTooManyRedirects(),
+        ):
             result = await monitor._check_single(single_bookmark)
 
         assert result.status == "dead"
@@ -889,12 +897,17 @@ class TestBookmarkHealthMonitorComprehensive:
         class MockClientConnectError:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 return False
+
             async def head(self, url):
                 raise httpx.ConnectError("Connection refused")
 
-        with patch('bookmark_processor.core.health_monitor.httpx.AsyncClient', return_value=MockClientConnectError()):
+        with patch(
+            "bookmark_processor.core.health_monitor.httpx.AsyncClient",
+            return_value=MockClientConnectError(),
+        ):
             result = await monitor._check_single(single_bookmark)
 
         assert result.status == "dead"
@@ -908,12 +921,17 @@ class TestBookmarkHealthMonitorComprehensive:
         class MockClientGenericError:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 return False
+
             async def head(self, url):
                 raise Exception("Unknown error")
 
-        with patch('bookmark_processor.core.health_monitor.httpx.AsyncClient', return_value=MockClientGenericError()):
+        with patch(
+            "bookmark_processor.core.health_monitor.httpx.AsyncClient",
+            return_value=MockClientGenericError(),
+        ):
             result = await monitor._check_single(single_bookmark)
 
         assert result.status == "error"
@@ -928,11 +946,15 @@ class TestBookmarkHealthMonitorComprehensive:
         mock_response.status_code = 200
         mock_response.history = []
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
-            mock_client.head = AsyncMock(side_effect=httpx.HTTPStatusError("Method not allowed", request=MagicMock(), response=MagicMock()))
+            mock_client.head = AsyncMock(
+                side_effect=httpx.HTTPStatusError(
+                    "Method not allowed", request=MagicMock(), response=MagicMock()
+                )
+            )
             mock_client.get = AsyncMock(return_value=mock_response)
             mock_client_class.return_value = mock_client
 
@@ -947,7 +969,9 @@ class TestBookmarkHealthMonitorComprehensive:
         monitor = BookmarkHealthMonitor()
         monitor._semaphore = asyncio.Semaphore(20)
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             # First succeeds, second throws exception, third succeeds
             mock_check.side_effect = [
                 HealthCheckResult(url="url1", status="healthy"),
@@ -968,10 +992,11 @@ class TestBookmarkHealthMonitorComprehensive:
         monitor = BookmarkHealthMonitor()
         monitor._semaphore = asyncio.Semaphore(5)
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(
-                url=single_bookmark.url,
-                status="healthy"
+                url=single_bookmark.url, status="healthy"
             )
 
             result = await monitor._check_with_semaphore(
@@ -991,10 +1016,11 @@ class TestBookmarkHealthMonitorComprehensive:
         def callback(index, total, result):
             callback_data.append((index, total, result.status))
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(
-                url=single_bookmark.url,
-                status="healthy"
+                url=single_bookmark.url, status="healthy"
             )
 
             result = await monitor._check_with_semaphore(
@@ -1006,7 +1032,9 @@ class TestBookmarkHealthMonitorComprehensive:
         assert callback_data[0] == (1, 1, "healthy")
 
     @pytest.mark.asyncio
-    async def test_check_content_changed_with_state_tracker(self, single_bookmark, mock_state_tracker_with_data):
+    async def test_check_content_changed_with_state_tracker(
+        self, single_bookmark, mock_state_tracker_with_data
+    ):
         """Test content change detection with state tracker."""
         monitor = BookmarkHealthMonitor(state_tracker=mock_state_tracker_with_data)
 
@@ -1034,9 +1062,14 @@ class TestBookmarkHealthMonitorComprehensive:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_check_content_changed_no_stored_hash(self, single_bookmark, mock_state_tracker):
+    async def test_check_content_changed_no_stored_hash(
+        self, single_bookmark, mock_state_tracker
+    ):
         """Test content change detection when no stored hash exists."""
-        mock_state_tracker.get_processed_info.return_value = {"url": "test", "content_hash": None}
+        mock_state_tracker.get_processed_info.return_value = {
+            "url": "test",
+            "content_hash": None,
+        }
         monitor = BookmarkHealthMonitor(state_tracker=mock_state_tracker)
 
         mock_client = MagicMock()
@@ -1046,7 +1079,9 @@ class TestBookmarkHealthMonitorComprehensive:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_check_content_changed_exception(self, single_bookmark, mock_state_tracker_with_data):
+    async def test_check_content_changed_exception(
+        self, single_bookmark, mock_state_tracker_with_data
+    ):
         """Test content change detection when fetch fails."""
         monitor = BookmarkHealthMonitor(state_tracker=mock_state_tracker_with_data)
 
@@ -1066,7 +1101,9 @@ class TestBookmarkHealthMonitorComprehensive:
         # Without state tracker, all bookmarks should be returned
         assert len(stale) == len(sample_bookmarks)
 
-    def test_filter_stale_with_state_tracker(self, sample_bookmarks, mock_state_tracker):
+    def test_filter_stale_with_state_tracker(
+        self, sample_bookmarks, mock_state_tracker
+    ):
         """Test stale filter with state tracker."""
         # Make first bookmark recently processed, others not found
         mock_state_tracker.get_processed_info.side_effect = [
@@ -1084,7 +1121,9 @@ class TestBookmarkHealthMonitorComprehensive:
     def test_filter_stale_all_recent(self, sample_bookmarks, mock_state_tracker):
         """Test stale filter when all bookmarks are recently processed."""
         recent_time = datetime.now().isoformat()
-        mock_state_tracker.get_processed_info.return_value = {"processed_at": recent_time}
+        mock_state_tracker.get_processed_info.return_value = {
+            "processed_at": recent_time
+        }
         monitor = BookmarkHealthMonitor(state_tracker=mock_state_tracker)
 
         stale = monitor._filter_stale(sample_bookmarks, timedelta(days=7))
@@ -1159,18 +1198,31 @@ class TestBookmarkHealthMonitorComprehensive:
         ]
 
         report = HealthReport(
-            total=2, healthy=0, redirected=0, dead=2, timeout=0,
-            content_changed=0, newly_dead=0, recovered=0, archived=0,
-            results=results
+            total=2,
+            healthy=0,
+            redirected=0,
+            dead=2,
+            timeout=0,
+            content_changed=0,
+            newly_dead=0,
+            recovered=0,
+            archived=0,
+            results=results,
         )
 
-        with patch.object(monitor.wayback, 'check_availability', new_callable=AsyncMock) as mock_check:
-            with patch.object(monitor.wayback, 'archive', new_callable=AsyncMock) as mock_archive:
+        with patch.object(
+            monitor.wayback, "check_availability", new_callable=AsyncMock
+        ) as mock_check:
+            with patch.object(
+                monitor.wayback, "archive", new_callable=AsyncMock
+            ) as mock_archive:
                 mock_check.side_effect = [
                     "https://web.archive.org/web/20240101/https://dead.example.com",
                     None,  # Not found for second URL
                 ]
-                mock_archive.return_value = "https://web.archive.org/web/20240102/https://error.example.com"
+                mock_archive.return_value = (
+                    "https://web.archive.org/web/20240102/https://error.example.com"
+                )
 
                 await monitor._archive_dead_links(report)
 
@@ -1188,9 +1240,16 @@ class TestBookmarkHealthMonitorComprehensive:
         ]
 
         report = HealthReport(
-            total=1, healthy=0, redirected=0, dead=1, timeout=0,
-            content_changed=0, newly_dead=0, recovered=0, archived=0,
-            results=results
+            total=1,
+            healthy=0,
+            redirected=0,
+            dead=1,
+            timeout=0,
+            content_changed=0,
+            newly_dead=0,
+            recovered=0,
+            archived=0,
+            results=results,
         )
 
         await monitor._archive_dead_links(report)
@@ -1200,31 +1259,37 @@ class TestBookmarkHealthMonitorComprehensive:
         assert results[0].wayback_url is None
 
     @pytest.mark.asyncio
-    async def test_check_health_with_stale_filter(self, sample_bookmarks, mock_state_tracker):
+    async def test_check_health_with_stale_filter(
+        self, sample_bookmarks, mock_state_tracker
+    ):
         """Test check_health with stale_after filter."""
         mock_state_tracker.get_processed_info.return_value = None
         monitor = BookmarkHealthMonitor(state_tracker=mock_state_tracker)
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(url="test", status="healthy")
 
             report = await monitor.check_health(
-                sample_bookmarks,
-                stale_after=timedelta(days=7)
+                sample_bookmarks, stale_after=timedelta(days=7)
             )
 
         assert report.total == len(sample_bookmarks)
 
     @pytest.mark.asyncio
-    async def test_check_health_all_filtered_by_stale(self, sample_bookmarks, mock_state_tracker):
+    async def test_check_health_all_filtered_by_stale(
+        self, sample_bookmarks, mock_state_tracker
+    ):
         """Test check_health when all bookmarks are filtered by stale_after."""
         recent_time = datetime.now().isoformat()
-        mock_state_tracker.get_processed_info.return_value = {"processed_at": recent_time}
+        mock_state_tracker.get_processed_info.return_value = {
+            "processed_at": recent_time
+        }
         monitor = BookmarkHealthMonitor(state_tracker=mock_state_tracker)
 
         report = await monitor.check_health(
-            sample_bookmarks,
-            stale_after=timedelta(days=7)
+            sample_bookmarks, stale_after=timedelta(days=7)
         )
 
         # All filtered, should return empty report
@@ -1241,6 +1306,7 @@ class TestBookmarkHealthMonitorComprehensive:
 # Report Generation Tests
 # =========================================================================
 
+
 class TestReportGeneration:
     """Tests for report generation methods."""
 
@@ -1248,16 +1314,18 @@ class TestReportGeneration:
         """Test generating complete text report."""
         results = [
             HealthCheckResult(url="https://healthy.example.com", status="healthy"),
-            HealthCheckResult(url="https://dead.example.com", status="dead", http_status=404),
+            HealthCheckResult(
+                url="https://dead.example.com", status="dead", http_status=404
+            ),
             HealthCheckResult(
                 url="https://redirect.example.com",
                 status="redirected",
-                redirect_url="https://new.example.com"
+                redirect_url="https://new.example.com",
             ),
             HealthCheckResult(
                 url="https://archived.example.com",
                 status="dead",
-                wayback_url="https://web.archive.org/web/20240101/https://archived.example.com"
+                wayback_url="https://web.archive.org/web/20240101/https://archived.example.com",
             ),
         ]
 
@@ -1272,7 +1340,7 @@ class TestReportGeneration:
             recovered=0,
             archived=1,
             results=results,
-            duration_seconds=2.5
+            duration_seconds=2.5,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1305,7 +1373,7 @@ class TestReportGeneration:
             recovered=0,
             archived=1,
             results=results,
-            duration_seconds=1.0
+            duration_seconds=1.0,
         )
 
         monitor = BookmarkHealthMonitor(archive_dead=True)
@@ -1331,7 +1399,7 @@ class TestReportGeneration:
             recovered=0,
             archived=0,
             results=results,
-            duration_seconds=5.0
+            duration_seconds=5.0,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1345,7 +1413,9 @@ class TestReportGeneration:
             HealthCheckResult(url="https://dead.example.com", status="dead"),
             HealthCheckResult(url="https://timeout.example.com", status="timeout"),
             HealthCheckResult(url="https://redirect.example.com", status="redirected"),
-            HealthCheckResult(url="https://changed.example.com", status="content_changed"),
+            HealthCheckResult(
+                url="https://changed.example.com", status="content_changed"
+            ),
             HealthCheckResult(url="https://error.example.com", status="error"),
         ]
 
@@ -1360,7 +1430,7 @@ class TestReportGeneration:
             recovered=0,
             archived=0,
             results=results,
-            duration_seconds=1.0
+            duration_seconds=1.0,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1388,7 +1458,7 @@ class TestReportGeneration:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1407,13 +1477,13 @@ class TestReportGeneration:
                 url="https://example.com",
                 status="healthy",
                 http_status=200,
-                response_time=0.5
+                response_time=0.5,
             ),
             HealthCheckResult(
                 url="https://dead.example.com",
                 status="dead",
                 http_status=404,
-                error_message="Not Found"
+                error_message="Not Found",
             ),
         ]
 
@@ -1428,7 +1498,7 @@ class TestReportGeneration:
             recovered=0,
             archived=0,
             results=results,
-            duration_seconds=1.5
+            duration_seconds=1.5,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1457,19 +1527,19 @@ class TestReportGeneration:
                 url="https://example.com",
                 status="healthy",
                 http_status=200,
-                response_time=0.5
+                response_time=0.5,
             ),
             HealthCheckResult(
                 url="https://dead.example.com",
                 status="dead",
                 http_status=404,
-                error_message="Not Found"
+                error_message="Not Found",
             ),
             HealthCheckResult(
                 url="https://redirect.example.com",
                 status="redirected",
                 redirect_url="https://new.example.com",
-                http_status=301
+                http_status=301,
             ),
         ]
 
@@ -1483,7 +1553,7 @@ class TestReportGeneration:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1530,7 +1600,7 @@ class TestReportGeneration:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=results
+            results=results,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1545,6 +1615,7 @@ class TestReportGeneration:
 # =========================================================================
 # Error Handling Tests
 # =========================================================================
+
 
 class TestErrorHandling:
     """Tests for error handling scenarios."""
@@ -1567,28 +1638,39 @@ class TestErrorHandling:
         ]
 
         for error, expected_status, expected_msg in errors:
+
             class MockClientError:
                 def __init__(self, err):
                     self.err = err
+
                 async def __aenter__(self):
                     return self
+
                 async def __aexit__(self, *args):
                     return False
+
                 async def head(self, url):
                     raise self.err
 
-            with patch('bookmark_processor.core.health_monitor.httpx.AsyncClient', return_value=MockClientError(error)):
+            with patch(
+                "bookmark_processor.core.health_monitor.httpx.AsyncClient",
+                return_value=MockClientError(error),
+            ):
                 result = await monitor._check_single(single_bookmark)
 
             assert result.status == expected_status
             assert expected_msg in result.error_message
 
     @pytest.mark.asyncio
-    async def test_check_health_continues_after_individual_failures(self, sample_bookmarks):
+    async def test_check_health_continues_after_individual_failures(
+        self, sample_bookmarks
+    ):
         """Test that check_health continues processing after individual failures."""
         monitor = BookmarkHealthMonitor()
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.side_effect = [
                 HealthCheckResult(url="url1", status="healthy"),
                 Exception("Individual failure"),
@@ -1608,6 +1690,7 @@ class TestErrorHandling:
 # Edge Cases Tests
 # =========================================================================
 
+
 class TestEdgeCases:
     """Tests for edge cases and boundary conditions."""
 
@@ -1621,7 +1704,7 @@ class TestEdgeCases:
         mock_response.history = [MagicMock()]
         mock_response.url = single_bookmark.url  # Same URL
 
-        with patch('httpx.AsyncClient') as mock_client_class:
+        with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
@@ -1658,7 +1741,7 @@ class TestEdgeCases:
             mock_response.status_code = status_code
             mock_response.history = []
 
-            with patch('httpx.AsyncClient') as mock_client_class:
+            with patch("httpx.AsyncClient") as mock_client_class:
                 mock_client = MagicMock()
                 mock_client.__aenter__ = AsyncMock(return_value=mock_client)
                 mock_client.__aexit__ = AsyncMock()
@@ -1667,7 +1750,9 @@ class TestEdgeCases:
 
                 result = await monitor._check_single(single_bookmark)
 
-            assert result.status == expected_status, f"Status {status_code} should be {expected_status}"
+            assert (
+                result.status == expected_status
+            ), f"Status {status_code} should be {expected_status}"
 
     @pytest.mark.asyncio
     async def test_check_health_with_large_batch(self):
@@ -1680,7 +1765,9 @@ class TestEdgeCases:
             for i in range(100)
         ]
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(url="test", status="healthy")
 
             report = await monitor.check_health(bookmarks)
@@ -1700,7 +1787,7 @@ class TestEdgeCases:
             newly_dead=0,
             recovered=0,
             archived=0,
-            results=[]
+            results=[],
         )
 
         assert report.healthy_percentage == 0.0
@@ -1724,7 +1811,7 @@ class TestEdgeCases:
             recovered=0,
             archived=0,
             results=results,
-            duration_seconds=1.0
+            duration_seconds=1.0,
         )
 
         monitor = BookmarkHealthMonitor()
@@ -1734,7 +1821,9 @@ class TestEdgeCases:
         assert "PROBLEMATIC URLS" not in text
 
     @pytest.mark.asyncio
-    async def test_check_content_changed_same_hash(self, single_bookmark, mock_state_tracker_with_data):
+    async def test_check_content_changed_same_hash(
+        self, single_bookmark, mock_state_tracker_with_data
+    ):
         """Test content change detection when hashes match."""
         import hashlib
 
@@ -1743,7 +1832,7 @@ class TestEdgeCases:
         mock_state_tracker_with_data.get_processed_info.return_value = {
             "url": single_bookmark.url,
             "content_hash": stored_hash,
-            "processed_at": "2024-01-01T00:00:00"
+            "processed_at": "2024-01-01T00:00:00",
         }
 
         monitor = BookmarkHealthMonitor(state_tracker=mock_state_tracker_with_data)
@@ -1789,7 +1878,7 @@ class TestEdgeCases:
 
             return HealthCheckResult(url=bookmark.url, status="healthy")
 
-        with patch.object(monitor, '_check_single', side_effect=mock_check):
+        with patch.object(monitor, "_check_single", side_effect=mock_check):
             report = await monitor.check_health(bookmarks)
 
         # The semaphore should limit concurrent checks
@@ -1799,6 +1888,7 @@ class TestEdgeCases:
 # =========================================================================
 # HTTPX Availability Tests
 # =========================================================================
+
 
 class TestHTTPXAvailability:
     """Tests for HTTPX availability handling."""
@@ -1814,7 +1904,7 @@ class TestHTTPXAvailability:
         client = WaybackMachineClient()
 
         # Simulate HTTPX_AVAILABLE being False
-        with patch('bookmark_processor.core.health_monitor.HTTPX_AVAILABLE', False):
+        with patch("bookmark_processor.core.health_monitor.HTTPX_AVAILABLE", False):
             # Need to reimport or create new client for the patch to take effect
             # For this test, we verify the method exists and handles gracefully
             pass
@@ -1824,6 +1914,7 @@ class TestHTTPXAvailability:
 # Integration-like Tests (with mocked HTTP)
 # =========================================================================
 
+
 class TestHealthMonitorIntegrationMocked:
     """Integration-like tests with mocked HTTP calls."""
 
@@ -1831,9 +1922,7 @@ class TestHealthMonitorIntegrationMocked:
     async def test_full_health_check_workflow(self, sample_bookmarks, temp_output_dir):
         """Test complete health check workflow."""
         monitor = BookmarkHealthMonitor(
-            max_concurrent=5,
-            timeout=10.0,
-            archive_dead=False
+            max_concurrent=5, timeout=10.0, archive_dead=False
         )
 
         # Mock responses for each bookmark
@@ -1844,32 +1933,25 @@ class TestHealthMonitorIntegrationMocked:
         }
 
         async def mock_check(bookmark):
-            status_code, history = mock_responses.get(
-                bookmark.url,
-                (200, [])
-            )
+            status_code, history = mock_responses.get(bookmark.url, (200, []))
 
             if status_code == 404:
                 return HealthCheckResult(
-                    url=bookmark.url,
-                    status="dead",
-                    http_status=status_code
+                    url=bookmark.url, status="dead", http_status=status_code
                 )
             elif history:
                 return HealthCheckResult(
                     url=bookmark.url,
                     status="redirected",
                     http_status=status_code,
-                    redirect_url=f"{bookmark.url}/redirected"
+                    redirect_url=f"{bookmark.url}/redirected",
                 )
             else:
                 return HealthCheckResult(
-                    url=bookmark.url,
-                    status="healthy",
-                    http_status=status_code
+                    url=bookmark.url, status="healthy", http_status=status_code
                 )
 
-        with patch.object(monitor, '_check_single', side_effect=mock_check):
+        with patch.object(monitor, "_check_single", side_effect=mock_check):
             report = await monitor.check_health(sample_bookmarks)
 
         # Verify report
@@ -1892,9 +1974,15 @@ class TestHealthMonitorIntegrationMocked:
         """Test health check with archiving enabled."""
         monitor = BookmarkHealthMonitor(archive_dead=True)
 
-        with patch.object(monitor, '_check_single', new_callable=AsyncMock) as mock_check:
-            with patch.object(monitor.wayback, 'check_availability', new_callable=AsyncMock) as mock_avail:
-                with patch.object(monitor.wayback, 'archive', new_callable=AsyncMock) as mock_archive:
+        with patch.object(
+            monitor, "_check_single", new_callable=AsyncMock
+        ) as mock_check:
+            with patch.object(
+                monitor.wayback, "check_availability", new_callable=AsyncMock
+            ) as mock_avail:
+                with patch.object(
+                    monitor.wayback, "archive", new_callable=AsyncMock
+                ) as mock_archive:
                     mock_check.side_effect = [
                         HealthCheckResult(url="url1", status="healthy"),
                         HealthCheckResult(url="url2", status="dead"),

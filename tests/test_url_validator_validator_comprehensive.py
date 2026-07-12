@@ -26,7 +26,6 @@ from bookmark_processor.core.url_validator import URLValidator
 from bookmark_processor.core.batch_types import ValidationResult, ValidationStats
 from bookmark_processor.utils.security_validator import SecurityValidationResult
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -143,7 +142,9 @@ class TestURLValidatorInitialization:
             del os.environ["BOOKMARK_PROCESSOR_TEST_MODE"]
 
         with (
-            patch("bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"),
+            patch(
+                "bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"
+            ),
             patch("bookmark_processor.core.url_validator.validator.BrowserSimulator"),
             patch("bookmark_processor.core.url_validator.validator.RetryHandler"),
             patch("bookmark_processor.core.url_validator.validator.SecurityValidator"),
@@ -172,7 +173,9 @@ class TestURLValidatorInitialization:
         mock_rate_limiter = MagicMock()
 
         with (
-            patch("bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"),
+            patch(
+                "bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"
+            ),
             patch("bookmark_processor.core.url_validator.validator.BrowserSimulator"),
             patch("bookmark_processor.core.url_validator.validator.RetryHandler"),
             patch("bookmark_processor.core.url_validator.validator.SecurityValidator"),
@@ -197,7 +200,9 @@ class TestValidateURL:
 
     def test_validate_url_success(self, validator, mock_security_safe):
         """Test successful URL validation."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -219,7 +224,9 @@ class TestValidateURL:
 
     def test_validate_url_with_redirect(self, validator, mock_security_safe):
         """Test URL validation with redirect."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -234,7 +241,9 @@ class TestValidateURL:
 
     def test_validate_url_invalid_format(self, validator, mock_security_safe):
         """Test URL validation with invalid format."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("not-a-valid-url")
 
@@ -244,20 +253,26 @@ class TestValidateURL:
 
     def test_validate_url_empty_string(self, validator, mock_security_safe):
         """Test URL validation with empty string."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("")
 
         assert result.is_valid is False
         assert result.error_type == "format_error"
 
-    def test_validate_url_unsupported_scheme_javascript(self, validator, mock_security_safe):
+    def test_validate_url_unsupported_scheme_javascript(
+        self, validator, mock_security_safe
+    ):
         """Test URL validation with javascript: scheme.
 
         Note: javascript: URLs without a netloc fail format validation first,
         so we get format_error instead of unsupported_scheme.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("javascript:void(0)")
 
@@ -265,12 +280,16 @@ class TestValidateURL:
         # javascript:void(0) has no netloc so fails format validation first
         assert result.error_type == "format_error"
 
-    def test_validate_url_unsupported_scheme_mailto(self, validator, mock_security_safe):
+    def test_validate_url_unsupported_scheme_mailto(
+        self, validator, mock_security_safe
+    ):
         """Test URL validation with mailto: scheme.
 
         Note: mailto: URLs without netloc fail format validation first.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("mailto:test@example.com")
 
@@ -280,7 +299,9 @@ class TestValidateURL:
 
     def test_validate_url_unsupported_scheme_ftp(self, validator, mock_security_safe):
         """Test URL validation with ftp: scheme."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("ftp://ftp.example.com/file.txt")
 
@@ -293,7 +314,9 @@ class TestValidateURL:
 
         Note: tel: URLs without netloc fail format validation first.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("tel:+1234567890")
 
@@ -301,12 +324,16 @@ class TestValidateURL:
         # tel:number has no netloc so fails format validation
         assert result.error_type == "format_error"
 
-    def test_validate_url_unsupported_scheme_fragment_only(self, validator, mock_security_safe):
+    def test_validate_url_unsupported_scheme_fragment_only(
+        self, validator, mock_security_safe
+    ):
         """Test URL validation with fragment-only URL.
 
         Note: Fragment-only URLs have no scheme/netloc so fail format validation.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("#section1")
 
@@ -320,7 +347,9 @@ class TestValidateURL:
         Note: file:/// URLs have scheme but no netloc (the path starts at the third /),
         so they fail format validation first.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("file:///path/to/file.txt")
 
@@ -330,7 +359,9 @@ class TestValidateURL:
 
     def test_validate_url_unsupported_scheme_data(self, validator, mock_security_safe):
         """Test URL validation with data: scheme."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         result = validator.validate_url("data:text/plain,Hello")
 
@@ -338,9 +369,13 @@ class TestValidateURL:
         # data: URLs have no netloc so fail format validation
         assert result.error_type == "format_error"
 
-    def test_validate_url_security_failure_high_risk(self, validator, mock_security_unsafe):
+    def test_validate_url_security_failure_high_risk(
+        self, validator, mock_security_unsafe
+    ):
         """Test URL validation with high-risk security failure."""
-        validator.security_validator.validate_url_security.return_value = mock_security_unsafe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_unsafe
+        )
 
         result = validator.validate_url("https://example.com")
 
@@ -348,9 +383,13 @@ class TestValidateURL:
         assert result.error_type == "security_error"
         assert "Security validation failed" in result.error_message
 
-    def test_validate_url_security_failure_critical_risk(self, validator, mock_security_critical):
+    def test_validate_url_security_failure_critical_risk(
+        self, validator, mock_security_critical
+    ):
         """Test URL validation with critical security failure."""
-        validator.security_validator.validate_url_security.return_value = mock_security_critical
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_critical
+        )
 
         result = validator.validate_url("https://192.168.1.1/admin")
 
@@ -359,7 +398,9 @@ class TestValidateURL:
 
     def test_validate_url_http_404(self, validator, mock_security_safe):
         """Test URL validation with 404 response."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 404
@@ -376,7 +417,9 @@ class TestValidateURL:
 
     def test_validate_url_http_403(self, validator, mock_security_safe):
         """Test URL validation with 403 response."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 403
@@ -392,7 +435,9 @@ class TestValidateURL:
 
     def test_validate_url_http_500(self, validator, mock_security_safe):
         """Test URL validation with 500 response."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 500
@@ -408,7 +453,9 @@ class TestValidateURL:
 
     def test_validate_url_http_502(self, validator, mock_security_safe):
         """Test URL validation with 502 response."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 502
@@ -424,7 +471,9 @@ class TestValidateURL:
 
     def test_validate_url_http_503(self, validator, mock_security_safe):
         """Test URL validation with 503 response."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 503
@@ -440,7 +489,9 @@ class TestValidateURL:
 
     def test_validate_url_http_429_rate_limited(self, validator, mock_security_safe):
         """Test URL validation with 429 rate limit response."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 429
@@ -456,7 +507,9 @@ class TestValidateURL:
 
     def test_validate_url_timeout(self, validator, mock_security_safe):
         """Test URL validation with timeout error."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         with patch.object(
             validator.session, "head", side_effect=Timeout("Request timed out")
@@ -470,7 +523,9 @@ class TestValidateURL:
 
     def test_validate_url_connection_error(self, validator, mock_security_safe):
         """Test URL validation with connection error."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         with patch.object(
             validator.session, "head", side_effect=ConnectionError("Connection refused")
@@ -483,19 +538,27 @@ class TestValidateURL:
 
     def test_validate_url_dns_error(self, validator, mock_security_safe):
         """Test URL validation with DNS resolution error."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         with patch.object(
-            validator.session, "head", side_effect=ConnectionError("DNS resolution failed: Name resolution error")
+            validator.session,
+            "head",
+            side_effect=ConnectionError("DNS resolution failed: Name resolution error"),
         ):
             result = validator.validate_url("https://nonexistent-domain.example.com")
 
         assert result.is_valid is False
         assert result.error_type == "dns_error"
 
-    def test_validate_url_ssl_error_with_fallback_success(self, validator, mock_security_safe):
+    def test_validate_url_ssl_error_with_fallback_success(
+        self, validator, mock_security_safe
+    ):
         """Test URL validation with SSL error that succeeds on fallback."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         # First call raises SSL error, second succeeds
         mock_response = Mock()
@@ -519,9 +582,13 @@ class TestValidateURL:
         assert result.error_message == "SSL certificate warning"
         assert result.error_type == "ssl_warning"
 
-    def test_validate_url_ssl_error_with_fallback_failure(self, validator, mock_security_safe):
+    def test_validate_url_ssl_error_with_fallback_failure(
+        self, validator, mock_security_safe
+    ):
         """Test URL validation with SSL error that fails on fallback too."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         # Both calls raise SSL error
         def side_effect(*args, **kwargs):
@@ -534,9 +601,13 @@ class TestValidateURL:
         assert result.error_type == "ssl_error"
         assert "SSL Error" in result.error_message
 
-    def test_validate_url_ssl_error_fallback_returns_error_status(self, validator, mock_security_safe):
+    def test_validate_url_ssl_error_fallback_returns_error_status(
+        self, validator, mock_security_safe
+    ):
         """Test URL validation with SSL error where fallback returns an error status."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         # First call raises SSL error, second returns 404
         mock_response = Mock()
@@ -560,9 +631,13 @@ class TestValidateURL:
         assert result.status_code == 404
         assert result.error_type == "not_found"
 
-    def test_validate_url_ssl_error_no_verify(self, validator_no_ssl, mock_security_safe):
+    def test_validate_url_ssl_error_no_verify(
+        self, validator_no_ssl, mock_security_safe
+    ):
         """Test URL validation with SSL error when verify_ssl is False."""
-        validator_no_ssl.security_validator.validate_url_security.return_value = mock_security_safe
+        validator_no_ssl.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         with patch.object(
             validator_no_ssl.session, "head", side_effect=SSLError("SSL Error")
@@ -574,10 +649,14 @@ class TestValidateURL:
 
     def test_validate_url_unexpected_error(self, validator, mock_security_safe):
         """Test URL validation with unexpected exception."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         with patch.object(
-            validator.session, "head", side_effect=RuntimeError("Unexpected error occurred")
+            validator.session,
+            "head",
+            side_effect=RuntimeError("Unexpected error occurred"),
         ):
             result = validator.validate_url("https://example.com")
 
@@ -587,7 +666,9 @@ class TestValidateURL:
 
     def test_validate_url_rate_limiter_called(self, validator, mock_security_safe):
         """Test that rate limiter is called during validation."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -597,23 +678,37 @@ class TestValidateURL:
         with patch.object(validator.session, "head", return_value=mock_response):
             validator.validate_url("https://example.com")
 
-        validator.rate_limiter.wait_if_needed.assert_called_once_with("https://example.com")
-        validator.rate_limiter.record_success.assert_called_once_with("https://example.com")
+        validator.rate_limiter.wait_if_needed.assert_called_once_with(
+            "https://example.com"
+        )
+        validator.rate_limiter.record_success.assert_called_once_with(
+            "https://example.com"
+        )
 
-    def test_validate_url_rate_limiter_error_recorded(self, validator, mock_security_safe):
+    def test_validate_url_rate_limiter_error_recorded(
+        self, validator, mock_security_safe
+    ):
         """Test that rate limiter records errors on failure."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         with patch.object(
             validator.session, "head", side_effect=Timeout("Request timed out")
         ):
             validator.validate_url("https://example.com")
 
-        validator.rate_limiter.record_error.assert_called_once_with("https://example.com")
+        validator.rate_limiter.record_error.assert_called_once_with(
+            "https://example.com"
+        )
 
-    def test_validate_url_browser_simulator_headers(self, validator, mock_security_safe):
+    def test_validate_url_browser_simulator_headers(
+        self, validator, mock_security_safe
+    ):
         """Test that browser simulator headers are used."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -626,17 +721,23 @@ class TestValidateURL:
         mock_response.url = "https://example.com"
         mock_response.headers = {}
 
-        with patch.object(validator.session, "head", return_value=mock_response) as mock_head:
+        with patch.object(
+            validator.session, "head", return_value=mock_response
+        ) as mock_head:
             validator.validate_url("https://example.com")
 
-            validator.browser_simulator.get_headers.assert_called_once_with("https://example.com")
+            validator.browser_simulator.get_headers.assert_called_once_with(
+                "https://example.com"
+            )
             mock_head.assert_called_once()
             call_kwargs = mock_head.call_args[1]
             assert call_kwargs["headers"] == mock_headers
 
     def test_validate_url_response_time_measured(self, validator, mock_security_safe):
         """Test that response time is measured."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -650,7 +751,9 @@ class TestValidateURL:
 
     def test_validate_url_content_length_parsed(self, validator, mock_security_safe):
         """Test that content length is properly parsed."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -664,7 +767,9 @@ class TestValidateURL:
 
     def test_validate_url_content_length_invalid(self, validator, mock_security_safe):
         """Test that invalid content length is handled."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -691,10 +796,16 @@ class TestValidateURLTestMode:
 
         try:
             with (
-                patch("bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"),
-                patch("bookmark_processor.core.url_validator.validator.BrowserSimulator"),
+                patch(
+                    "bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"
+                ),
+                patch(
+                    "bookmark_processor.core.url_validator.validator.BrowserSimulator"
+                ),
                 patch("bookmark_processor.core.url_validator.validator.RetryHandler"),
-                patch("bookmark_processor.core.url_validator.validator.SecurityValidator"),
+                patch(
+                    "bookmark_processor.core.url_validator.validator.SecurityValidator"
+                ),
             ):
                 v = URLValidator(timeout=5.0)
                 result = v.validate_url("https://example.com")
@@ -711,10 +822,16 @@ class TestValidateURLTestMode:
 
         try:
             with (
-                patch("bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"),
-                patch("bookmark_processor.core.url_validator.validator.BrowserSimulator"),
+                patch(
+                    "bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"
+                ),
+                patch(
+                    "bookmark_processor.core.url_validator.validator.BrowserSimulator"
+                ),
                 patch("bookmark_processor.core.url_validator.validator.RetryHandler"),
-                patch("bookmark_processor.core.url_validator.validator.SecurityValidator"),
+                patch(
+                    "bookmark_processor.core.url_validator.validator.SecurityValidator"
+                ),
             ):
                 v = URLValidator(timeout=5.0)
 
@@ -722,7 +839,9 @@ class TestValidateURLTestMode:
                 invalid_patterns = ["invalid", "404", "error", "timeout"]
                 for pattern in invalid_patterns:
                     result = v.validate_url(f"https://example.com/{pattern}")
-                    assert result.is_valid is False, f"Expected invalid for pattern: {pattern}"
+                    assert (
+                        result.is_valid is False
+                    ), f"Expected invalid for pattern: {pattern}"
                     assert result.status_code == 404
         finally:
             del os.environ["BOOKMARK_PROCESSOR_TEST_MODE"]
@@ -738,7 +857,9 @@ class TestBatchValidate:
 
     def test_batch_validate_success(self, validator, mock_security_safe):
         """Test batch validation with all successful URLs."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com", "https://example3.com"]
 
@@ -759,7 +880,9 @@ class TestBatchValidate:
 
     def test_batch_validate_with_duplicates(self, validator, mock_security_safe):
         """Test batch validation removes duplicates."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = [
             "https://example.com",
@@ -787,7 +910,9 @@ class TestBatchValidate:
 
     def test_batch_validate_with_progress_callback(self, validator, mock_security_safe):
         """Test batch validation with progress callback."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
         progress_messages = []
@@ -805,14 +930,18 @@ class TestBatchValidate:
             return mock_response
 
         with patch.object(validator.session, "head", side_effect=get_response):
-            validator.batch_validate(urls, progress_callback=progress_callback, enable_retries=False)
+            validator.batch_validate(
+                urls, progress_callback=progress_callback, enable_retries=False
+            )
 
         assert len(progress_messages) == 2
         assert all("Validated" in msg for msg in progress_messages)
 
     def test_batch_validate_with_progress_tracker(self, validator, mock_security_safe):
         """Test batch validation with progress tracker."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
 
@@ -828,7 +957,9 @@ class TestBatchValidate:
             return mock_response
 
         with patch.object(validator.session, "head", side_effect=get_response):
-            validator.batch_validate(urls, enable_retries=False, progress_tracker=mock_tracker)
+            validator.batch_validate(
+                urls, enable_retries=False, progress_tracker=mock_tracker
+            )
 
         mock_tracker.start_stage.assert_called_once()
         mock_tracker.set_active_tasks.assert_called()
@@ -836,7 +967,9 @@ class TestBatchValidate:
 
     def test_batch_validate_mixed_results(self, validator, mock_security_safe):
         """Test batch validation with mixed success/failure."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://valid.com", "https://notfound.com", "https://timeout.com"]
 
@@ -869,7 +1002,9 @@ class TestBatchValidate:
 
     def test_batch_validate_with_retries(self, validator, mock_security_safe):
         """Test batch validation with retry logic enabled."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
 
@@ -887,9 +1022,13 @@ class TestBatchValidate:
 
         assert len(results) == 1
 
-    def test_batch_validate_retry_handler_populated(self, validator, mock_security_safe):
+    def test_batch_validate_retry_handler_populated(
+        self, validator, mock_security_safe
+    ):
         """Test that retry handler is populated with failed URLs."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://timeout.com"]
         validator.retry_handler.retry_queue = []
@@ -904,7 +1043,9 @@ class TestBatchValidate:
 
     def test_batch_validate_exception_handling(self, validator, mock_security_safe):
         """Test batch validation handles exceptions from futures."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
         validator.retry_handler.retry_queue = []
@@ -922,7 +1063,9 @@ class TestBatchValidate:
 
     def test_batch_validate_stats_updated(self, validator, mock_security_safe):
         """Test that validation stats are updated during batch validation."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
 
@@ -953,7 +1096,9 @@ class TestBatchValidateOptimized:
 
     def test_batch_validate_optimized_success(self, validator, mock_security_safe):
         """Test optimized batch validation with successful URLs."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
 
@@ -969,15 +1114,20 @@ class TestBatchValidateOptimized:
         with patch.object(validator.session, "head", side_effect=get_response):
             # gc is imported inside the method, so we need to patch it globally
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 results = validator.batch_validate_optimized(urls, batch_size=10)
 
         assert len(results) == 2
         assert all(r.is_valid for r in results)
 
-    def test_batch_validate_optimized_with_batching(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_with_batching(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation processes in batches."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         # Create 5 URLs but use batch_size of 2
         urls = [f"https://example{i}.com" for i in range(5)]
@@ -993,6 +1143,7 @@ class TestBatchValidateOptimized:
 
         with patch.object(validator.session, "head", side_effect=get_response):
             import gc as real_gc
+
             with patch.object(real_gc, "collect") as mock_gc_collect:
                 results = validator.batch_validate_optimized(urls, batch_size=2)
 
@@ -1000,9 +1151,13 @@ class TestBatchValidateOptimized:
         # GC should be called between batches (3 batches, so at least 2 gc.collect calls)
         assert mock_gc_collect.call_count >= 2
 
-    def test_batch_validate_optimized_with_progress_callback(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_with_progress_callback(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation with progress callback."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
         progress_messages = []
@@ -1021,6 +1176,7 @@ class TestBatchValidateOptimized:
 
         with patch.object(validator.session, "head", side_effect=get_response):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 validator.batch_validate_optimized(
                     urls, progress_callback=progress_callback, batch_size=10
@@ -1028,9 +1184,13 @@ class TestBatchValidateOptimized:
 
         assert len(progress_messages) == 2
 
-    def test_batch_validate_optimized_with_progress_tracker(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_with_progress_tracker(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation with progress tracker."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
         mock_tracker = MagicMock()
@@ -1046,6 +1206,7 @@ class TestBatchValidateOptimized:
 
         with patch.object(validator.session, "head", side_effect=get_response):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 validator.batch_validate_optimized(
                     urls, batch_size=10, progress_tracker=mock_tracker
@@ -1054,9 +1215,13 @@ class TestBatchValidateOptimized:
         mock_tracker.start_stage.assert_called_once()
         assert mock_tracker.update_progress.call_count >= 2
 
-    def test_batch_validate_optimized_removes_duplicates(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_removes_duplicates(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation removes duplicates."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = [
             "https://example.com",
@@ -1075,19 +1240,24 @@ class TestBatchValidateOptimized:
 
         with patch.object(validator.session, "head", side_effect=get_response):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 results = validator.batch_validate_optimized(urls, batch_size=10)
 
         assert len(results) == 2
 
-    def test_batch_validate_optimized_exception_handling(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_exception_handling(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation handles exceptions.
 
         Note: validate_url catches RuntimeError and returns it as "Unexpected error",
         so the batch_validate_optimized method doesn't see the exception at the
         executor level. The error message will be "Unexpected error: <message>".
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
 
@@ -1095,6 +1265,7 @@ class TestBatchValidateOptimized:
             validator.session, "head", side_effect=RuntimeError("Unexpected error")
         ):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 results = validator.batch_validate_optimized(urls, batch_size=10)
 
@@ -1103,9 +1274,13 @@ class TestBatchValidateOptimized:
         # The error message comes from validate_url's general exception handler
         assert "Unexpected error" in results[0].error_message
 
-    def test_batch_validate_optimized_custom_max_workers(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_custom_max_workers(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation with custom max_workers."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
 
@@ -1120,6 +1295,7 @@ class TestBatchValidateOptimized:
 
         with patch.object(validator.session, "head", side_effect=get_response):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 results = validator.batch_validate_optimized(
                     urls, batch_size=10, max_workers=2
@@ -1127,14 +1303,18 @@ class TestBatchValidateOptimized:
 
         assert len(results) == 2
 
-    def test_batch_validate_optimized_progress_tracker_logs_errors(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_progress_tracker_logs_errors(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation logs errors to progress tracker.
 
         Note: validate_url catches RuntimeError and returns a ValidationResult with
         is_valid=False. The exception is not raised to the executor level, so
         log_error is not called. Instead, update_progress is called with failed_delta=1.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
         mock_tracker = MagicMock()
@@ -1143,6 +1323,7 @@ class TestBatchValidateOptimized:
             validator.session, "head", side_effect=RuntimeError("Test error")
         ):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 validator.batch_validate_optimized(
                     urls, batch_size=10, progress_tracker=mock_tracker
@@ -1175,9 +1356,13 @@ class TestStatisticsMethods:
         assert stats["success_rate"] == 0.0
         assert stats["average_response_time"] == 0.0
 
-    def test_get_validation_statistics_after_validations(self, validator, mock_security_safe):
+    def test_get_validation_statistics_after_validations(
+        self, validator, mock_security_safe
+    ):
         """Test getting statistics after batch validation."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://valid1.com", "https://valid2.com", "https://invalid.com"]
 
@@ -1221,7 +1406,9 @@ class TestStatisticsMethods:
 
     def test_reset_statistics(self, validator, mock_security_safe):
         """Test resetting validation statistics."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         # Perform some validations first
         urls = ["https://example.com"]
@@ -1284,7 +1471,9 @@ class TestThreadSafety:
 
     def test_concurrent_validation(self, validator, mock_security_safe):
         """Test concurrent URL validation is thread-safe."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = [f"https://example{i}.com" for i in range(20)]
         results = []
@@ -1315,7 +1504,9 @@ class TestThreadSafety:
 
     def test_lock_usage_in_batch_validate(self, validator, mock_security_safe):
         """Test that lock is used during batch validation."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example1.com", "https://example2.com"]
 
@@ -1345,7 +1536,9 @@ class TestEdgeCases:
 
     def test_validate_url_with_special_characters(self, validator, mock_security_safe):
         """Test URL validation with special characters in path."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1359,7 +1552,9 @@ class TestEdgeCases:
 
     def test_validate_url_with_query_parameters(self, validator, mock_security_safe):
         """Test URL validation with query parameters."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1373,7 +1568,9 @@ class TestEdgeCases:
 
     def test_validate_url_with_fragments(self, validator, mock_security_safe):
         """Test URL validation with URL fragments."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1387,7 +1584,9 @@ class TestEdgeCases:
 
     def test_validate_url_with_port(self, validator, mock_security_safe):
         """Test URL validation with explicit port number."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1401,7 +1600,9 @@ class TestEdgeCases:
 
     def test_validate_url_with_username_password(self, validator, mock_security_safe):
         """Test URL validation with username/password in URL."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1416,7 +1617,9 @@ class TestEdgeCases:
 
     def test_validate_url_very_long_url(self, validator, mock_security_safe):
         """Test URL validation with a very long URL."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         long_path = "a" * 500
         url = f"https://example.com/{long_path}"
@@ -1446,7 +1649,9 @@ class TestEdgeCases:
 
     def test_batch_validate_single_url(self, validator, mock_security_safe):
         """Test batch validation with single URL."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1462,7 +1667,9 @@ class TestEdgeCases:
 
     def test_validate_url_http_scheme(self, validator, mock_security_safe):
         """Test URL validation with HTTP (non-HTTPS) scheme."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1476,9 +1683,25 @@ class TestEdgeCases:
 
     def test_validate_url_success_codes(self, validator, mock_security_safe):
         """Test various success HTTP status codes."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
-        success_codes = [200, 201, 202, 203, 204, 205, 206, 301, 302, 303, 304, 307, 308]
+        success_codes = [
+            200,
+            201,
+            202,
+            203,
+            204,
+            205,
+            206,
+            301,
+            302,
+            303,
+            304,
+            307,
+            308,
+        ]
 
         for code in success_codes:
             mock_response = Mock()
@@ -1502,7 +1725,9 @@ class TestValidationStatsIntegration:
 
     def test_stats_updated_for_valid_url(self, validator, mock_security_safe):
         """Test that stats are updated for valid URLs."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1518,7 +1743,9 @@ class TestValidationStatsIntegration:
 
     def test_stats_updated_for_invalid_url(self, validator, mock_security_safe):
         """Test that stats are updated for invalid URLs."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 404
@@ -1526,7 +1753,9 @@ class TestValidationStatsIntegration:
         mock_response.headers = {}
 
         with patch.object(validator.session, "head", return_value=mock_response):
-            validator.batch_validate(["https://example.com/notfound"], enable_retries=False)
+            validator.batch_validate(
+                ["https://example.com/notfound"], enable_retries=False
+            )
 
         assert validator.stats.total_urls == 1
         assert validator.stats.valid_urls == 0
@@ -1534,7 +1763,9 @@ class TestValidationStatsIntegration:
 
     def test_stats_error_distribution(self, validator, mock_security_safe):
         """Test that error distribution is tracked."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://notfound.com", "https://forbidden.com", "https://timeout.com"]
 
@@ -1564,7 +1795,9 @@ class TestValidationStatsIntegration:
 
     def test_stats_redirected_urls_counted(self, validator, mock_security_safe):
         """Test that redirected URLs are counted."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -1585,9 +1818,13 @@ class TestValidationStatsIntegration:
 class TestBatchValidateRetryPath:
     """Tests for retry handling in batch_validate."""
 
-    def test_batch_validate_with_retry_queue_populated(self, validator, mock_security_safe):
+    def test_batch_validate_with_retry_queue_populated(
+        self, validator, mock_security_safe
+    ):
         """Test batch validation when retry handler has URLs to retry."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
 
@@ -1613,9 +1850,13 @@ class TestBatchValidateRetryPath:
         # The retry_failed_items should have been called
         validator.retry_handler.retry_failed_items.assert_called()
 
-    def test_batch_validate_retry_with_progress_tracker(self, validator, mock_security_safe):
+    def test_batch_validate_retry_with_progress_tracker(
+        self, validator, mock_security_safe
+    ):
         """Test batch validation retry path with progress tracker."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
         mock_tracker = MagicMock()
@@ -1646,13 +1887,17 @@ class TestBatchValidateRetryPath:
 class TestBatchValidateExceptionFromFuture:
     """Tests for exception handling when future.result() raises."""
 
-    def test_batch_validate_future_raises_exception(self, validator, mock_security_safe):
+    def test_batch_validate_future_raises_exception(
+        self, validator, mock_security_safe
+    ):
         """Test batch validation when future.result() raises an exception.
 
         This tests the exception path in batch_validate where the future's
         result() call itself raises an exception (lines 365-382).
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
         validator.retry_handler.retry_queue = []
         validator.retry_handler.retry_failed_items.return_value = []
 
@@ -1678,7 +1923,9 @@ class TestBatchValidateExceptionFromFuture:
         self, validator, mock_security_safe
     ):
         """Test batch validation exception with progress tracker."""
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
         validator.retry_handler.retry_queue = []
         validator.retry_handler.retry_failed_items.return_value = []
 
@@ -1700,13 +1947,17 @@ class TestBatchValidateExceptionFromFuture:
 class TestBatchValidateOptimizedExceptionPath:
     """Tests for exception path in batch_validate_optimized."""
 
-    def test_batch_validate_optimized_future_raises(self, validator, mock_security_safe):
+    def test_batch_validate_optimized_future_raises(
+        self, validator, mock_security_safe
+    ):
         """Test optimized batch validation when future.result() raises.
 
         This tests lines 520-541 where the exception is caught at the
         executor level.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
 
@@ -1715,6 +1966,7 @@ class TestBatchValidateOptimizedExceptionPath:
 
         with patch.object(validator, "validate_url", side_effect=raise_in_validate):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 results = validator.batch_validate_optimized(urls, batch_size=10)
 
@@ -1729,7 +1981,9 @@ class TestBatchValidateOptimizedExceptionPath:
 
         This specifically tests lines 534-541.
         """
-        validator.security_validator.validate_url_security.return_value = mock_security_safe
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_safe
+        )
 
         urls = ["https://example.com"]
         mock_tracker = MagicMock()
@@ -1739,6 +1993,7 @@ class TestBatchValidateOptimizedExceptionPath:
 
         with patch.object(validator, "validate_url", side_effect=raise_in_validate):
             import gc as real_gc
+
             with patch.object(real_gc, "collect"):
                 validator.batch_validate_optimized(
                     urls, batch_size=10, progress_tracker=mock_tracker

@@ -31,7 +31,7 @@ class TestBulkUpdateResult:
             total=10,
             succeeded=8,
             failed=2,
-            errors=[{"url": "http://test.com", "error": "Failed"}]
+            errors=[{"url": "http://test.com", "error": "Failed"}],
         )
 
         assert result.total == 10
@@ -104,9 +104,7 @@ class TestDataSourceExceptions:
         """Test DataSourceError with original error."""
         original = ValueError("Original error")
         error = DataSourceError(
-            "Test error",
-            source_name="CSV File",
-            original_error=original
+            "Test error", source_name="CSV File", original_error=original
         )
 
         assert "Test error" in str(error)
@@ -148,8 +146,7 @@ class ConcreteDataSource(AbstractBookmarkDataSource):
         self._name = "Test Source"
 
     def fetch_bookmarks(
-        self,
-        filters: Optional[Dict[str, Any]] = None
+        self, filters: Optional[Dict[str, Any]] = None
     ) -> List[Bookmark]:
         return self.bookmarks
 
@@ -250,8 +247,7 @@ class BrokenDataSource(AbstractBookmarkDataSource):
     """Data source that raises exceptions for testing."""
 
     def fetch_bookmarks(
-        self,
-        filters: Optional[Dict[str, Any]] = None
+        self, filters: Optional[Dict[str, Any]] = None
     ) -> List[Bookmark]:
         raise DataSourceReadError("Read failed")
 

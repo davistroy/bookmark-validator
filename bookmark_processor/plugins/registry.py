@@ -20,7 +20,6 @@ from .base import (
 )
 from .loader import PluginLoader, PluginLoadError
 
-
 T = TypeVar("T", bound=BookmarkPlugin)
 
 
@@ -54,7 +53,9 @@ class PluginRegistry:
         self._content_enhancers: List[ContentEnhancerPlugin] = []
 
         # Hook subscriptions
-        self._hook_subscribers: Dict[PluginHook, List[BookmarkPlugin]] = defaultdict(list)
+        self._hook_subscribers: Dict[PluginHook, List[BookmarkPlugin]] = defaultdict(
+            list
+        )
 
         # Plugin execution order (for hooks)
         self._execution_order: Dict[str, int] = {}
@@ -140,7 +141,10 @@ class PluginRegistry:
         if isinstance(plugin, TagGeneratorPlugin) and plugin in self._tag_generators:
             self._tag_generators.remove(plugin)
 
-        if isinstance(plugin, ContentEnhancerPlugin) and plugin in self._content_enhancers:
+        if (
+            isinstance(plugin, ContentEnhancerPlugin)
+            and plugin in self._content_enhancers
+        ):
             self._content_enhancers.remove(plugin)
 
         for hook in plugin.hooks:

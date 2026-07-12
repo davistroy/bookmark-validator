@@ -94,13 +94,16 @@ class TestURLValidator:
     def validator(self):
         """Create a URLValidator instance with mocked dependencies."""
         import os
+
         # Ensure test mode is disabled for unit tests
         original_test_mode = os.environ.get("BOOKMARK_PROCESSOR_TEST_MODE")
         if "BOOKMARK_PROCESSOR_TEST_MODE" in os.environ:
             del os.environ["BOOKMARK_PROCESSOR_TEST_MODE"]
 
         with (
-            patch("bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"),
+            patch(
+                "bookmark_processor.core.url_validator.validator.IntelligentRateLimiter"
+            ),
             patch("bookmark_processor.core.url_validator.validator.BrowserSimulator"),
             patch("bookmark_processor.core.url_validator.validator.RetryHandler"),
             patch("bookmark_processor.core.url_validator.validator.SecurityValidator"),
@@ -131,10 +134,13 @@ class TestURLValidator:
 
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         with patch.object(validator.session, "head", return_value=mock_response):
             result = validator.validate_url("https://example.com")
@@ -148,15 +154,20 @@ class TestURLValidator:
         """Test validation with redirects."""
         final_resp = Mock()
         final_resp.status_code = 200
-        final_resp.url = "https://www.example.com"  # Redirected URL (different from input)
+        final_resp.url = (
+            "https://www.example.com"  # Redirected URL (different from input)
+        )
         final_resp.headers = {"content-type": "text/html"}
 
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         with patch.object(validator.session, "head", return_value=final_resp):
             result = validator.validate_url("https://example.com")
@@ -170,10 +181,13 @@ class TestURLValidator:
         """Test validation with timeout error."""
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         with patch.object(
             validator.session, "head", side_effect=Timeout("Request timeout")
@@ -189,10 +203,13 @@ class TestURLValidator:
         """Test validation with connection error."""
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         with patch.object(
             validator.session, "head", side_effect=ConnectionError("Connection failed")
@@ -201,7 +218,11 @@ class TestURLValidator:
 
         assert result.is_valid is False
         assert "connection" in result.error_message.lower()
-        assert result.error_type in ["connection_error", "dns_error", "connection_refused"]
+        assert result.error_type in [
+            "connection_error",
+            "dns_error",
+            "connection_refused",
+        ]
 
     def test_validate_single_url_invalid_status(self, validator):
         """Test validation with invalid status code."""
@@ -212,10 +233,13 @@ class TestURLValidator:
 
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         with patch.object(validator.session, "head", return_value=mock_response):
             result = validator.validate_url("https://example.com/notfound")
@@ -230,10 +254,13 @@ class TestURLValidator:
         # This test validates that failures are recorded for retry
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -250,10 +277,13 @@ class TestURLValidator:
         """Test validation failure."""
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         with patch.object(
             validator.session, "head", side_effect=Timeout("Persistent timeout")
@@ -267,10 +297,13 @@ class TestURLValidator:
         """Test that rate limiting is applied."""
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -290,10 +323,13 @@ class TestURLValidator:
         """Test that browser headers are applied."""
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -319,10 +355,13 @@ class TestURLValidator:
 
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         # Create a mapping of URL to response
         url_to_response = {}
@@ -334,7 +373,7 @@ class TestURLValidator:
             url_to_response[url] = mock_resp
 
         def get_response(*args, **kwargs):
-            url = args[0] if args else kwargs.get('url')
+            url = args[0] if args else kwargs.get("url")
             return url_to_response.get(url, url_to_response[urls[0]])
 
         with patch.object(validator.session, "head", side_effect=get_response):
@@ -354,10 +393,13 @@ class TestURLValidator:
 
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -382,10 +424,13 @@ class TestURLValidator:
 
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         with patch.object(validator.session, "head", side_effect=Timeout("Timeout")):
             results = validator.batch_validate(urls, enable_retries=False)
@@ -409,14 +454,10 @@ class TestURLValidator:
         ]
 
         for url in valid_urls:
-            assert (
-                is_valid_url_format(url) is True
-            ), f"Should be valid: {url}"
+            assert is_valid_url_format(url) is True, f"Should be valid: {url}"
 
         for url in invalid_urls:
-            assert (
-                is_valid_url_format(url) is False
-            ), f"Should be invalid: {url}"
+            assert is_valid_url_format(url) is False, f"Should be invalid: {url}"
 
     def test_normalize_url(self, validator):
         """Test URL skip patterns."""
@@ -436,23 +477,22 @@ class TestURLValidator:
         ]
 
         for url in skip_urls:
-            assert (
-                should_skip_url(url) is True
-            ), f"Should be skipped: {url}"
+            assert should_skip_url(url) is True, f"Should be skipped: {url}"
 
         for url in valid_urls:
-            assert (
-                should_skip_url(url) is False
-            ), f"Should not be skipped: {url}"
+            assert should_skip_url(url) is False, f"Should not be skipped: {url}"
 
     def test_get_validation_statistics(self, validator):
         """Test getting validation statistics."""
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         # Perform batch validation to populate stats (stats are only updated in batch operations)
         urls = [f"https://example{i}.com" for i in range(5)]
@@ -461,7 +501,7 @@ class TestURLValidator:
         mock_response.headers = {}
 
         def get_response(*args, **kwargs):
-            url = args[0] if args else kwargs.get('url')
+            url = args[0] if args else kwargs.get("url")
             mock_response.url = url
             return mock_response
 
@@ -504,10 +544,13 @@ class TestURLValidator:
 
         # Mock security validator
         from bookmark_processor.utils.security_validator import SecurityValidationResult
+
         mock_security_result = SecurityValidationResult(
             is_safe=True, risk_level="low", issues=[], blocked_reason=None
         )
-        validator.security_validator.validate_url_security.return_value = mock_security_result
+        validator.security_validator.validate_url_security.return_value = (
+            mock_security_result
+        )
 
         urls = [f"https://example{i}.com" for i in range(10)]
         results = []

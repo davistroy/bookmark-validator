@@ -1216,14 +1216,20 @@ class EnhancedFolderGenerator(AIFolderGenerator):
                     if kw in title_words:
                         matching_keywords.append(kw)
                 if matching_keywords:
-                    reasons.append(f"Title contains keywords: {', '.join(matching_keywords)}")
+                    reasons.append(
+                        f"Title contains keywords: {', '.join(matching_keywords)}"
+                    )
                 break
 
         # Content category reasoning
         if content and content.content_categories:
-            matching_cats = [c for c in content.content_categories if c.lower() in category.lower()]
+            matching_cats = [
+                c for c in content.content_categories if c.lower() in category.lower()
+            ]
             if matching_cats:
-                reasons.append(f"Content categorized as: {', '.join(matching_cats[:2])}")
+                reasons.append(
+                    f"Content categorized as: {', '.join(matching_cats[:2])}"
+                )
 
         # Original folder reasoning
         if original_folder:
@@ -1236,7 +1242,9 @@ class EnhancedFolderGenerator(AIFolderGenerator):
 
         return "; ".join(reasons)
 
-    def _apply_max_depth(self, result: FolderGenerationResult) -> FolderGenerationResult:
+    def _apply_max_depth(
+        self, result: FolderGenerationResult
+    ) -> FolderGenerationResult:
         """
         Apply maximum depth limit to folder result.
 
@@ -1306,4 +1314,6 @@ class EnhancedFolderGenerator(AIFolderGenerator):
                 return folder, "General"
 
         # Fallback to parent implementation
-        return super()._determine_category(bookmark, content, ai_result, original_folder)
+        return super()._determine_category(
+            bookmark, content, ai_result, original_folder
+        )

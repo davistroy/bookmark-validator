@@ -12,6 +12,7 @@ import pandas as pd
 import pytest
 
 from bookmark_processor.utils.cli_validators import CLIValidator
+
 # ConfigValidator was removed during Pydantic migration - validation is now handled by Configuration class
 from bookmark_processor.utils.csv_field_validators import CSVFieldValidator
 from bookmark_processor.utils.input_validator import InputValidator
@@ -74,7 +75,10 @@ class TestValidationUtilities:
         with pytest.raises(ValidationError) as exc_info:
             validate_csv_structure(empty_df, RaindropCSVHandler.EXPORT_COLUMNS)
 
-        assert "empty" in str(exc_info.value).lower() or "missing" in str(exc_info.value).lower()
+        assert (
+            "empty" in str(exc_info.value).lower()
+            or "missing" in str(exc_info.value).lower()
+        )
 
     @pytest.mark.parametrize(
         "url,expected",
@@ -147,7 +151,7 @@ class TestInputValidator:
             "url": "https://example.com",
             "title": "Test Bookmark",
             "tags": "test, bookmark",
-            "folder": "Test/Folder"
+            "folder": "Test/Folder",
         }
 
         result = validator.validate_input(input_data)
@@ -159,7 +163,7 @@ class TestInputValidator:
 
         input_data = {
             "url": "javascript:alert('xss')",  # Invalid scheme
-            "title": "Test Bookmark"
+            "title": "Test Bookmark",
         }
 
         result = validator.validate_input(input_data)
@@ -169,10 +173,7 @@ class TestInputValidator:
         """Test input validation with missing title."""
         validator = InputValidator()
 
-        input_data = {
-            "url": "https://example.com",
-            "title": ""
-        }
+        input_data = {"url": "https://example.com", "title": ""}
 
         result = validator.validate_input(input_data)
         assert result.has_errors()
@@ -182,24 +183,15 @@ class TestInputValidator:
         validator = InputValidator()
 
         # Valid data
-        valid_data = {
-            "url": "https://example.com",
-            "title": "Test"
-        }
+        valid_data = {"url": "https://example.com", "title": "Test"}
         assert validator.is_valid(valid_data)
 
         # Invalid data - missing required URL
-        invalid_data = {
-            "url": "",  # Empty URL
-            "title": "Test"
-        }
+        invalid_data = {"url": "", "title": "Test"}  # Empty URL
         assert not validator.is_valid(invalid_data)
 
         # Invalid data - bad scheme
-        invalid_data2 = {
-            "url": "javascript:void(0)",
-            "title": "Test"
-        }
+        invalid_data2 = {"url": "javascript:void(0)", "title": "Test"}
         # This should have errors due to invalid scheme
         result = validator.validate_input(invalid_data2)
         assert result.has_errors() or not result.is_valid
@@ -230,7 +222,7 @@ class TestCSVFieldValidator:
             "created": "2024-01-01T00:00:00Z",
             "cover": "",
             "highlights": "",
-            "favorite": "false"
+            "favorite": "false",
         }
 
         result = validator.validate_row(valid_row)
@@ -241,11 +233,7 @@ class TestCSVFieldValidator:
         validator = CSVFieldValidator()
 
         # Row with missing columns
-        invalid_row = {
-            "id": "1",
-            "title": "Test",
-            "url": "https://example.com"
-        }
+        invalid_row = {"id": "1", "title": "Test", "url": "https://example.com"}
 
         result = validator.validate_row(invalid_row)
         assert result.has_errors()
@@ -291,6 +279,7 @@ class TestCLIValidator:
     def test_init(self):
         """Test CLIValidator initialization."""
         from bookmark_processor.utils.cli_validators import CLIArgumentValidator
+
         validator = CLIArgumentValidator()
         assert validator is not None
 
@@ -317,7 +306,7 @@ class TestCLIValidator:
             resume=False,
             clear_checkpoints=False,
             no_duplicates=False,
-            config=None
+            config=None,
         )
 
         result = validator.validate_all_arguments(args)
@@ -344,7 +333,7 @@ class TestCLIValidator:
             resume=False,
             clear_checkpoints=False,
             no_duplicates=False,
-            config=None
+            config=None,
         )
 
         result = validator.validate_all_arguments(args)
@@ -365,7 +354,7 @@ class TestCLIValidator:
             "resume": True,
             "clear_checkpoints": True,
             "input_path": str(temp_csv_file),
-            "output_path": str(output_file)
+            "output_path": str(output_file),
         }
 
         result = validator.validate(args_dict)
@@ -376,7 +365,7 @@ class TestCLIValidator:
             "resume": False,
             "clear_checkpoints": False,
             "input_path": str(temp_csv_file),
-            "output_path": str(temp_csv_file)
+            "output_path": str(temp_csv_file),
         }
 
         result = validator.validate(args_dict)
@@ -403,7 +392,7 @@ class TestIntegratedValidation:
             "created": "2024-01-01T00:00:00Z",
             "cover": "",
             "highlights": "",
-            "favorite": False
+            "favorite": False,
         }
 
         result = validator.validate_bookmark_record(valid_bookmark)
@@ -440,12 +429,12 @@ class TestIntegratedValidation:
                 "created": "2024-01-01T00:00:00Z",
                 "cover": "",
                 "highlights": "",
-                "favorite": False
+                "favorite": False,
             },
             {
                 "url": "invalid-url",
                 "title": "Invalid Bookmark",
-            }
+            },
         ]
 
         valid_bookmarks, summary = validator.validate_and_recover_bookmarks(bookmarks)
@@ -463,7 +452,9 @@ class TestIntegratedValidation:
         validator = IntegratedValidator()
 
         # Perform some validations
-        validator.validate_bookmark_record({"url": "https://example.com", "title": "Test"})
+        validator.validate_bookmark_record(
+            {"url": "https://example.com", "title": "Test"}
+        )
 
         stats = validator.get_validation_statistics()
         assert isinstance(stats, dict)

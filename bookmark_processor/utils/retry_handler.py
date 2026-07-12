@@ -150,9 +150,9 @@ class RetryHandler:
         error_type = self._classify_error(error)
         strategy = self.RETRY_STRATEGIES.get(error_type, {})
 
-        max_retries = int(custom_max_retries or strategy.get(
-            "max_retries", self.default_max_retries
-        ))
+        max_retries = int(
+            custom_max_retries or strategy.get("max_retries", self.default_max_retries)
+        )
 
         if max_retries > 0:
             item = RetryableItem(

@@ -27,7 +27,6 @@ from bookmark_processor.config.pydantic_config import (
     ConfigurationManager,
 )
 
-
 # ============================================================================
 # Configuration Class Initialization Tests
 # ============================================================================
@@ -738,7 +737,10 @@ class TestCreateConfiguration:
         config_factory = create_configuration(config_path=config_file)
         config_direct = Configuration(config_path=config_file)
 
-        assert config_factory._config.checkpoint_interval == config_direct._config.checkpoint_interval
+        assert (
+            config_factory._config.checkpoint_interval
+            == config_direct._config.checkpoint_interval
+        )
 
 
 # ============================================================================
@@ -785,10 +787,13 @@ class TestConfigurationIntegration:
 
     def test_environment_variable_api_keys(self):
         """Test API keys loaded from environment variables."""
-        with patch.dict(os.environ, {
-            "CLAUDE_API_KEY": "sk-ant-from-env",
-            "OPENAI_API_KEY": "sk-openai-from-env",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "CLAUDE_API_KEY": "sk-ant-from-env",
+                "OPENAI_API_KEY": "sk-openai-from-env",
+            },
+        ):
             config = Configuration()
 
             assert config.get_api_key("claude") == "sk-ant-from-env"

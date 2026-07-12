@@ -860,9 +860,7 @@ class TestConcurrentValidation(TestAsyncValidatorMixin):
         with patch.object(
             mock_validator, "async_validate_url", side_effect=mock_validate
         ):
-            result = await mock_validator.async_validate_batch(
-                urls, "concurrent_batch"
-            )
+            result = await mock_validator.async_validate_batch(urls, "concurrent_batch")
 
         assert result.items_processed == 10
         # Max active should not exceed the semaphore limit
@@ -1297,9 +1295,7 @@ class TestSkipPatterns(TestAsyncValidatorMixin):
             mock_security_result
         )
 
-        result = await mock_validator.async_validate_url(
-            "data:text/html,<h1>Test</h1>"
-        )
+        result = await mock_validator.async_validate_url("data:text/html,<h1>Test</h1>")
 
         assert result.is_valid is False
 
@@ -1417,9 +1413,7 @@ class TestEdgeCases(TestAsyncValidatorMixin):
             mock_validator, "_initialize_async_session", new_callable=AsyncMock
         ):
             mock_validator._async_session = mock_session
-            result = await mock_validator.async_validate_url(
-                "https://example.com/path"
-            )
+            result = await mock_validator.async_validate_url("https://example.com/path")
 
         assert result.url == "https://example.com/path"
 

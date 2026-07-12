@@ -177,7 +177,7 @@ class FolderMetrics:
         # 3. Reasonable depth (30%)
 
         # Optimal folder count is roughly sqrt(total_bookmarks) * 2
-        optimal_folders = (self.total_bookmarks ** 0.5) * 2
+        optimal_folders = (self.total_bookmarks**0.5) * 2
         if self.total_folders == 0:
             folder_count_score = 0.0
         else:
@@ -191,7 +191,7 @@ class FolderMetrics:
             avg_count = sum(counts) / len(counts)
             if avg_count > 0:
                 variance = sum((c - avg_count) ** 2 for c in counts) / len(counts)
-                cv = (variance ** 0.5) / avg_count  # Coefficient of variation
+                cv = (variance**0.5) / avg_count  # Coefficient of variation
                 distribution_score = max(0.0, 1.0 - cv * 0.3)
             else:
                 distribution_score = 0.0
@@ -210,7 +210,11 @@ class FolderMetrics:
         else:
             depth_score = 0.0
 
-        return (folder_count_score * 0.4) + (distribution_score * 0.3) + (depth_score * 0.3)
+        return (
+            (folder_count_score * 0.4)
+            + (distribution_score * 0.3)
+            + (depth_score * 0.3)
+        )
 
 
 @dataclass
@@ -227,11 +231,11 @@ class AttentionItems:
     def total_review_items(self) -> int:
         """Get total items needing review."""
         return (
-            len(self.low_confidence_descriptions) +
-            len(self.untagged_bookmarks) +
-            len(self.invalid_urls) +
-            len(self.missing_titles) +
-            len(self.processing_errors)
+            len(self.low_confidence_descriptions)
+            + len(self.untagged_bookmarks)
+            + len(self.invalid_urls)
+            + len(self.missing_titles)
+            + len(self.processing_errors)
         )
 
     def get_all_items_for_review(self) -> List[Bookmark]:
@@ -240,11 +244,11 @@ class AttentionItems:
         items: List[Bookmark] = []
 
         for bookmark in (
-            self.low_confidence_descriptions +
-            self.untagged_bookmarks +
-            self.invalid_urls +
-            self.missing_titles +
-            [b for b, _ in self.processing_errors]
+            self.low_confidence_descriptions
+            + self.untagged_bookmarks
+            + self.invalid_urls
+            + self.missing_titles
+            + [b for b, _ in self.processing_errors]
         ):
             if bookmark.url not in seen_urls:
                 seen_urls.add(bookmark.url)
@@ -322,7 +326,9 @@ class QualityMetrics:
                 "organization_coherence": self.folder_metrics.organization_coherence,
             },
             "attention": {
-                "low_confidence_descriptions": len(self.attention_items.low_confidence_descriptions),
+                "low_confidence_descriptions": len(
+                    self.attention_items.low_confidence_descriptions
+                ),
                 "untagged_bookmarks": len(self.attention_items.untagged_bookmarks),
                 "invalid_urls": len(self.attention_items.invalid_urls),
                 "missing_titles": len(self.attention_items.missing_titles),
@@ -413,8 +419,8 @@ class QualityReporter:
         # Copy processing results statistics if available
         if self.processing_results:
             metrics.urls_validated = (
-                self.processing_results.url_validation_success +
-                self.processing_results.url_validation_failed
+                self.processing_results.url_validation_success
+                + self.processing_results.url_validation_failed
             )
             metrics.urls_valid = self.processing_results.url_validation_success
             metrics.urls_invalid = self.processing_results.url_validation_failed
@@ -424,8 +430,10 @@ class QualityReporter:
         else:
             # Calculate from bookmarks
             metrics.successful_count = sum(
-                1 for b in self.bookmarks
-                if b.processing_status.url_validated and not b.processing_status.url_validation_error
+                1
+                for b in self.bookmarks
+                if b.processing_status.url_validated
+                and not b.processing_status.url_validation_error
             )
             metrics.failed_count = metrics.total_processed - metrics.successful_count
 
@@ -447,8 +455,10 @@ class QualityReporter:
                 original = self._original_lookup.get(bookmark.url)
 
                 if original:
-                    if (bookmark.enhanced_description != original.note and
-                        bookmark.enhanced_description != original.excerpt):
+                    if (
+                        bookmark.enhanced_description != original.note
+                        and bookmark.enhanced_description != original.excerpt
+                    ):
                         # Description was changed - likely AI enhanced
                         desc.ai_enhanced_count += 1
                     elif bookmark.enhanced_description == original.excerpt:
@@ -483,7 +493,9 @@ class QualityReporter:
 
         for bookmark in self.bookmarks:
             # Use optimized tags if available, otherwise original
-            bookmark_tags = bookmark.optimized_tags if bookmark.optimized_tags else bookmark.tags
+            bookmark_tags = (
+                bookmark.optimized_tags if bookmark.optimized_tags else bookmark.tags
+            )
 
             if bookmark_tags:
                 tags.bookmarks_with_tags += 1
@@ -491,7 +503,9 @@ class QualityReporter:
 
                 for tag in bookmark_tags:
                     tags.unique_tags.add(tag.lower())
-                    tags.tag_frequency[tag.lower()] = tags.tag_frequency.get(tag.lower(), 0) + 1
+                    tags.tag_frequency[tag.lower()] = (
+                        tags.tag_frequency.get(tag.lower(), 0) + 1
+                    )
             else:
                 tags.bookmarks_without_tags += 1
                 tags.tag_counts.append(0)
@@ -508,7 +522,9 @@ class QualityReporter:
 
             if folder:
                 folders.unique_folders.add(folder)
-                folders.folder_distribution[folder] = folders.folder_distribution.get(folder, 0) + 1
+                folders.folder_distribution[folder] = (
+                    folders.folder_distribution.get(folder, 0) + 1
+                )
 
                 # Calculate depth
                 depth = len(folder.split("/"))
@@ -545,7 +561,9 @@ class QualityReporter:
             # Missing titles (only count if explicit title is missing and we're using URL fallback)
             effective_title = bookmark.get_effective_title()
             has_explicit_title = bool(bookmark.title and bookmark.title.strip())
-            if not has_explicit_title and (effective_title == "Untitled Bookmark" or not effective_title):
+            if not has_explicit_title and (
+                effective_title == "Untitled Bookmark" or not effective_title
+            ):
                 attention.missing_titles.append(bookmark)
 
             # Processing errors
@@ -586,7 +604,7 @@ class QualityReporter:
         generator = ReportGenerator(style=report_style)
         generator.set_title(
             "QUALITY ASSESSMENT REPORT",
-            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         )
 
         # Description Enhancement section
@@ -753,7 +771,9 @@ class QualityReporter:
             }
 
             if include_reasons:
-                row["review_reasons"] = "; ".join(reasons_lookup.get(bookmark.url, ["Unknown"]))
+                row["review_reasons"] = "; ".join(
+                    reasons_lookup.get(bookmark.url, ["Unknown"])
+                )
 
             rows.append(row)
 
@@ -806,7 +826,7 @@ class QualityReporter:
         generator = ReportGenerator(style=ReportStyle.RICH)
         generator.set_title(
             "QUALITY ASSESSMENT REPORT",
-            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         )
 
         self._add_description_section(generator)

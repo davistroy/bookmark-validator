@@ -164,9 +164,7 @@ class TestMemoryMonitor:
     def test_check_memory_pressure_warning(self):
         """Test check_memory_pressure returns 'warning' when above warning threshold."""
         # Mock get_current_memory to return value above warning but below critical
-        monitor = MemoryMonitor(
-            warning_threshold_mb=50.0, critical_threshold_mb=100.0
-        )
+        monitor = MemoryMonitor(warning_threshold_mb=50.0, critical_threshold_mb=100.0)
 
         with patch.object(monitor, "get_current_memory", return_value=75.0):
             pressure = monitor.check_memory_pressure()
@@ -174,9 +172,7 @@ class TestMemoryMonitor:
 
     def test_check_memory_pressure_critical(self):
         """Test check_memory_pressure returns 'critical' when above critical threshold."""
-        monitor = MemoryMonitor(
-            warning_threshold_mb=50.0, critical_threshold_mb=100.0
-        )
+        monitor = MemoryMonitor(warning_threshold_mb=50.0, critical_threshold_mb=100.0)
 
         with patch.object(monitor, "get_current_memory", return_value=150.0):
             pressure = monitor.check_memory_pressure()
@@ -225,10 +221,9 @@ class TestMemoryMonitor:
         monitor = MemoryMonitor()
 
         # Mock psutil to raise an exception
-        with patch(
-            "bookmark_processor.utils.memory_optimizer.HAS_PSUTIL", False
-        ), patch(
-            "bookmark_processor.utils.memory_optimizer.HAS_RESOURCE", False
+        with (
+            patch("bookmark_processor.utils.memory_optimizer.HAS_PSUTIL", False),
+            patch("bookmark_processor.utils.memory_optimizer.HAS_RESOURCE", False),
         ):
             memory = monitor.get_current_usage_mb()
             # Should return 0.0 when both methods fail
@@ -307,11 +302,16 @@ class TestBatchProcessor:
             return batch
 
         # Mock critical memory pressure
-        with patch.object(
-            processor.memory_monitor, "check_memory_pressure", return_value="critical"
-        ), patch.object(
-            processor.memory_monitor, "force_cleanup", return_value=100
-        ) as mock_cleanup:
+        with (
+            patch.object(
+                processor.memory_monitor,
+                "check_memory_pressure",
+                return_value="critical",
+            ),
+            patch.object(
+                processor.memory_monitor, "force_cleanup", return_value=100
+            ) as mock_cleanup,
+        ):
             list(processor.process_batches(items, identity, progress_callback=callback))
 
             # force_cleanup should be called due to critical pressure
@@ -326,9 +326,14 @@ class TestBatchProcessor:
             return batch
 
         # Mock warning memory pressure
-        with patch.object(
-            processor.memory_monitor, "check_memory_pressure", return_value="warning"
-        ), patch("gc.collect") as mock_gc:
+        with (
+            patch.object(
+                processor.memory_monitor,
+                "check_memory_pressure",
+                return_value="warning",
+            ),
+            patch("gc.collect") as mock_gc,
+        ):
             list(processor.process_batches(items, identity))
 
             # GC should be triggered due to warning pressure
@@ -343,9 +348,14 @@ class TestBatchProcessor:
             return batch
 
         # Even with warning pressure, no GC if disabled
-        with patch.object(
-            processor.memory_monitor, "check_memory_pressure", return_value="warning"
-        ), patch("gc.collect") as mock_gc:
+        with (
+            patch.object(
+                processor.memory_monitor,
+                "check_memory_pressure",
+                return_value="warning",
+            ),
+            patch("gc.collect") as mock_gc,
+        ):
             list(processor.process_batches(items, identity))
 
             # GC should not be triggered for batch cleanup when enable_gc=False
@@ -364,7 +374,11 @@ class TestBatchProcessor:
             raise ValueError("Test error")
 
         with pytest.raises(ValueError, match="Test error"):
-            list(processor.process_batches(items, failing_processor, progress_callback=callback))
+            list(
+                processor.process_batches(
+                    items, failing_processor, progress_callback=callback
+                )
+            )
 
         # Callback should have recorded the error
         error_calls = [c for c in callback_calls if "error" in c[2].lower()]
@@ -477,9 +491,14 @@ class TestStreamingProcessor:
         processor = StreamingProcessor()
         items = list(range(10))
 
-        with patch.object(
-            processor.memory_monitor, "check_memory_pressure", return_value="critical"
-        ), patch("gc.collect") as mock_gc:
+        with (
+            patch.object(
+                processor.memory_monitor,
+                "check_memory_pressure",
+                return_value="critical",
+            ),
+            patch("gc.collect") as mock_gc,
+        ):
             for _ in processor.stream_items(items, chunk_size=3):
                 pass
 
@@ -646,12 +665,16 @@ class TestDataCache:
         def cache_operations():
             try:
                 for i in range(50):
-                    cache.put(f"key_{threading.current_thread().name}_{i}", f"value_{i}")
+                    cache.put(
+                        f"key_{threading.current_thread().name}_{i}", f"value_{i}"
+                    )
                     cache.get(f"key_{threading.current_thread().name}_{i}")
             except Exception as e:
                 errors.append(e)
 
-        threads = [threading.Thread(target=cache_operations, name=f"t{i}") for i in range(5)]
+        threads = [
+            threading.Thread(target=cache_operations, name=f"t{i}") for i in range(5)
+        ]
 
         for t in threads:
             t.start()
@@ -704,6 +727,7 @@ class TestOptimizeForLargeDataset:
 
     def test_decorator_basic(self, capsys):
         """Test decorator wraps function correctly."""
+
         @optimize_for_large_dataset
         def test_func(x, y):
             return x + y
@@ -716,6 +740,7 @@ class TestOptimizeForLargeDataset:
 
     def test_decorator_with_kwargs(self, capsys):
         """Test decorator handles kwargs."""
+
         @optimize_for_large_dataset
         def test_func(x, y=10):
             return x * y
@@ -726,6 +751,7 @@ class TestOptimizeForLargeDataset:
 
     def test_decorator_triggers_gc(self):
         """Test decorator triggers GC before operation."""
+
         @optimize_for_large_dataset
         def test_func():
             return "done"
@@ -738,13 +764,17 @@ class TestOptimizeForLargeDataset:
 
     def test_decorator_cleanup_on_pressure(self):
         """Test decorator triggers cleanup on memory pressure."""
+
         @optimize_for_large_dataset
         def test_func():
             return "done"
 
-        with patch.object(
-            memory_monitor, "check_memory_pressure", return_value="warning"
-        ), patch.object(memory_monitor, "force_cleanup") as mock_cleanup:
+        with (
+            patch.object(
+                memory_monitor, "check_memory_pressure", return_value="warning"
+            ),
+            patch.object(memory_monitor, "force_cleanup") as mock_cleanup,
+        ):
             test_func()
 
             # Cleanup should be triggered due to pressure
@@ -752,13 +782,17 @@ class TestOptimizeForLargeDataset:
 
     def test_decorator_no_cleanup_normal(self):
         """Test decorator doesn't cleanup when memory is normal."""
+
         @optimize_for_large_dataset
         def test_func():
             return "done"
 
-        with patch.object(
-            memory_monitor, "check_memory_pressure", return_value="normal"
-        ), patch.object(memory_monitor, "force_cleanup") as mock_cleanup:
+        with (
+            patch.object(
+                memory_monitor, "check_memory_pressure", return_value="normal"
+            ),
+            patch.object(memory_monitor, "force_cleanup") as mock_cleanup,
+        ):
             test_func()
 
             # Cleanup should not be triggered
@@ -766,6 +800,7 @@ class TestOptimizeForLargeDataset:
 
     def test_decorator_preserves_function_name(self):
         """Test decorator preserves original function name."""
+
         @optimize_for_large_dataset
         def my_special_function():
             return "done"
@@ -797,10 +832,9 @@ class TestPsutilFallback:
         monitor = MemoryMonitor()
 
         # Simulate no psutil and no resource module
-        with patch(
-            "bookmark_processor.utils.memory_optimizer.HAS_PSUTIL", False
-        ), patch(
-            "bookmark_processor.utils.memory_optimizer.HAS_RESOURCE", False
+        with (
+            patch("bookmark_processor.utils.memory_optimizer.HAS_PSUTIL", False),
+            patch("bookmark_processor.utils.memory_optimizer.HAS_RESOURCE", False),
         ):
             memory = monitor.get_current_usage_mb()
             # Should return 0.0 as fallback
@@ -814,13 +848,13 @@ class TestPsutilFallback:
         mock_usage = MagicMock()
         mock_usage.ru_maxrss = 100 * 1024  # 100MB in KB
 
-        with patch(
-            "bookmark_processor.utils.memory_optimizer.HAS_PSUTIL", False
-        ), patch(
-            "bookmark_processor.utils.memory_optimizer.HAS_RESOURCE", True
-        ), patch(
-            "bookmark_processor.utils.memory_optimizer.resource"
-        ) as mock_resource:
+        with (
+            patch("bookmark_processor.utils.memory_optimizer.HAS_PSUTIL", False),
+            patch("bookmark_processor.utils.memory_optimizer.HAS_RESOURCE", True),
+            patch(
+                "bookmark_processor.utils.memory_optimizer.resource"
+            ) as mock_resource,
+        ):
             mock_resource.getrusage.return_value = mock_usage
             mock_resource.RUSAGE_SELF = 0
 

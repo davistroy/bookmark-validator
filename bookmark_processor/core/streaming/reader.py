@@ -41,15 +41,24 @@ class StreamingBookmarkReader:
 
     # Expected column names for raindrop.io export format
     EXPORT_COLUMNS = [
-        "id", "title", "note", "excerpt", "url", "folder",
-        "tags", "created", "cover", "highlights", "favorite"
+        "id",
+        "title",
+        "note",
+        "excerpt",
+        "url",
+        "folder",
+        "tags",
+        "created",
+        "cover",
+        "highlights",
+        "favorite",
     ]
 
     def __init__(
         self,
         input_path: Union[str, Path],
         encoding: Optional[str] = None,
-        skip_invalid: bool = True
+        skip_invalid: bool = True,
     ):
         """
         Initialize the streaming reader.
@@ -279,7 +288,9 @@ class StreamingBookmarkReader:
         self.logger.info(f"Starting to stream bookmarks from {self.input_path}")
 
         try:
-            with open(self.input_path, "r", encoding=encoding, errors="replace", newline="") as f:
+            with open(
+                self.input_path, "r", encoding=encoding, errors="replace", newline=""
+            ) as f:
                 reader = csv.DictReader(f)
 
                 for row in reader:
@@ -300,8 +311,7 @@ class StreamingBookmarkReader:
             raise
 
     def stream_batches(
-        self,
-        batch_size: int = 100
+        self, batch_size: int = 100
     ) -> Generator[List[Bookmark], None, None]:
         """
         Yield bookmarks in batches.
@@ -331,14 +341,18 @@ class StreamingBookmarkReader:
 
             if len(batch) >= batch_size:
                 batch_count += 1
-                self.logger.debug(f"Yielding batch {batch_count} ({len(batch)} bookmarks)")
+                self.logger.debug(
+                    f"Yielding batch {batch_count} ({len(batch)} bookmarks)"
+                )
                 yield batch
                 batch = []
 
         # Yield remaining bookmarks
         if batch:
             batch_count += 1
-            self.logger.debug(f"Yielding final batch {batch_count} ({len(batch)} bookmarks)")
+            self.logger.debug(
+                f"Yielding final batch {batch_count} ({len(batch)} bookmarks)"
+            )
             yield batch
 
         self.logger.info(f"Streamed {batch_count} batches total")

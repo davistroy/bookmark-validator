@@ -323,7 +323,11 @@ class DiscoveryAnalyzer:
 
         # Find underused built-in tags
         used_builtin = set(tag_counter.keys()) & self.builtin_tags
-        unused_builtin = self.builtin_tags - set(tag_counter.keys()) - CorpusAwareTagGenerator.STOP_WORDS
+        unused_builtin = (
+            self.builtin_tags
+            - set(tag_counter.keys())
+            - CorpusAwareTagGenerator.STOP_WORDS
+        )
         # Only suggest tags that appear in the content but aren't used as tags
         potential_tags = []
         for tag in unused_builtin:
@@ -410,9 +414,28 @@ class DiscoveryAnalyzer:
 
         # Skip very common web terms
         common_web_terms = {
-            "http", "https", "www", "com", "org", "net", "html", "php",
-            "index", "page", "post", "blog", "article", "view", "read",
-            "click", "link", "more", "see", "also", "new", "best",
+            "http",
+            "https",
+            "www",
+            "com",
+            "org",
+            "net",
+            "html",
+            "php",
+            "index",
+            "page",
+            "post",
+            "blog",
+            "article",
+            "view",
+            "read",
+            "click",
+            "link",
+            "more",
+            "see",
+            "also",
+            "new",
+            "best",
         }
         if term_lower in common_web_terms:
             return False
@@ -451,16 +474,18 @@ class DiscoveryAnalyzer:
         for folder_name, domains in domain_groups.items():
             if len(domains) >= 1:
                 total_bookmarks = sum(d.count for d in domains)
-                suggestions.append({
-                    "suggested_folder": folder_name,
-                    "domains": [d.domain for d in domains],
-                    "bookmark_count": total_bookmarks,
-                    "rationale": f"Groups {len(domains)} domain(s) with {total_bookmarks} bookmarks",
-                })
+                suggestions.append(
+                    {
+                        "suggested_folder": folder_name,
+                        "domains": [d.domain for d in domains],
+                        "bookmark_count": total_bookmarks,
+                        "rationale": f"Groups {len(domains)} domain(s) with {total_bookmarks} bookmarks",
+                    }
+                )
 
         # Sort by bookmark count
         suggestions.sort(key=lambda x: x["bookmark_count"], reverse=True)
-        return suggestions[:self.max_suggestions]
+        return suggestions[: self.max_suggestions]
 
 
 def format_discovery_report(report: DiscoveryReport, verbose: bool = False) -> str:
@@ -502,8 +527,12 @@ def format_discovery_report(report: DiscoveryReport, verbose: bool = False) -> s
         if report.total_bookmarks > 0
         else 0
     )
-    lines.append(f"Bookmarks without tags: {report.bookmarks_without_tags} ({pct_no_tags:.1f}%)")
-    lines.append(f"Bookmarks without folders: {report.bookmarks_without_folders} ({pct_no_folders:.1f}%)")
+    lines.append(
+        f"Bookmarks without tags: {report.bookmarks_without_tags} ({pct_no_tags:.1f}%)"
+    )
+    lines.append(
+        f"Bookmarks without folders: {report.bookmarks_without_folders} ({pct_no_folders:.1f}%)"
+    )
     lines.append(f"Bookmarks with short titles: {report.bookmarks_with_short_titles}")
     lines.append("")
 
@@ -511,10 +540,14 @@ def format_discovery_report(report: DiscoveryReport, verbose: bool = False) -> s
     if report.new_tag_suggestions:
         lines.append("SUGGESTED NEW TAGS")
         lines.append("-" * 40)
-        lines.append("These terms appear frequently but aren't in the built-in vocabulary:")
+        lines.append(
+            "These terms appear frequently but aren't in the built-in vocabulary:"
+        )
         lines.append("")
         for term in report.new_tag_suggestions[:15]:
-            lines.append(f"  {term.term:<25} (found {term.frequency}x in {term.source_list})")
+            lines.append(
+                f"  {term.term:<25} (found {term.frequency}x in {term.source_list})"
+            )
         if len(report.new_tag_suggestions) > 15:
             lines.append(f"  ... and {len(report.new_tag_suggestions) - 15} more")
         lines.append("")
@@ -533,8 +566,14 @@ def format_discovery_report(report: DiscoveryReport, verbose: bool = False) -> s
         lines.append("TOP DOMAINS")
         lines.append("-" * 40)
         for domain_stat in report.top_domains[:10]:
-            folders = ", ".join(domain_stat.current_folders) if domain_stat.current_folders else "(no folder)"
-            lines.append(f"  {domain_stat.domain:<30} {domain_stat.count:>4} bookmarks  [{folders}]")
+            folders = (
+                ", ".join(domain_stat.current_folders)
+                if domain_stat.current_folders
+                else "(no folder)"
+            )
+            lines.append(
+                f"  {domain_stat.domain:<30} {domain_stat.count:>4} bookmarks  [{folders}]"
+            )
         lines.append("")
 
     # Domains needing categories

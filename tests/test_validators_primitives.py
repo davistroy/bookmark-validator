@@ -25,7 +25,10 @@ from bookmark_processor.utils.validators.primitives import (
     create_title_validator,
     create_tags_validator,
 )
-from bookmark_processor.utils.validators.base import ValidationResult, ValidationSeverity
+from bookmark_processor.utils.validators.base import (
+    ValidationResult,
+    ValidationSeverity,
+)
 
 
 class TestStringValidatorBasic:
@@ -94,7 +97,9 @@ class TestStringValidatorBasic:
         result = validator.validate(12345)
         assert result.is_valid is True
         # Check info messages
-        info_issues = [i for i in result.issues if i.severity == ValidationSeverity.INFO]
+        info_issues = [
+            i for i in result.issues if i.severity == ValidationSeverity.INFO
+        ]
         assert len(info_issues) > 0
         assert "Converting" in info_issues[0].message
 
@@ -638,7 +643,9 @@ class TestListValidatorConversion:
         """Test that conversions generate info messages"""
         validator = ListValidator()
         result = validator.validate("a, b, c")
-        info_issues = [i for i in result.issues if i.severity == ValidationSeverity.INFO]
+        info_issues = [
+            i for i in result.issues if i.severity == ValidationSeverity.INFO
+        ]
         assert len(info_issues) > 0
 
     def test_empty_string_items_filtered(self):

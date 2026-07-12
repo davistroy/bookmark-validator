@@ -19,7 +19,6 @@ from bookmark_processor.core.data_models import ProcessingResults
 from bookmark_processor.core.checkpoint_manager import CheckpointManager
 from tests.fixtures.generate_test_data import TestDataGenerator
 
-
 # Mark all tests in this module as performance tests
 pytestmark = pytest.mark.performance
 
@@ -69,7 +68,9 @@ def mock_url_validation():
 @pytest.fixture
 def mock_content_extraction():
     """Mock content extraction for performance tests."""
-    with patch("bookmark_processor.core.content_analyzer.ContentAnalyzer") as mock_class:
+    with patch(
+        "bookmark_processor.core.content_analyzer.ContentAnalyzer"
+    ) as mock_class:
         mock_analyzer = Mock()
 
         def extract_metadata(url: str):
@@ -90,7 +91,9 @@ def mock_content_extraction():
 @pytest.fixture
 def mock_ai_processing():
     """Mock AI processing for performance tests."""
-    with patch("bookmark_processor.core.ai_processor.EnhancedAIProcessor") as mock_class:
+    with patch(
+        "bookmark_processor.core.ai_processor.EnhancedAIProcessor"
+    ) as mock_class:
         mock_processor = Mock()
 
         def process_batch(bookmarks):
@@ -101,7 +104,9 @@ def mock_ai_processing():
                         f"AI-enhanced: {bookmark.note or bookmark.excerpt}"
                     )
                 else:
-                    bookmark.enhanced_description = f"AI-generated description for {bookmark.title}"
+                    bookmark.enhanced_description = (
+                        f"AI-generated description for {bookmark.title}"
+                    )
                 bookmark.optimized_tags = ["ai", "generated", "performance", "test"]
             return bookmarks
 
@@ -357,9 +362,9 @@ def test_medium_dataset_memory_stability(
     memory_growth = end_memory - start_memory
     max_acceptable_growth = 1500  # 1.5 GB growth is acceptable
 
-    assert memory_growth <= max_acceptable_growth, (
-        f"Memory growth of {memory_growth:.2f}MB exceeds limit of {max_acceptable_growth}MB"
-    )
+    assert (
+        memory_growth <= max_acceptable_growth
+    ), f"Memory growth of {memory_growth:.2f}MB exceeds limit of {max_acceptable_growth}MB"
 
     # Assert - No memory leaks (memory doesn't grow unbounded)
     assert (
@@ -438,7 +443,9 @@ def test_large_dataset_performance(
     print(f"\n=== Large Dataset Performance ===")
     print(f"Processed: {results.processed_bookmarks}/{baseline['size']} bookmarks")
     print(f"Valid: {results.valid_bookmarks}")
-    print(f"Duration: {metrics['duration_seconds']:.2f} seconds ({metrics['duration_seconds'] / 3600:.2f} hours)")
+    print(
+        f"Duration: {metrics['duration_seconds']:.2f} seconds ({metrics['duration_seconds'] / 3600:.2f} hours)"
+    )
     print(f"Memory: {metrics['peak_memory_mb']:.2f} MB")
     print(
         f"Throughput: {(results.processed_bookmarks / metrics['duration_seconds']) * 3600:.2f} bookmarks/hour"
@@ -562,7 +569,9 @@ def test_error_handling_performance(
 
     # Assert - Errors handled gracefully
     assert results.processed_bookmarks > 0, "Should process valid bookmarks"
-    assert len(results.errors) > 0 or results.invalid_bookmarks > 0, "Should detect invalid bookmarks"
+    assert (
+        len(results.errors) > 0 or results.invalid_bookmarks > 0
+    ), "Should detect invalid bookmarks"
 
     # Assert - Error handling doesn't cause significant slowdown
     assert metrics["duration_seconds"] < 120, "Error handling should be efficient"
@@ -583,8 +592,13 @@ def test_error_handling_performance(
 
 @pytest.mark.small
 def test_batch_size_impact(
-    module_test_files, temp_config_file, benchmark_timer, temp_dir,
-    mock_url_validation, mock_content_extraction, mock_ai_processing
+    module_test_files,
+    temp_config_file,
+    benchmark_timer,
+    temp_dir,
+    mock_url_validation,
+    mock_content_extraction,
+    mock_ai_processing,
 ):
     """Test impact of different batch sizes on performance."""
     from bookmark_processor.config.configuration import Configuration
@@ -597,7 +611,9 @@ def test_batch_size_impact(
         # Configure with specific batch size
         config = Configuration(config_file=str(temp_config_file))
         config.processing["batch_size"] = batch_size
-        config.checkpoint["checkpoint_dir"] = str(temp_dir / f"checkpoints_{batch_size}")
+        config.checkpoint["checkpoint_dir"] = str(
+            temp_dir / f"checkpoints_{batch_size}"
+        )
 
         pipeline = BookmarkProcessingPipeline(config)
         output_file = temp_dir / f"output_batch_{batch_size}.csv"
@@ -618,11 +634,15 @@ def test_batch_size_impact(
     # Print comparison
     print(f"\n=== Batch Size Impact ===")
     for batch_size, data in results_by_batch_size.items():
-        print(f"Batch size {batch_size}: {data['duration']:.2f}s ({data['processed']} bookmarks)")
+        print(
+            f"Batch size {batch_size}: {data['duration']:.2f}s ({data['processed']} bookmarks)"
+        )
 
     # Assert - All batch sizes should complete
     for batch_size, data in results_by_batch_size.items():
-        assert data["processed"] > 0, f"Batch size {batch_size} should process bookmarks"
+        assert (
+            data["processed"] > 0
+        ), f"Batch size {batch_size} should process bookmarks"
 
 
 # ============================================================================
@@ -687,6 +707,12 @@ def test_performance_baseline_regression(
     }
 
     print(f"\n=== Performance Baseline Report ===")
-    print(f"Duration: {metrics['duration_seconds']:.2f}s (max: {baseline['max_duration_seconds']}s)")
-    print(f"Memory: {metrics['peak_memory_mb']:.2f}MB (max: {baseline['max_memory_mb']}MB)")
-    print(f"Throughput: {throughput:.2f}/hour (min: {baseline['min_throughput_per_hour']}/hour)")
+    print(
+        f"Duration: {metrics['duration_seconds']:.2f}s (max: {baseline['max_duration_seconds']}s)"
+    )
+    print(
+        f"Memory: {metrics['peak_memory_mb']:.2f}MB (max: {baseline['max_memory_mb']}MB)"
+    )
+    print(
+        f"Throughput: {throughput:.2f}/hour (min: {baseline['min_throughput_per_hour']}/hour)"
+    )

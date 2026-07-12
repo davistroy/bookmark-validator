@@ -23,7 +23,6 @@ from bookmark_processor.core.database import (
     RunComparison,
 )
 
-
 # ============ Fixtures ============
 
 
@@ -50,7 +49,7 @@ def sample_bookmarks():
             note="Note 1",
             folder="Tech",
             tags=["test", "example"],
-            enhanced_description="Enhanced description 1"
+            enhanced_description="Enhanced description 1",
         ),
         Bookmark(
             id="2",
@@ -59,7 +58,7 @@ def sample_bookmarks():
             note="Note 2",
             folder="Tech/AI",
             tags=["ai", "ml"],
-            enhanced_description="Enhanced description 2"
+            enhanced_description="Enhanced description 2",
         ),
         Bookmark(
             id="3",
@@ -67,7 +66,7 @@ def sample_bookmarks():
             title="Test Site 3",
             folder="Science",
             tags=["science"],
-            enhanced_description="Enhanced description 3"
+            enhanced_description="Enhanced description 3",
         ),
     ]
 
@@ -81,10 +80,7 @@ def populated_db(db, sample_bookmarks):
         db.mark_processed(bookmark, ai_engine="local", run_id=run_id)
 
     db.complete_processing_run(
-        run_id=run_id,
-        total_processed=3,
-        total_succeeded=3,
-        total_failed=0
+        run_id=run_id, total_processed=3, total_succeeded=3, total_failed=0
     )
 
     return db
@@ -108,10 +104,9 @@ class TestBookmarkDatabase:
 
         # Verify tables exist
         import sqlite3
+
         conn = sqlite3.connect(str(temp_db_path))
-        cursor = conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        )
+        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = {row[0] for row in cursor.fetchall()}
         conn.close()
 
@@ -370,10 +365,7 @@ class TestRunManagement:
         """Test completing a processing run."""
         run_id = db.start_processing_run("test")
         db.complete_processing_run(
-            run_id=run_id,
-            total_processed=100,
-            total_succeeded=90,
-            total_failed=10
+            run_id=run_id, total_processed=100, total_succeeded=90, total_failed=10
         )
 
         runs = db.get_run_history(limit=1)
@@ -481,7 +473,7 @@ class TestBookmarkRecord:
             description="Test description",
             tags=["tag1", "tag2"],
             folder="Tech",
-            title="Test Title"
+            title="Test Title",
         )
 
         bookmark = record.to_bookmark()
@@ -500,7 +492,7 @@ class TestBookmarkRecord:
             description="Test",
             tags=["tag1"],
             folder="Tech",
-            title="Test"
+            title="Test",
         )
 
         d = record.to_dict()
@@ -522,7 +514,7 @@ class TestProcessingRun:
             total_processed=100,
             total_succeeded=90,
             total_failed=10,
-            config_hash="abc123"
+            config_hash="abc123",
         )
 
         d = run.to_dict()
@@ -545,7 +537,7 @@ class TestRunComparison:
             total_processed=0,
             total_succeeded=0,
             total_failed=0,
-            config_hash=None
+            config_hash=None,
         )
         run2 = ProcessingRun(
             id=2,
@@ -555,7 +547,7 @@ class TestRunComparison:
             total_processed=0,
             total_succeeded=0,
             total_failed=0,
-            config_hash=None
+            config_hash=None,
         )
 
         comparison = RunComparison(
@@ -564,7 +556,7 @@ class TestRunComparison:
             new_bookmarks=["a", "b"],
             removed_bookmarks=["c"],
             changed_bookmarks=["d", "e", "f"],
-            unchanged_bookmarks=["g"]
+            unchanged_bookmarks=["g"],
         )
 
         assert comparison.total_changes == 6  # 2 new + 1 removed + 3 changed
@@ -579,7 +571,7 @@ class TestRunComparison:
             total_processed=0,
             total_succeeded=0,
             total_failed=0,
-            config_hash=None
+            config_hash=None,
         )
         run2 = ProcessingRun(
             id=2,
@@ -589,7 +581,7 @@ class TestRunComparison:
             total_processed=0,
             total_succeeded=0,
             total_failed=0,
-            config_hash=None
+            config_hash=None,
         )
 
         comparison = RunComparison(
@@ -598,7 +590,7 @@ class TestRunComparison:
             new_bookmarks=["a"],
             removed_bookmarks=["b"],
             changed_bookmarks=["c"],
-            unchanged_bookmarks=["d"]
+            unchanged_bookmarks=["d"],
         )
 
         d = comparison.to_dict()

@@ -104,9 +104,7 @@ class OllamaAIPlugin(AIProcessorPlugin):
             f"Ollama AI plugin loaded (endpoint={self._endpoint}, model={self._model})"
         )
 
-    def generate_description(
-        self, bookmark: "Bookmark", content: str
-    ) -> str:
+    def generate_description(self, bookmark: "Bookmark", content: str) -> str:
         """
         Generate a description for a bookmark using Ollama.
 
@@ -124,8 +122,12 @@ class OllamaAIPlugin(AIProcessorPlugin):
 
         try:
             # Prepare the prompt
-            title = bookmark.get_effective_title() if hasattr(bookmark, 'get_effective_title') else str(bookmark)
-            url = bookmark.url if hasattr(bookmark, 'url') else str(bookmark)
+            title = (
+                bookmark.get_effective_title()
+                if hasattr(bookmark, "get_effective_title")
+                else str(bookmark)
+            )
+            url = bookmark.url if hasattr(bookmark, "url") else str(bookmark)
 
             # Truncate content for prompt
             content_preview = content[:1500] if content else ""
@@ -329,22 +331,18 @@ Description:"""
         """Called before AI processing."""
         return bookmark, content
 
-    def on_post_ai_process(
-        self, bookmark: "Bookmark", description: str
-    ) -> str:
+    def on_post_ai_process(self, bookmark: "Bookmark", description: str) -> str:
         """Called after AI processing."""
         return description
 
-    def on_ai_fallback(
-        self, bookmark: "Bookmark", error: Exception
-    ) -> Optional[str]:
+    def on_ai_fallback(self, bookmark: "Bookmark", error: Exception) -> Optional[str]:
         """
         Called when AI processing fails.
 
         Can return a fallback description or None.
         """
         # Simple fallback: use title as description
-        if hasattr(bookmark, 'get_effective_title'):
+        if hasattr(bookmark, "get_effective_title"):
             title = bookmark.get_effective_title()
             if title:
                 return title[:150]

@@ -33,7 +33,12 @@ from .primitives import (
 from .security import SecurityValidationResult, SecurityValidator
 
 # URL validators
-from .url import BookmarkURLValidator, URLValidator, create_url_validator, validate_url_format
+from .url import (
+    BookmarkURLValidator,
+    URLValidator,
+    create_url_validator,
+    validate_url_format,
+)
 
 __all__ = [
     # Base classes

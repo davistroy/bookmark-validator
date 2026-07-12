@@ -46,7 +46,8 @@ class ValidationResult:
             "timestamp": self.timestamp.isoformat(),
             "security_validation": (
                 self.security_validation.to_dict()
-                if self.security_validation and hasattr(self.security_validation, 'to_dict')
+                if self.security_validation
+                and hasattr(self.security_validation, "to_dict")
                 else None
             ),
         }

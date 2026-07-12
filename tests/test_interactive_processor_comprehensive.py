@@ -32,7 +32,6 @@ from bookmark_processor.core.interactive_processor import (
 )
 from bookmark_processor.core.ai_processor import AIProcessingResult
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
@@ -292,7 +291,10 @@ class TestProposedChangesComprehensive:
 
         assert result["url"] == "https://example.com/article"
         assert result["original_description"] == "A test article"
-        assert result["proposed_description"] == "Enhanced: A comprehensive technology article"
+        assert (
+            result["proposed_description"]
+            == "Enhanced: A comprehensive technology article"
+        )
         assert result["description_confidence"] == 0.85
         assert result["description_method"] == "ai_with_context"
         assert result["original_tags"] == ["tech"]
@@ -452,7 +454,9 @@ class TestInteractiveProcessorInitialization:
 
     def test_initialization_without_rich(self):
         """Test initialization when Rich is not available."""
-        with patch('bookmark_processor.core.interactive_processor.RICH_AVAILABLE', False):
+        with patch(
+            "bookmark_processor.core.interactive_processor.RICH_AVAILABLE", False
+        ):
             processor = InteractiveProcessor()
             # When Rich is not available, console should be None
             # (This depends on the actual implementation)
@@ -505,7 +509,9 @@ class TestProposeChanges:
             ai_result=None,
         )
 
-        assert changes.proposed_description == sample_bookmark.get_effective_description()
+        assert (
+            changes.proposed_description == sample_bookmark.get_effective_description()
+        )
         assert changes.description_confidence == 1.0
         assert changes.description_method == "unchanged"
 
@@ -525,9 +531,7 @@ class TestProposeChanges:
         assert changes.proposed_folder == sample_bookmark.folder  # Original folder
         assert changes.folder_confidence == 1.0  # Unchanged folder gets 1.0
 
-    def test_propose_changes_folder_only(
-        self, interactive_processor, sample_bookmark
-    ):
+    def test_propose_changes_folder_only(self, interactive_processor, sample_bookmark):
         """Test proposing changes with only folder change."""
         changes = interactive_processor.propose_changes(
             bookmark=sample_bookmark,
@@ -562,7 +566,10 @@ class TestApplyActionComprehensive:
         assert "tags" in result.changes_applied
         assert "folder" in result.changes_applied
         assert result.was_modified is True
-        assert sample_bookmark.enhanced_description == sample_proposed_changes.proposed_description
+        assert (
+            sample_bookmark.enhanced_description
+            == sample_proposed_changes.proposed_description
+        )
         assert sample_bookmark.optimized_tags == sample_proposed_changes.proposed_tags
         assert sample_bookmark.folder == sample_proposed_changes.proposed_folder
 
@@ -596,7 +603,10 @@ class TestApplyActionComprehensive:
         assert "description" in result.changes_applied
         assert "tags" not in result.changes_applied
         assert "folder" not in result.changes_applied
-        assert sample_bookmark.enhanced_description == sample_proposed_changes.proposed_description
+        assert (
+            sample_bookmark.enhanced_description
+            == sample_proposed_changes.proposed_description
+        )
 
     def test_apply_tags_only(
         self, interactive_processor, sample_bookmark, sample_proposed_changes
@@ -633,7 +643,11 @@ class TestApplyActionComprehensive:
     ):
         """Test skipping a bookmark."""
         original_desc = sample_bookmark.enhanced_description
-        original_tags = sample_bookmark.optimized_tags.copy() if sample_bookmark.optimized_tags else []
+        original_tags = (
+            sample_bookmark.optimized_tags.copy()
+            if sample_bookmark.optimized_tags
+            else []
+        )
         original_folder = sample_bookmark.folder
 
         result = interactive_processor._apply_action(
@@ -663,7 +677,9 @@ class TestEditActionsWithMockedInput:
     ):
         """Test editing description with mocked input."""
         with patch.object(
-            interactive_processor, '_prompt_edit_description', return_value="Custom description"
+            interactive_processor,
+            "_prompt_edit_description",
+            return_value="Custom description",
         ):
             result = interactive_processor._apply_action(
                 bookmark=sample_bookmark,
@@ -679,7 +695,7 @@ class TestEditActionsWithMockedInput:
     ):
         """Test editing description when user cancels."""
         with patch.object(
-            interactive_processor, '_prompt_edit_description', return_value=None
+            interactive_processor, "_prompt_edit_description", return_value=None
         ):
             result = interactive_processor._apply_action(
                 bookmark=sample_bookmark,
@@ -694,7 +710,9 @@ class TestEditActionsWithMockedInput:
     ):
         """Test editing tags with mocked input."""
         with patch.object(
-            interactive_processor, '_prompt_edit_tags', return_value=["custom", "tags", "here"]
+            interactive_processor,
+            "_prompt_edit_tags",
+            return_value=["custom", "tags", "here"],
         ):
             result = interactive_processor._apply_action(
                 bookmark=sample_bookmark,
@@ -710,7 +728,7 @@ class TestEditActionsWithMockedInput:
     ):
         """Test editing tags when user cancels."""
         with patch.object(
-            interactive_processor, '_prompt_edit_tags', return_value=None
+            interactive_processor, "_prompt_edit_tags", return_value=None
         ):
             result = interactive_processor._apply_action(
                 bookmark=sample_bookmark,
@@ -725,7 +743,9 @@ class TestEditActionsWithMockedInput:
     ):
         """Test editing folder with mocked input."""
         with patch.object(
-            interactive_processor, '_prompt_edit_folder', return_value="Custom/Folder/Path"
+            interactive_processor,
+            "_prompt_edit_folder",
+            return_value="Custom/Folder/Path",
         ):
             result = interactive_processor._apply_action(
                 bookmark=sample_bookmark,
@@ -741,7 +761,7 @@ class TestEditActionsWithMockedInput:
     ):
         """Test editing folder when user cancels."""
         with patch.object(
-            interactive_processor, '_prompt_edit_folder', return_value=None
+            interactive_processor, "_prompt_edit_folder", return_value=None
         ):
             result = interactive_processor._apply_action(
                 bookmark=sample_bookmark,
@@ -765,7 +785,7 @@ class TestPromptMethodsPlain:
         # Force no Rich console
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='a'):
+        with patch("builtins.input", return_value="a"):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.ACCEPT_ALL
@@ -774,7 +794,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt with skip."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='s'):
+        with patch("builtins.input", return_value="s"):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.SKIP
@@ -783,7 +803,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt with quit."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='q'):
+        with patch("builtins.input", return_value="q"):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.QUIT
@@ -792,7 +812,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt with help."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='h'):
+        with patch("builtins.input", return_value="h"):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.HELP
@@ -801,7 +821,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt with undo."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='u'):
+        with patch("builtins.input", return_value="u"):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.UNDO
@@ -810,7 +830,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt with empty input (default)."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value=''):
+        with patch("builtins.input", return_value=""):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.ACCEPT_ALL
@@ -819,7 +839,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt with invalid input defaults to accept."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='xyz'):
+        with patch("builtins.input", return_value="xyz"):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.ACCEPT_ALL
@@ -828,7 +848,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt handles KeyboardInterrupt."""
         interactive_processor.console = None
 
-        with patch('builtins.input', side_effect=KeyboardInterrupt):
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.QUIT
@@ -837,7 +857,7 @@ class TestPromptMethodsPlain:
         """Test plain action prompt handles EOFError."""
         interactive_processor.console = None
 
-        with patch('builtins.input', side_effect=EOFError):
+        with patch("builtins.input", side_effect=EOFError):
             action = interactive_processor._prompt_action_plain()
 
         assert action == InteractiveAction.QUIT
@@ -846,7 +866,7 @@ class TestPromptMethodsPlain:
         """Test plain description edit prompt."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='New description text'):
+        with patch("builtins.input", return_value="New description text"):
             result = interactive_processor._prompt_edit_description("Old description")
 
         assert result == "New description text"
@@ -855,16 +875,18 @@ class TestPromptMethodsPlain:
         """Test plain description edit prompt with empty input (cancel)."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value=''):
+        with patch("builtins.input", return_value=""):
             result = interactive_processor._prompt_edit_description("Old description")
 
         assert result is None
 
-    def test_prompt_edit_description_plain_keyboard_interrupt(self, interactive_processor):
+    def test_prompt_edit_description_plain_keyboard_interrupt(
+        self, interactive_processor
+    ):
         """Test plain description edit handles KeyboardInterrupt."""
         interactive_processor.console = None
 
-        with patch('builtins.input', side_effect=KeyboardInterrupt):
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
             result = interactive_processor._prompt_edit_description("Old description")
 
         assert result is None
@@ -873,7 +895,7 @@ class TestPromptMethodsPlain:
         """Test plain tags edit prompt."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='tag1, tag2, tag3'):
+        with patch("builtins.input", return_value="tag1, tag2, tag3"):
             result = interactive_processor._prompt_edit_tags(["old1", "old2"])
 
         assert result == ["tag1", "tag2", "tag3"]
@@ -882,7 +904,7 @@ class TestPromptMethodsPlain:
         """Test plain tags edit prompt with empty input (cancel)."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value=''):
+        with patch("builtins.input", return_value=""):
             result = interactive_processor._prompt_edit_tags(["old1", "old2"])
 
         assert result is None
@@ -891,7 +913,7 @@ class TestPromptMethodsPlain:
         """Test plain tags edit handles KeyboardInterrupt."""
         interactive_processor.console = None
 
-        with patch('builtins.input', side_effect=KeyboardInterrupt):
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
             result = interactive_processor._prompt_edit_tags(["old1"])
 
         assert result is None
@@ -900,7 +922,7 @@ class TestPromptMethodsPlain:
         """Test plain folder edit prompt."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value='New/Folder/Path'):
+        with patch("builtins.input", return_value="New/Folder/Path"):
             result = interactive_processor._prompt_edit_folder("Old/Folder")
 
         assert result == "New/Folder/Path"
@@ -909,7 +931,7 @@ class TestPromptMethodsPlain:
         """Test plain folder edit prompt with empty input (cancel)."""
         interactive_processor.console = None
 
-        with patch('builtins.input', return_value=''):
+        with patch("builtins.input", return_value=""):
             result = interactive_processor._prompt_edit_folder("Old/Folder")
 
         assert result is None
@@ -918,7 +940,7 @@ class TestPromptMethodsPlain:
         """Test plain folder edit handles KeyboardInterrupt."""
         interactive_processor.console = None
 
-        with patch('builtins.input', side_effect=KeyboardInterrupt):
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
             result = interactive_processor._prompt_edit_folder("Old")
 
         assert result is None
@@ -937,7 +959,9 @@ class TestPromptMethodsRich:
         """Test Rich action prompt with accept."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "a"
             action = interactive_processor._prompt_action()
 
@@ -947,7 +971,9 @@ class TestPromptMethodsRich:
         """Test Rich action prompt with description only."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "d"
             action = interactive_processor._prompt_action()
 
@@ -957,7 +983,9 @@ class TestPromptMethodsRich:
         """Test Rich action prompt with tags only."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "t"
             action = interactive_processor._prompt_action()
 
@@ -967,17 +995,23 @@ class TestPromptMethodsRich:
         """Test Rich action prompt with folder only."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "f"
             action = interactive_processor._prompt_action()
 
         assert action == InteractiveAction.FOLDER_ONLY
 
-    def test_prompt_action_rich_edit_description(self, interactive_processor, mock_console):
+    def test_prompt_action_rich_edit_description(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich action prompt with edit description."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "e"
             action = interactive_processor._prompt_action()
 
@@ -987,7 +1021,9 @@ class TestPromptMethodsRich:
         """Test Rich action prompt with edit tags (capital T)."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "T"
             action = interactive_processor._prompt_action()
 
@@ -997,17 +1033,23 @@ class TestPromptMethodsRich:
         """Test Rich action prompt with edit folder (capital F)."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "F"
             action = interactive_processor._prompt_action()
 
         assert action == InteractiveAction.EDIT_FOLDER
 
-    def test_prompt_action_rich_keyboard_interrupt(self, interactive_processor, mock_console):
+    def test_prompt_action_rich_keyboard_interrupt(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich action prompt handles KeyboardInterrupt."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.side_effect = KeyboardInterrupt
             action = interactive_processor._prompt_action()
 
@@ -1017,17 +1059,23 @@ class TestPromptMethodsRich:
         """Test Rich action prompt handles EOFError."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.side_effect = EOFError
             action = interactive_processor._prompt_action()
 
         assert action == InteractiveAction.QUIT
 
-    def test_prompt_action_rich_invalid_defaults(self, interactive_processor, mock_console):
+    def test_prompt_action_rich_invalid_defaults(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich action prompt with unknown input defaults to accept."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "xyz"
             action = interactive_processor._prompt_action()
 
@@ -1037,37 +1085,51 @@ class TestPromptMethodsRich:
         """Test Rich description edit prompt."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "New Rich description"
             result = interactive_processor._prompt_edit_description("Old")
 
         assert result == "New Rich description"
 
-    def test_prompt_edit_description_rich_empty(self, interactive_processor, mock_console):
+    def test_prompt_edit_description_rich_empty(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich description edit prompt with empty input."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = ""
             result = interactive_processor._prompt_edit_description("Old")
 
         assert result is None
 
-    def test_prompt_edit_description_rich_whitespace_only(self, interactive_processor, mock_console):
+    def test_prompt_edit_description_rich_whitespace_only(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich description edit prompt with whitespace only."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "   "
             result = interactive_processor._prompt_edit_description("Old")
 
         assert result is None
 
-    def test_prompt_edit_description_rich_keyboard_interrupt(self, interactive_processor, mock_console):
+    def test_prompt_edit_description_rich_keyboard_interrupt(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich description edit handles KeyboardInterrupt."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.side_effect = KeyboardInterrupt
             result = interactive_processor._prompt_edit_description("Old")
 
@@ -1077,7 +1139,9 @@ class TestPromptMethodsRich:
         """Test Rich tags edit prompt."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "tag1, tag2, tag3"
             result = interactive_processor._prompt_edit_tags(["old"])
 
@@ -1087,27 +1151,37 @@ class TestPromptMethodsRich:
         """Test Rich tags edit prompt with empty input."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = ""
             result = interactive_processor._prompt_edit_tags(["old"])
 
         assert result is None
 
-    def test_prompt_edit_tags_rich_whitespace(self, interactive_processor, mock_console):
+    def test_prompt_edit_tags_rich_whitespace(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich tags edit prompt with whitespace."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "  "
             result = interactive_processor._prompt_edit_tags(["old"])
 
         assert result is None
 
-    def test_prompt_edit_tags_rich_keyboard_interrupt(self, interactive_processor, mock_console):
+    def test_prompt_edit_tags_rich_keyboard_interrupt(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich tags edit handles KeyboardInterrupt."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.side_effect = KeyboardInterrupt
             result = interactive_processor._prompt_edit_tags(["old"])
 
@@ -1117,7 +1191,9 @@ class TestPromptMethodsRich:
         """Test Rich folder edit prompt."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = "New/Rich/Folder"
             result = interactive_processor._prompt_edit_folder("Old")
 
@@ -1127,17 +1203,23 @@ class TestPromptMethodsRich:
         """Test Rich folder edit prompt with empty input."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.return_value = ""
             result = interactive_processor._prompt_edit_folder("Old")
 
         assert result is None
 
-    def test_prompt_edit_folder_rich_keyboard_interrupt(self, interactive_processor, mock_console):
+    def test_prompt_edit_folder_rich_keyboard_interrupt(
+        self, interactive_processor, mock_console
+    ):
         """Test Rich folder edit handles KeyboardInterrupt."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.Prompt') as mock_prompt_class:
+        with patch(
+            "bookmark_processor.core.interactive_processor.Prompt"
+        ) as mock_prompt_class:
             mock_prompt_class.ask.side_effect = KeyboardInterrupt
             result = interactive_processor._prompt_edit_folder("Old")
 
@@ -1180,7 +1262,11 @@ class TestDisplayMethodsPlain:
         assert "FOLDER:" in captured.out
 
     def test_display_bookmark_plain_no_changes(
-        self, interactive_processor, sample_bookmark, proposed_changes_no_changes, capsys
+        self,
+        interactive_processor,
+        sample_bookmark,
+        proposed_changes_no_changes,
+        capsys,
     ):
         """Test plain bookmark display with no changes."""
         interactive_processor.console = None
@@ -1247,7 +1333,11 @@ class TestDisplayMethodsRich:
         assert mock_console.print.called
 
     def test_display_bookmark_rich(
-        self, interactive_processor, mock_console, sample_bookmark, sample_proposed_changes
+        self,
+        interactive_processor,
+        mock_console,
+        sample_bookmark,
+        sample_proposed_changes,
     ):
         """Test Rich bookmark display."""
         interactive_processor.console = mock_console
@@ -1259,7 +1349,11 @@ class TestDisplayMethodsRich:
         assert mock_console.print.called
 
     def test_display_bookmark_rich_long_url(
-        self, interactive_processor, mock_console, sample_bookmark_with_long_url, sample_proposed_changes
+        self,
+        interactive_processor,
+        mock_console,
+        sample_bookmark_with_long_url,
+        sample_proposed_changes,
     ):
         """Test Rich bookmark display with long URL truncation."""
         interactive_processor.console = mock_console
@@ -1488,7 +1582,10 @@ class TestAutoAcceptComprehensive:
     """Comprehensive tests for auto-accept functionality."""
 
     def test_auto_accept_applies_all_changes(
-        self, interactive_processor_with_threshold, sample_bookmark, sample_proposed_changes
+        self,
+        interactive_processor_with_threshold,
+        sample_bookmark,
+        sample_proposed_changes,
     ):
         """Test auto-accept applies all changes."""
         result = interactive_processor_with_threshold._auto_accept(
@@ -1502,7 +1599,10 @@ class TestAutoAcceptComprehensive:
         assert result.was_modified is True
 
     def test_auto_accept_no_changes_when_identical(
-        self, interactive_processor_with_threshold, sample_bookmark, proposed_changes_no_changes
+        self,
+        interactive_processor_with_threshold,
+        sample_bookmark,
+        proposed_changes_no_changes,
     ):
         """Test auto-accept with no actual changes."""
         result = interactive_processor_with_threshold._auto_accept(
@@ -1514,7 +1614,10 @@ class TestAutoAcceptComprehensive:
         assert result.was_modified is False
 
     def test_auto_accept_preserves_state(
-        self, interactive_processor_with_threshold, sample_bookmark, sample_proposed_changes
+        self,
+        interactive_processor_with_threshold,
+        sample_bookmark,
+        sample_proposed_changes,
     ):
         """Test auto-accept preserves original state for undo."""
         original_folder = sample_bookmark.folder
@@ -1719,7 +1822,7 @@ class TestProcessInteractiveIntegration:
             assert result.action_taken == InteractiveAction.SKIP
             assert result.was_modified is False
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
+    @patch.object(InteractiveProcessor, "_prompt_action")
     def test_process_with_accept_all(
         self, mock_prompt, interactive_processor, sample_bookmarks
     ):
@@ -1751,7 +1854,7 @@ class TestProcessInteractiveIntegration:
             assert result.action_taken == InteractiveAction.ACCEPT_ALL
             assert result.was_modified is True
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
+    @patch.object(InteractiveProcessor, "_prompt_action")
     def test_process_with_quit_early(
         self, mock_prompt, interactive_processor, sample_bookmarks
     ):
@@ -1781,7 +1884,7 @@ class TestProcessInteractiveIntegration:
         # QUIT should stop processing immediately
         assert len(results) == 0
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
+    @patch.object(InteractiveProcessor, "_prompt_action")
     def test_process_with_help_reprompts(
         self, mock_prompt, interactive_processor, sample_bookmarks
     ):
@@ -1817,7 +1920,7 @@ class TestProcessInteractiveIntegration:
         # Help should cause re-prompt, so all bookmarks should be processed
         assert len(results) == 3
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
+    @patch.object(InteractiveProcessor, "_prompt_action")
     def test_process_with_undo(
         self, mock_prompt, interactive_processor, sample_bookmarks
     ):
@@ -1833,8 +1936,8 @@ class TestProcessInteractiveIntegration:
         """
         mock_prompt.side_effect = [
             InteractiveAction.ACCEPT_ALL,  # First bookmark - added to results
-            InteractiveAction.UNDO,        # Second bookmark - undoes first, continue to third
-            InteractiveAction.SKIP,        # Third bookmark - added to results
+            InteractiveAction.UNDO,  # Second bookmark - undoes first, continue to third
+            InteractiveAction.SKIP,  # Third bookmark - added to results
         ]
 
         proposed_changes = {}
@@ -1895,7 +1998,7 @@ class TestProcessInteractiveIntegration:
         assert len(results) == 3
         assert interactive_processor_with_threshold.stats.auto_accepted == 3
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
+    @patch.object(InteractiveProcessor, "_prompt_action")
     def test_process_calls_progress_callback(
         self, mock_prompt, interactive_processor, sample_bookmarks
     ):
@@ -1928,7 +2031,7 @@ class TestProcessInteractiveIntegration:
         # Progress callback should be called for each bookmark
         assert progress_callback.call_count == 3
 
-    @patch.object(InteractiveProcessor, '_prompt_action')
+    @patch.object(InteractiveProcessor, "_prompt_action")
     def test_process_triggers_auto_save(
         self, mock_prompt, interactive_processor, sample_bookmarks
     ):
@@ -1977,7 +2080,9 @@ class TestGetOrComputeChanges:
         self, interactive_processor, sample_bookmark, sample_proposed_changes
     ):
         """Test returns changes from pending_changes cache."""
-        interactive_processor.pending_changes[sample_bookmark.url] = sample_proposed_changes
+        interactive_processor.pending_changes[sample_bookmark.url] = (
+            sample_proposed_changes
+        )
 
         result = interactive_processor._get_or_compute_changes(sample_bookmark)
 
@@ -2197,14 +2302,17 @@ class TestAdditionalCoverage:
         interactive_processor.pipeline = Mock()
 
         with patch.object(
-            interactive_processor, '_compute_changes_via_pipeline',
-            return_value=mock_changes
+            interactive_processor,
+            "_compute_changes_via_pipeline",
+            return_value=mock_changes,
         ):
             result = interactive_processor._get_or_compute_changes(sample_bookmark)
 
         assert result == mock_changes
         assert sample_bookmark.url in interactive_processor.pending_changes
-        assert interactive_processor.pending_changes[sample_bookmark.url] == mock_changes
+        assert (
+            interactive_processor.pending_changes[sample_bookmark.url] == mock_changes
+        )
 
     def test_compute_changes_via_pipeline_handles_exception(
         self, interactive_processor, sample_bookmark
@@ -2230,9 +2338,7 @@ class TestAdditionalCoverage:
             console=mock_console,
         )
 
-        processor._display_bookmark(
-            0, 5, sample_bookmark, sample_proposed_changes
-        )
+        processor._display_bookmark(0, 5, sample_bookmark, sample_proposed_changes)
 
         # Should have called console.print multiple times
         assert mock_console.print.called
@@ -2242,22 +2348,28 @@ class TestAdditionalCoverage:
         interactive_processor.console = None
 
         with patch.object(
-            interactive_processor, '_prompt_action_plain',
-            return_value=InteractiveAction.SKIP
+            interactive_processor,
+            "_prompt_action_plain",
+            return_value=InteractiveAction.SKIP,
         ) as mock_plain:
             result = interactive_processor._prompt_action()
 
         mock_plain.assert_called_once()
         assert result == InteractiveAction.SKIP
 
-    def test_prompt_action_with_rich_unavailable(self, interactive_processor, mock_console):
+    def test_prompt_action_with_rich_unavailable(
+        self, interactive_processor, mock_console
+    ):
         """Test _prompt_action falls back when RICH_AVAILABLE is False."""
         interactive_processor.console = mock_console
 
-        with patch('bookmark_processor.core.interactive_processor.RICH_AVAILABLE', False):
+        with patch(
+            "bookmark_processor.core.interactive_processor.RICH_AVAILABLE", False
+        ):
             with patch.object(
-                interactive_processor, '_prompt_action_plain',
-                return_value=InteractiveAction.ACCEPT_ALL
+                interactive_processor,
+                "_prompt_action_plain",
+                return_value=InteractiveAction.ACCEPT_ALL,
             ) as mock_plain:
                 result = interactive_processor._prompt_action()
 

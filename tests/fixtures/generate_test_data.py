@@ -17,11 +17,26 @@ class TestDataGenerator:
 
     # Sample domains and URL patterns
     DOMAINS = [
-        "github.com", "stackoverflow.com", "medium.com", "dev.to",
-        "python.org", "docs.python.org", "npmjs.com", "go.dev",
-        "rust-lang.org", "example.com", "wikipedia.org", "reddit.com",
-        "news.ycombinator.com", "aws.amazon.com", "cloud.google.com",
-        "microsoft.com", "mozilla.org", "w3.org", "ietf.org", "arxiv.org"
+        "github.com",
+        "stackoverflow.com",
+        "medium.com",
+        "dev.to",
+        "python.org",
+        "docs.python.org",
+        "npmjs.com",
+        "go.dev",
+        "rust-lang.org",
+        "example.com",
+        "wikipedia.org",
+        "reddit.com",
+        "news.ycombinator.com",
+        "aws.amazon.com",
+        "cloud.google.com",
+        "microsoft.com",
+        "mozilla.org",
+        "w3.org",
+        "ietf.org",
+        "arxiv.org",
     ]
 
     # Sample folders
@@ -45,7 +60,7 @@ class TestDataGenerator:
         "Security",
         "Performance",
         "Testing",
-        "Uncategorized"
+        "Uncategorized",
     ]
 
     # Sample tags
@@ -64,7 +79,7 @@ class TestDataGenerator:
         ["testing", "qa", "automation"],
         ["performance", "optimization"],
         ["machine-learning", "ai", "data-science"],
-        ["git", "version-control"]
+        ["git", "version-control"],
     ]
 
     # Sample titles and notes
@@ -78,14 +93,30 @@ class TestDataGenerator:
         "{topic} Documentation",
         "Getting Started with {topic}",
         "{topic} - Tips and Tricks",
-        "Mastering {topic}"
+        "Mastering {topic}",
     ]
 
     TOPICS = [
-        "Python", "JavaScript", "Docker", "Kubernetes", "AWS", "React",
-        "Vue.js", "Django", "FastAPI", "Node.js", "PostgreSQL", "MongoDB",
-        "Redis", "GraphQL", "REST APIs", "Microservices", "CI/CD",
-        "Testing", "Security", "Performance Optimization"
+        "Python",
+        "JavaScript",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "React",
+        "Vue.js",
+        "Django",
+        "FastAPI",
+        "Node.js",
+        "PostgreSQL",
+        "MongoDB",
+        "Redis",
+        "GraphQL",
+        "REST APIs",
+        "Microservices",
+        "CI/CD",
+        "Testing",
+        "Security",
+        "Performance Optimization",
     ]
 
     NOTE_TEMPLATES = [
@@ -98,14 +129,20 @@ class TestDataGenerator:
         "In-depth article discussing {aspect}",
         "",  # Some bookmarks have no notes
         "",
-        "Useful resource for {aspect}"
+        "Useful resource for {aspect}",
     ]
 
     ASPECTS = [
-        "core concepts", "implementation details", "common patterns",
-        "performance tuning", "security considerations", "deployment strategies",
-        "debugging techniques", "integration approaches", "architecture design",
-        "testing methodologies"
+        "core concepts",
+        "implementation details",
+        "common patterns",
+        "performance tuning",
+        "security considerations",
+        "deployment strategies",
+        "debugging techniques",
+        "integration approaches",
+        "architecture design",
+        "testing methodologies",
     ]
 
     EXCERPT_TEMPLATES = [
@@ -117,7 +154,7 @@ class TestDataGenerator:
         "Practical tips and techniques for working with {topic}.",
         "Everything you need to know about {topic} in one place.",
         "",  # Some bookmarks have no excerpts
-        "Quick reference guide for {topic}."
+        "Quick reference guide for {topic}.",
     ]
 
     def __init__(self, seed: int = 42):
@@ -186,7 +223,9 @@ class TestDataGenerator:
         date = date + timedelta(hours=hours_variation, minutes=minutes_variation)
         return date.isoformat().replace("+00:00", "Z")
 
-    def generate_bookmark(self, index: int, total: int, include_invalid: bool = True) -> Dict[str, str]:
+    def generate_bookmark(
+        self, index: int, total: int, include_invalid: bool = True
+    ) -> Dict[str, str]:
         """Generate a single bookmark entry."""
         # Occasionally create invalid bookmarks (2% of the time if enabled)
         if include_invalid and random.random() < 0.02:
@@ -203,7 +242,7 @@ class TestDataGenerator:
             "created": self.generate_created_date(index, total),
             "cover": "",
             "highlights": "",
-            "favorite": "true" if random.random() > 0.9 else "false"
+            "favorite": "true" if random.random() > 0.9 else "false",
         }
 
     def _generate_invalid_bookmark(self, index: int) -> Dict[str, str]:
@@ -228,14 +267,11 @@ class TestDataGenerator:
             "created": self.generate_created_date(index, 100),
             "cover": "",
             "highlights": "",
-            "favorite": "false"
+            "favorite": "false",
         }
 
     def generate_dataset(
-        self,
-        size: int,
-        include_invalid: bool = True,
-        duplicate_rate: float = 0.0
+        self, size: int, include_invalid: bool = True, duplicate_rate: float = 0.0
     ) -> List[Dict[str, str]]:
         """
         Generate a dataset of bookmarks.
@@ -262,18 +298,23 @@ class TestDataGenerator:
 
         return bookmarks
 
-    def save_to_csv(
-        self,
-        bookmarks: List[Dict[str, str]],
-        output_path: Path
-    ) -> None:
+    def save_to_csv(self, bookmarks: List[Dict[str, str]], output_path: Path) -> None:
         """Save bookmarks to a CSV file in raindrop.io export format."""
         df = pd.DataFrame(bookmarks)
 
         # Ensure correct column order (11-column raindrop export format)
         columns = [
-            "id", "title", "note", "excerpt", "url", "folder",
-            "tags", "created", "cover", "highlights", "favorite"
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
         ]
         df = df[columns]
 
@@ -339,28 +380,19 @@ def main():
         "--output-dir",
         type=Path,
         default=Path(__file__).parent / "performance_data",
-        help="Output directory for test files"
+        help="Output directory for test files",
     )
     parser.add_argument(
-        "--size",
-        type=int,
-        help="Generate a single file with specified size"
+        "--size", type=int, help="Generate a single file with specified size"
     )
     parser.add_argument(
-        "--output",
-        type=Path,
-        help="Output file path (for single file generation)"
+        "--output", type=Path, help="Output file path (for single file generation)"
     )
     parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed for reproducibility"
+        "--seed", type=int, default=42, help="Random seed for reproducibility"
     )
     parser.add_argument(
-        "--suite",
-        action="store_true",
-        help="Generate complete performance test suite"
+        "--suite", action="store_true", help="Generate complete performance test suite"
     )
 
     args = parser.parse_args()

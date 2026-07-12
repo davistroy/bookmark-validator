@@ -100,17 +100,17 @@ class TestProcessingState:
         """Test ProcessingState initialization with some data."""
         data = ProcessingState(
             input_file="test.csv",
-            output_file="output.csv", 
+            output_file="output.csv",
             total_bookmarks=50,
             config_hash="xyz789",
             current_stage=ProcessingStage.AI_PROCESSING,
             stage_progress=25,
         )
-        
+
         # Add some processed URLs
         data.processed_urls.add("https://example.com")
         data.processed_urls.add("https://test.com")
-        
+
         # Add some processing stats
         data.processing_stats["valid_urls"] = 20
         data.processing_stats["failed_urls"] = 5
@@ -129,7 +129,7 @@ class TestProcessingState:
             current_stage=ProcessingStage.CONTENT_ANALYSIS,
             stage_progress=5,
         )
-        
+
         # Add some test data
         data.processed_urls.add("https://example.com")
         data.processing_stats["test"] = "value"
@@ -154,7 +154,7 @@ class TestProcessingState:
             current_stage=ProcessingStage.TAG_OPTIMIZATION,
             stage_progress=15,
         )
-        
+
         original_data.processed_urls.add("https://test.com")
         original_data.processing_stats["count"] = 42
 
@@ -206,7 +206,7 @@ class TestCheckpointManager:
     def test_initialize_processing(self, temp_checkpoint_dir):
         """Test initializing new processing session."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         config = {"ai_engine": "local", "batch_size": 50}
         state = manager.initialize_processing(
             input_file="input.csv",
@@ -225,23 +225,23 @@ class TestCheckpointManager:
     def test_save_checkpoint(self, temp_checkpoint_dir):
         """Test saving checkpoint."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         # Initialize processing
         state = manager.initialize_processing(
             input_file="test.csv",
-            output_file="out.csv", 
+            output_file="out.csv",
             total_bookmarks=50,
             config={"test": "config"},
         )
-        
+
         # Add some processed URLs to trigger save
         for i in range(60):  # More than save_interval (50)
             state.processed_urls.add(f"https://example{i}.com")
-        
+
         # Should save automatically due to interval
         success = manager.save_checkpoint(force=True)
         assert success is True
-        
+
         # Verify checkpoint file exists
         checkpoint_files = list(manager.checkpoint_dir.glob("checkpoint_*.json"))
         assert len(checkpoint_files) > 0
@@ -249,7 +249,7 @@ class TestCheckpointManager:
     def test_load_checkpoint(self, temp_checkpoint_dir):
         """Test loading checkpoint."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         # Initialize and save a checkpoint
         state = manager.initialize_processing(
             input_file="input.csv",
@@ -257,15 +257,15 @@ class TestCheckpointManager:
             total_bookmarks=100,
             config={"test": "value"},
         )
-        
+
         state.processed_urls.add("https://test.com")
         state.processing_stats["test_stat"] = 42
         manager.save_checkpoint(force=True)
-        
+
         # Create new manager and load checkpoint
         manager2 = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
         loaded_state = manager2.load_checkpoint("input.csv")
-        
+
         assert loaded_state is not None
         assert loaded_state.input_file == "input.csv"
         assert "https://test.com" in loaded_state.processed_urls
@@ -274,10 +274,10 @@ class TestCheckpointManager:
     def test_has_checkpoint(self, temp_checkpoint_dir):
         """Test checking for existing checkpoints."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         # No checkpoint initially
         assert manager.has_checkpoint("nonexistent.csv") is False
-        
+
         # Create checkpoint
         manager.initialize_processing(
             input_file="test.csv",
@@ -286,59 +286,61 @@ class TestCheckpointManager:
             config={},
         )
         manager.save_checkpoint(force=True)
-        
+
         # Should find checkpoint
         assert manager.has_checkpoint("test.csv") is True
 
     def test_update_stage(self, temp_checkpoint_dir):
         """Test updating processing stage."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         state = manager.initialize_processing(
             input_file="test.csv",
             output_file="out.csv",
             total_bookmarks=10,
             config={},
         )
-        
+
         assert state.current_stage == ProcessingStage.INITIALIZATION
-        
+
         manager.update_stage(ProcessingStage.URL_VALIDATION, 25)
         assert manager.current_state.current_stage == ProcessingStage.URL_VALIDATION
 
-    def test_add_validated_bookmark(self, temp_checkpoint_dir, sample_bookmark, sample_validation_result):
+    def test_add_validated_bookmark(
+        self, temp_checkpoint_dir, sample_bookmark, sample_validation_result
+    ):
         """Test adding validated bookmark to checkpoint."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         manager.initialize_processing(
             input_file="test.csv",
             output_file="out.csv",
             total_bookmarks=10,
             config={},
         )
-        
+
         manager.add_validated_bookmark(sample_validation_result, sample_bookmark)
-        
+
         assert len(manager.current_state.validated_bookmarks) == 1
         assert sample_bookmark.url in manager.current_state.processed_urls
 
     def test_get_processing_progress(self, temp_checkpoint_dir):
         """Test getting processing progress."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         state = manager.initialize_processing(
             input_file="test.csv",
             output_file="out.csv",
             total_bookmarks=100,
             config={},
         )
-        
+
         # Add some processed URLs
         state.processed_urls.add("https://example1.com")
         state.processed_urls.add("https://example2.com")
-        
+
         progress = manager.get_processing_progress()
-        
+
         assert isinstance(progress, dict)
         assert progress["total_bookmarks"] == 100
         assert progress["processed_count"] == 2
@@ -348,7 +350,7 @@ class TestCheckpointManager:
     def test_clear_checkpoint(self, temp_checkpoint_dir):
         """Test clearing checkpoint."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         # Create checkpoint
         manager.initialize_processing(
             input_file="test.csv",
@@ -357,11 +359,11 @@ class TestCheckpointManager:
             config={},
         )
         manager.save_checkpoint(force=True)
-        
+
         # Verify checkpoint exists
         assert manager.checkpoint_file is not None
         assert manager.checkpoint_file.exists()
-        
+
         # Clear checkpoint
         success = manager.clear_checkpoint()
         assert success is True
@@ -371,15 +373,15 @@ class TestCheckpointManager:
     def test_cleanup_old_checkpoints(self, temp_checkpoint_dir):
         """Test cleaning up old checkpoint files."""
         manager = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         # Create multiple checkpoint files
         for i in range(5):
             checkpoint_file = temp_checkpoint_dir / f"checkpoint_old_{i}.json"
             checkpoint_file.write_text(json.dumps({"test": f"data_{i}"}))
-        
+
         # Run cleanup
         manager.cleanup_old_checkpoints(keep_count=2)
-        
+
         # Should only have 2 files left
         remaining_files = list(temp_checkpoint_dir.glob("checkpoint_*.json"))
         assert len(remaining_files) == 2
@@ -392,42 +394,42 @@ class TestCheckpointIntegration:
         """Test complete resume processing workflow."""
         # First processing session
         manager1 = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         state = manager1.initialize_processing(
             input_file="large_dataset.csv",
             output_file="processed.csv",
             total_bookmarks=1000,
             config={"batch_size": 50},
         )
-        
+
         # Simulate partial processing
         state.current_stage = ProcessingStage.URL_VALIDATION
         for i in range(300):  # Process 300 out of 1000
             state.processed_urls.add(f"https://example{i}.com")
-        
+
         state.processing_stats["validated"] = 280
         state.processing_stats["failed"] = 20
-        
+
         manager1.save_checkpoint(force=True)
-        
+
         # Simulate application restart - new manager
         manager2 = CheckpointManager(checkpoint_dir=str(temp_checkpoint_dir))
-        
+
         # Resume processing
         resumed_state = manager2.load_checkpoint("large_dataset.csv")
-        
+
         assert resumed_state is not None
         assert resumed_state.total_bookmarks == 1000
         assert len(resumed_state.processed_urls) == 300
         assert resumed_state.current_stage == ProcessingStage.URL_VALIDATION
         assert resumed_state.processing_stats["validated"] == 280
-        
+
         # Continue processing
         for i in range(300, 350):  # Process 50 more
             resumed_state.processed_urls.add(f"https://example{i}.com")
-        
+
         assert len(resumed_state.processed_urls) == 350
-        
+
         # Progress should be calculated correctly
         progress = manager2.get_processing_progress()
         assert progress["processed_count"] == 350

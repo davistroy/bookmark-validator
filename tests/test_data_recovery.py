@@ -20,7 +20,6 @@ from bookmark_processor.utils.data_recovery import (
     generate_fix_suggestions,
 )
 
-
 # =============================================================================
 # DataRecoveryStrategy Tests
 # =============================================================================
@@ -40,6 +39,7 @@ class TestDataRecoveryStrategy:
 
     def test_init_with_all_parameters(self):
         """Test DataRecoveryStrategy initialization with all parameters."""
+
         def custom_recovery(record):
             return "recovered"
 
@@ -47,7 +47,7 @@ class TestDataRecoveryStrategy:
             strategy="derive",
             default_value="fallback",
             recovery_function=custom_recovery,
-            required=True
+            required=True,
         )
 
         assert strategy.strategy == "derive"
@@ -95,8 +95,17 @@ class TestDataRecoveryManager:
     def test_init_creates_default_strategies(self, manager):
         """Test that initialization creates default recovery strategies."""
         expected_fields = [
-            "id", "title", "note", "excerpt", "url", "folder",
-            "tags", "created", "cover", "highlights", "favorite"
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
         ]
 
         for field in expected_fields:
@@ -127,7 +136,9 @@ class TestDataRecoveryManager:
         value, messages = manager.handle_missing_data("url", {})
 
         assert value is None
-        assert any("Required field" in msg or "missing" in msg.lower() for msg in messages)
+        assert any(
+            "Required field" in msg or "missing" in msg.lower() for msg in messages
+        )
 
     def test_handle_missing_data_default_strategy(self, manager):
         """Test handling missing data with default strategy."""
@@ -176,14 +187,18 @@ class TestDataRecoveryManager:
     # -------------------------------------------------------------------------
 
     @patch("bookmark_processor.utils.data_recovery.get_field_validator")
-    def test_handle_malformed_data_successful_sanitization(self, mock_validator, manager):
+    def test_handle_malformed_data_successful_sanitization(
+        self, mock_validator, manager
+    ):
         """Test successful sanitization of malformed data."""
         mock_result = MagicMock()
         mock_result.is_valid = True
         mock_result.sanitized_value = "sanitized_value"
         mock_validator.return_value.validate.return_value = mock_result
 
-        value, messages = manager.handle_malformed_data("title", "  malformed title  ", {})
+        value, messages = manager.handle_malformed_data(
+            "title", "  malformed title  ", {}
+        )
 
         # Should return sanitized value
         assert value is not None
@@ -200,7 +215,9 @@ class TestDataRecoveryManager:
         value, messages = manager.handle_malformed_data("title", "invalid", record)
 
         # Should fall back to recovery
-        assert any("recovery" in msg.lower() or "derived" in msg.lower() for msg in messages)
+        assert any(
+            "recovery" in msg.lower() or "derived" in msg.lower() for msg in messages
+        )
 
     @patch("bookmark_processor.utils.data_recovery.get_field_validator")
     def test_handle_malformed_data_exception_handling(self, mock_validator, manager):
@@ -210,7 +227,9 @@ class TestDataRecoveryManager:
         record = {"url": "https://example.com"}
         value, messages = manager.handle_malformed_data("title", "bad_data", record)
 
-        assert any("failed" in msg.lower() or "error" in msg.lower() for msg in messages)
+        assert any(
+            "failed" in msg.lower() or "error" in msg.lower() for msg in messages
+        )
 
     # -------------------------------------------------------------------------
     # recover_partial_record tests
@@ -237,8 +256,19 @@ class TestDataRecoveryManager:
 
         assert isinstance(recovered, dict)
         # Should have all expected fields
-        expected_fields = ["id", "title", "note", "excerpt", "url", "folder",
-                          "tags", "created", "cover", "highlights", "favorite"]
+        expected_fields = [
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
+        ]
         for field in expected_fields:
             assert field in recovered
 
@@ -250,10 +280,7 @@ class TestDataRecoveryManager:
         mock_result.sanitized_value = "valid"
         mock_validator.return_value.validate.return_value = mock_result
 
-        partial_record = {
-            "url": "https://example.com",
-            "title": "Test"
-        }
+        partial_record = {"url": "https://example.com", "title": "Test"}
 
         recovered, messages = manager.recover_partial_record(partial_record)
 
@@ -270,11 +297,7 @@ class TestDataRecoveryManager:
         mock_result.sanitized_value = None
         mock_validator.return_value.validate.return_value = mock_result
 
-        partial_record = {
-            "url": "https://example.com",
-            "title": None,
-            "note": None
-        }
+        partial_record = {"url": "https://example.com", "title": None, "note": None}
 
         recovered, messages = manager.recover_partial_record(partial_record)
 
@@ -421,13 +444,36 @@ class TestDataRecoveryManager:
 
     def test_sanitize_boolean_true_values(self, manager):
         """Test sanitizing various true values."""
-        true_values = [True, 1, "true", "TRUE", "True", "1", "yes", "YES", "on", "enabled", "y"]
+        true_values = [
+            True,
+            1,
+            "true",
+            "TRUE",
+            "True",
+            "1",
+            "yes",
+            "YES",
+            "on",
+            "enabled",
+            "y",
+        ]
         for val in true_values:
             assert manager._sanitize_boolean(val) is True, f"Expected True for {val}"
 
     def test_sanitize_boolean_false_values(self, manager):
         """Test sanitizing various false values."""
-        false_values = [False, 0, "false", "FALSE", "0", "no", "NO", "off", "disabled", "n"]
+        false_values = [
+            False,
+            0,
+            "false",
+            "FALSE",
+            "0",
+            "no",
+            "NO",
+            "off",
+            "disabled",
+            "n",
+        ]
         for val in false_values:
             assert manager._sanitize_boolean(val) is False, f"Expected False for {val}"
 
@@ -646,8 +692,7 @@ class TestMalformedDataDetector:
         """Test detection with expected patterns."""
         # Pattern that expects sentence to end properly
         result = detector.detect_truncation(
-            "This is a sentence that",
-            expected_patterns=[r"\bsentence\b"]
+            "This is a sentence that", expected_patterns=[r"\bsentence\b"]
         )
         assert result is True
 
@@ -660,25 +705,24 @@ class TestMalformedDataDetector:
         record = {
             "url": "https://example.com",
             "title": "Example Title",
-            "note": "Example note"
+            "note": "Example note",
         }
         issues = detector.detect_corruption(record)
         assert len(issues) == 0
 
     def test_detect_corruption_url_in_title(self, detector):
         """Test detection of URL in title field."""
-        record = {
-            "url": "https://example.com",
-            "title": "https://wrongurl.com"
-        }
+        record = {"url": "https://example.com", "title": "https://wrongurl.com"}
         issues = detector.detect_corruption(record)
-        assert any("url" in issue.lower() and "title" in issue.lower() for issue in issues)
+        assert any(
+            "url" in issue.lower() and "title" in issue.lower() for issue in issues
+        )
 
     def test_detect_corruption_title_in_url(self, detector):
         """Test detection of long text in URL field."""
         record = {
             "url": "This is actually a title that was accidentally put in the URL field and it's quite long",
-            "title": "Real Title"
+            "title": "Real Title",
         }
         issues = detector.detect_corruption(record)
         assert any("url" in issue.lower() for issue in issues)
@@ -688,7 +732,7 @@ class TestMalformedDataDetector:
         record = {
             "url": "https://example.com",
             "title": "Exact same content here",
-            "note": "Exact same content here"
+            "note": "Exact same content here",
         }
         issues = detector.detect_corruption(record)
         assert any("identical" in issue.lower() for issue in issues)
@@ -698,7 +742,7 @@ class TestMalformedDataDetector:
         record = {
             "url": "https://example.com",
             "title": "Title with \x00 null byte",
-            "note": "Normal note"
+            "note": "Normal note",
         }
         issues = detector.detect_corruption(record)
         assert any("null" in issue.lower() for issue in issues)
@@ -806,7 +850,9 @@ class TestGenerateFixSuggestions:
         issues = ["text appears truncated"]
         suggestions = generate_fix_suggestions(issues, {})
 
-        assert any("source" in s.lower() or "complete" in s.lower() for s in suggestions)
+        assert any(
+            "source" in s.lower() or "complete" in s.lower() for s in suggestions
+        )
 
     def test_generate_fix_suggestions_html_content(self):
         """Test suggestions for HTML content."""
@@ -871,7 +917,9 @@ class TestDataRecoveryIntegration:
         }
 
         # Recover the record
-        with patch("bookmark_processor.utils.data_recovery.get_field_validator") as mock_validator:
+        with patch(
+            "bookmark_processor.utils.data_recovery.get_field_validator"
+        ) as mock_validator:
             mock_result = MagicMock()
             mock_result.is_valid = True
             mock_result.sanitized_value = "valid"
@@ -893,7 +941,7 @@ class TestDataRecoveryIntegration:
         record = {
             "url": "https://example.com",
             "title": "https://wrongurl.com/page",  # URL in title
-            "note": "Note content"
+            "note": "Note content",
         }
 
         # Detect issues
@@ -976,6 +1024,7 @@ class TestAdditionalCoverage:
 
     def test_handle_missing_data_derive_exception(self, manager):
         """Test derive strategy when recovery function raises exception."""
+
         def failing_func(record):
             raise ValueError("Recovery failed!")
 
@@ -994,7 +1043,9 @@ class TestAdditionalCoverage:
         should return a value (possibly sanitized version of the input).
         """
         record = {"title": "Test"}
-        value, messages = manager.handle_malformed_data("url", "not-a-valid-url", record)
+        value, messages = manager.handle_malformed_data(
+            "url", "not-a-valid-url", record
+        )
 
         # The handle_malformed_data method will sanitize and validate
         # It may or may not produce messages depending on validation results
@@ -1083,17 +1134,14 @@ class TestMalformedDataDetectorExtended:
         """Test truncation detection with matching pattern."""
         result = detector.detect_truncation(
             "This text contains expected content",
-            expected_patterns=[r"contains expected"]
+            expected_patterns=[r"contains expected"],
         )
         # Text doesn't end with punctuation after matching pattern
         assert result is True
 
     def test_detect_corruption_http_title(self, detector):
         """Test detecting http:// in title field."""
-        record = {
-            "url": "https://example.com",
-            "title": "http://wrongsite.com"
-        }
+        record = {"url": "https://example.com", "title": "http://wrongsite.com"}
         issues = detector.detect_corruption(record)
         assert any("url" in issue.lower() for issue in issues)
 
@@ -1106,7 +1154,7 @@ class TestMalformedDataDetectorExtended:
         record = {
             "url": "https://example.com",
             "title": "Valid title",  # Keep as string
-            "note": "Valid note"
+            "note": "Valid note",
         }
         # Test with valid string values
         issues = detector.detect_corruption(record)
@@ -1165,7 +1213,9 @@ class TestEdgeCases:
 
     def test_empty_record_recovery(self, manager):
         """Test recovering completely empty record."""
-        with patch("bookmark_processor.utils.data_recovery.get_field_validator") as mock:
+        with patch(
+            "bookmark_processor.utils.data_recovery.get_field_validator"
+        ) as mock:
             mock_result = MagicMock()
             mock_result.is_valid = True
             mock_result.sanitized_value = None
@@ -1266,12 +1316,7 @@ class TestEdgeCases:
 
     def test_detection_with_all_none_values(self, detector):
         """Test corruption detection when all values are None."""
-        record = {
-            "url": None,
-            "title": None,
-            "note": None,
-            "folder": None
-        }
+        record = {"url": None, "title": None, "note": None, "folder": None}
         issues = detector.detect_corruption(record)
         assert isinstance(issues, list)
 

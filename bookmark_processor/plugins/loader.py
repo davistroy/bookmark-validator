@@ -20,7 +20,9 @@ from .base import BookmarkPlugin, PluginFactory
 class PluginLoadError(Exception):
     """Raised when a plugin fails to load."""
 
-    def __init__(self, plugin_name: str, message: str, cause: Optional[Exception] = None):
+    def __init__(
+        self, plugin_name: str, message: str, cause: Optional[Exception] = None
+    ):
         self.plugin_name = plugin_name
         self.message = message
         self.cause = cause
@@ -59,7 +61,9 @@ class PluginLoader:
         self._logger = logging.getLogger("plugin.loader")
 
         # Set up search paths
-        self._user_plugins_dir = user_plugins_dir or self._get_default_user_plugins_dir()
+        self._user_plugins_dir = (
+            user_plugins_dir or self._get_default_user_plugins_dir()
+        )
         self._additional_paths = additional_paths or []
         self._search_paths: List[Path] = []
         self._setup_search_paths()
@@ -68,7 +72,9 @@ class PluginLoader:
         self._discovered_plugins: Dict[str, Type[BookmarkPlugin]] = {}
         self._loaded_plugins: Dict[str, BookmarkPlugin] = {}
 
-        self._logger.info(f"Plugin loader initialized with search paths: {self._search_paths}")
+        self._logger.info(
+            f"Plugin loader initialized with search paths: {self._search_paths}"
+        )
 
     def _get_default_user_plugins_dir(self) -> Path:
         """Get the default user plugins directory."""
@@ -192,7 +198,9 @@ class PluginLoader:
                         plugin_name = self._get_plugin_name_from_class(plugin_class)
                         self._discovered_plugins[plugin_name] = plugin_class
                         discovered.append(plugin_name)
-                        self._logger.debug(f"Discovered plugin from package: {plugin_name}")
+                        self._logger.debug(
+                            f"Discovered plugin from package: {plugin_name}"
+                        )
 
                 except Exception as e:
                     self._logger.warning(f"Error loading plugins from {subdir}: {e}")
@@ -227,9 +235,13 @@ class PluginLoader:
                         plugin_name = ep.name
                         self._discovered_plugins[plugin_name] = plugin_class
                         discovered.append(plugin_name)
-                        self._logger.debug(f"Discovered plugin from entry point: {plugin_name}")
+                        self._logger.debug(
+                            f"Discovered plugin from entry point: {plugin_name}"
+                        )
                 except Exception as e:
-                    self._logger.warning(f"Error loading plugin entry point {ep.name}: {e}")
+                    self._logger.warning(
+                        f"Error loading plugin entry point {ep.name}: {e}"
+                    )
 
         except ImportError:
             self._logger.debug("importlib.metadata not available")
@@ -273,7 +285,9 @@ class PluginLoader:
 
         return plugins
 
-    def _load_plugins_from_package(self, package_dir: Path) -> List[Type[BookmarkPlugin]]:
+    def _load_plugins_from_package(
+        self, package_dir: Path
+    ) -> List[Type[BookmarkPlugin]]:
         """
         Load plugin classes from a package directory.
 
@@ -353,7 +367,9 @@ class PluginLoader:
         """
         # Check if already loaded
         if name in self._loaded_plugins:
-            self._logger.debug(f"Plugin {name} already loaded, returning cached instance")
+            self._logger.debug(
+                f"Plugin {name} already loaded, returning cached instance"
+            )
             return self._loaded_plugins[name]
 
         # Make sure plugins are discovered

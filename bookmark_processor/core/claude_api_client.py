@@ -220,9 +220,7 @@ Descriptions:"""
                         try:
                             enhancement = BookmarkEnhancement(**tool_input)
                         except Exception as e:
-                            self.logger.warning(
-                                f"Failed to parse tool response: {e}"
-                            )
+                            self.logger.warning(f"Failed to parse tool response: {e}")
                         break
 
             # Fallback to text response parsing

@@ -23,7 +23,6 @@ import pytest
 from bookmark_processor.plugins.base import BookmarkPlugin, PluginHook
 from bookmark_processor.plugins.loader import PluginLoadError, PluginLoader
 
-
 # =============================================================================
 # Test Plugin Classes for Testing
 # =============================================================================
@@ -333,7 +332,7 @@ class TestPluginLoadingFromFiles:
 
     def test_load_plugins_from_valid_file(self, tmp_path):
         """Test loading plugins from a valid Python file."""
-        plugin_code = '''
+        plugin_code = """
 from bookmark_processor.plugins.base import BookmarkPlugin
 
 class FileTestPlugin(BookmarkPlugin):
@@ -344,7 +343,7 @@ class FileTestPlugin(BookmarkPlugin):
     @property
     def version(self):
         return "1.0.0"
-'''
+"""
         plugin_file = tmp_path / "test_plugin.py"
         plugin_file.write_text(plugin_code)
 
@@ -417,7 +416,7 @@ class TestPluginLoadingFromPackages:
         package_dir = tmp_path / "test_package"
         package_dir.mkdir()
 
-        init_code = '''
+        init_code = """
 from bookmark_processor.plugins.base import BookmarkPlugin
 
 class PackageTestPlugin(BookmarkPlugin):
@@ -428,7 +427,7 @@ class PackageTestPlugin(BookmarkPlugin):
     @property
     def version(self):
         return "1.0.0"
-'''
+"""
         (package_dir / "__init__.py").write_text(init_code)
 
         loader = PluginLoader()
@@ -717,7 +716,9 @@ class TestPluginLoading:
     def test_load_plugin_config_validation_fails(self):
         """Test loading plugin with invalid configuration."""
         loader = PluginLoader()
-        loader._discovered_plugins["validation-error-plugin"] = PluginWithValidationErrors
+        loader._discovered_plugins["validation-error-plugin"] = (
+            PluginWithValidationErrors
+        )
 
         with pytest.raises(PluginLoadError) as exc_info:
             loader.load_plugin("validation-error-plugin", {"wrong_key": "value"})
@@ -1028,7 +1029,7 @@ class TestDirectoryDiscoveryEdgeCases:
 
     def test_discover_multiple_plugins_in_file(self, tmp_path):
         """Test discovering multiple plugins from a single file."""
-        plugin_code = '''
+        plugin_code = """
 from bookmark_processor.plugins.base import BookmarkPlugin
 
 class PluginOne(BookmarkPlugin):
@@ -1048,7 +1049,7 @@ class PluginTwo(BookmarkPlugin):
     @property
     def version(self):
         return "1.0.0"
-'''
+"""
         plugin_file = tmp_path / "multi_plugins.py"
         plugin_file.write_text(plugin_code)
 
@@ -1131,7 +1132,7 @@ class TestDirectoryDiscoveryWithPlugins:
     def test_discover_from_directory_finds_plugins_in_files(self, tmp_path):
         """Test discovering plugins from files in directory."""
         # Create a directory with a plugin file
-        plugin_code = '''
+        plugin_code = """
 from bookmark_processor.plugins.base import BookmarkPlugin
 
 class DirTestPlugin(BookmarkPlugin):
@@ -1142,7 +1143,7 @@ class DirTestPlugin(BookmarkPlugin):
     @property
     def version(self):
         return "1.0.0"
-'''
+"""
         plugin_file = tmp_path / "dir_plugin.py"
         plugin_file.write_text(plugin_code)
 
@@ -1159,7 +1160,7 @@ class DirTestPlugin(BookmarkPlugin):
         package_dir = tmp_path / "my_plugin_package"
         package_dir.mkdir()
 
-        init_code = '''
+        init_code = """
 from bookmark_processor.plugins.base import BookmarkPlugin
 
 class PackagePlugin(BookmarkPlugin):
@@ -1170,11 +1171,12 @@ class PackagePlugin(BookmarkPlugin):
     @property
     def version(self):
         return "2.0.0"
-'''
+"""
         (package_dir / "__init__.py").write_text(init_code)
 
         # Temporarily add to sys.path for import
         import sys
+
         sys.path.insert(0, str(tmp_path))
 
         try:
@@ -1204,7 +1206,9 @@ class TestEntryPointsEdgeCases:
         # Simulate Python 3.9 behavior where entry_points(group=...) raises TypeError
         def mock_entry_points(*args, **kwargs):
             if kwargs.get("group"):
-                raise TypeError("entry_points() got an unexpected keyword argument 'group'")
+                raise TypeError(
+                    "entry_points() got an unexpected keyword argument 'group'"
+                )
             # Return object with get method (Python 3.9 style)
             result = MagicMock()
             result.get.return_value = [mock_ep]
@@ -1227,6 +1231,7 @@ class TestPluginClassTypeErrorHandling:
         # Some edge cases that could cause TypeError in issubclass
         class NotARealClass:
             """Object that pretends to be a class."""
+
             pass
 
         # Create a mock that when passed to issubclass would cause issues
@@ -1247,7 +1252,7 @@ class TestFullDiscoveryFlow:
         user_dir = tmp_path / "user_plugins"
         user_dir.mkdir()
 
-        file_plugin_code = '''
+        file_plugin_code = """
 from bookmark_processor.plugins.base import BookmarkPlugin
 
 class UserFilePlugin(BookmarkPlugin):
@@ -1258,7 +1263,7 @@ class UserFilePlugin(BookmarkPlugin):
     @property
     def version(self):
         return "1.0.0"
-'''
+"""
         (user_dir / "user_plugin.py").write_text(file_plugin_code)
 
         # Create additional directory with a package plugin
@@ -1268,7 +1273,7 @@ class UserFilePlugin(BookmarkPlugin):
         package_dir = additional_dir / "additional_package"
         package_dir.mkdir()
 
-        package_plugin_code = '''
+        package_plugin_code = """
 from bookmark_processor.plugins.base import BookmarkPlugin
 
 class AdditionalPackagePlugin(BookmarkPlugin):
@@ -1279,11 +1284,12 @@ class AdditionalPackagePlugin(BookmarkPlugin):
     @property
     def version(self):
         return "1.0.0"
-'''
+"""
         (package_dir / "__init__.py").write_text(package_plugin_code)
 
         # Add paths for imports
         import sys
+
         sys.path.insert(0, str(additional_dir))
 
         try:

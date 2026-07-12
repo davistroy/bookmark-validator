@@ -22,7 +22,6 @@ from bookmark_processor.core.ai_factory import AIFactory, AIManager
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.utils.error_handler import AISelectionError
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
@@ -42,7 +41,9 @@ def mock_config():
 def mock_config_with_claude_key():
     """Create a mock configuration with Claude API key."""
     config = MagicMock()
-    config.get_api_key.side_effect = lambda p: "sk-ant-test-key" if p == "claude" else None
+    config.get_api_key.side_effect = lambda p: (
+        "sk-ant-test-key" if p == "claude" else None
+    )
     config.has_api_key.side_effect = lambda p: p == "claude"
     config.validate_ai_configuration.return_value = (True, None)
     return config
@@ -52,7 +53,9 @@ def mock_config_with_claude_key():
 def mock_config_with_openai_key():
     """Create a mock configuration with OpenAI API key."""
     config = MagicMock()
-    config.get_api_key.side_effect = lambda p: "sk-test-openai-key" if p == "openai" else None
+    config.get_api_key.side_effect = lambda p: (
+        "sk-test-openai-key" if p == "openai" else None
+    )
     config.has_api_key.side_effect = lambda p: p == "openai"
     config.validate_ai_configuration.return_value = (True, None)
     return config
@@ -162,9 +165,7 @@ class TestAIFactoryCreateClient:
 
     def test_create_local_client(self, mock_config):
         """Test creating a local AI client."""
-        with patch(
-            "bookmark_processor.core.ai_factory.AIProcessor"
-        ) as MockProcessor:
+        with patch("bookmark_processor.core.ai_factory.AIProcessor") as MockProcessor:
             mock_instance = MagicMock()
             MockProcessor.return_value = mock_instance
 
@@ -279,9 +280,7 @@ class TestAIFactoryInstanceMethod:
         """Test instance method for creating AI client."""
         factory = AIFactory(mock_config)
 
-        with patch(
-            "bookmark_processor.core.ai_factory.AIProcessor"
-        ) as MockProcessor:
+        with patch("bookmark_processor.core.ai_factory.AIProcessor") as MockProcessor:
             mock_instance = MagicMock()
             MockProcessor.return_value = mock_instance
 
@@ -395,9 +394,7 @@ class TestAIManagerInitialization:
 
     def test_init_with_custom_fallback_provider(self, mock_config):
         """Test AIManager initialization with custom fallback provider."""
-        manager = AIManager(
-            "claude", mock_config, fallback_provider="openai"
-        )
+        manager = AIManager("claude", mock_config, fallback_provider="openai")
 
         assert manager.fallback_provider == "openai"
 
@@ -413,7 +410,9 @@ class TestAIManagerContextManager:
     @pytest.mark.asyncio
     async def test_context_manager_local_success(self, mock_config):
         """Test context manager with local provider."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = MagicMock()
             mock_create.return_value = mock_client
 
@@ -424,7 +423,9 @@ class TestAIManagerContextManager:
     @pytest.mark.asyncio
     async def test_context_manager_with_async_client(self, mock_config):
         """Test context manager with async-capable client."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -447,7 +448,9 @@ class TestAIManagerContextManager:
                 raise Exception("Claude unavailable")
             return MagicMock()
 
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_create.side_effect = create_client_side_effect
 
             async with AIManager(
@@ -460,12 +463,17 @@ class TestAIManagerContextManager:
     @pytest.mark.asyncio
     async def test_context_manager_both_fail_raises(self, mock_config):
         """Test context manager raises when both primary and fallback fail."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_create.side_effect = Exception("All providers unavailable")
 
             with pytest.raises(AISelectionError) as exc_info:
                 async with AIManager(
-                    "claude", mock_config, enable_fallback=True, fallback_provider="openai"
+                    "claude",
+                    mock_config,
+                    enable_fallback=True,
+                    fallback_provider="openai",
                 ):
                     pass
 
@@ -474,13 +482,13 @@ class TestAIManagerContextManager:
     @pytest.mark.asyncio
     async def test_context_manager_no_fallback_primary_fails(self, mock_config):
         """Test context manager raises when primary fails and fallback disabled."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_create.side_effect = Exception("Claude unavailable")
 
             with pytest.raises(AISelectionError) as exc_info:
-                async with AIManager(
-                    "claude", mock_config, enable_fallback=False
-                ):
+                async with AIManager("claude", mock_config, enable_fallback=False):
                     pass
 
             assert "Primary AI client initialization failed" in str(exc_info.value)
@@ -488,7 +496,9 @@ class TestAIManagerContextManager:
     @pytest.mark.asyncio
     async def test_cleanup_clients_handles_errors(self, mock_config):
         """Test that cleanup handles errors gracefully."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(side_effect=Exception("Cleanup error"))
@@ -510,10 +520,15 @@ class TestAIManagerGenerateDescription:
     @pytest.mark.asyncio
     async def test_generate_description_success(self, mock_config, sample_bookmark):
         """Test successful description generation."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = AsyncMock()
             mock_client.generate_description = AsyncMock(
-                return_value=("Enhanced description", {"provider": "local", "success": True})
+                return_value=(
+                    "Enhanced description",
+                    {"provider": "local", "success": True},
+                )
             )
             mock_create.return_value = mock_client
 
@@ -523,7 +538,9 @@ class TestAIManagerGenerateDescription:
                     return await op()
 
                 with patch.object(
-                    manager.error_handler, "handle_with_retry", side_effect=mock_handle_with_retry
+                    manager.error_handler,
+                    "handle_with_retry",
+                    side_effect=mock_handle_with_retry,
                 ):
                     desc, metadata = await manager.generate_description(sample_bookmark)
 
@@ -535,7 +552,9 @@ class TestAIManagerGenerateDescription:
         self, mock_config, sample_bookmark
     ):
         """Test description generation with existing content."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = AsyncMock()
             mock_client.generate_description = AsyncMock(
                 return_value=("Enhanced content", {"success": True})
@@ -543,11 +562,14 @@ class TestAIManagerGenerateDescription:
             mock_create.return_value = mock_client
 
             async with AIManager("local", mock_config) as manager:
+
                 async def mock_handle_with_retry(op, **kwargs):
                     return await op()
 
                 with patch.object(
-                    manager.error_handler, "handle_with_retry", side_effect=mock_handle_with_retry
+                    manager.error_handler,
+                    "handle_with_retry",
+                    side_effect=mock_handle_with_retry,
                 ):
                     desc, _ = await manager.generate_description(
                         sample_bookmark, existing_content="Original content"
@@ -560,7 +582,9 @@ class TestAIManagerGenerateDescription:
         self, mock_config, sample_bookmark
     ):
         """Test fallback to secondary provider when primary fails."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             primary_client = AsyncMock()
             primary_client.generate_description = AsyncMock(
                 side_effect=Exception("Primary failed")
@@ -579,10 +603,7 @@ class TestAIManagerGenerateDescription:
             mock_create.side_effect = create_side_effect
 
             async with AIManager(
-                "claude",
-                mock_config,
-                enable_fallback=True,
-                fallback_provider="local"
+                "claude", mock_config, enable_fallback=True, fallback_provider="local"
             ) as manager:
                 manager.primary_client = primary_client
                 manager.fallback_client = fallback_client
@@ -597,7 +618,9 @@ class TestAIManagerGenerateDescription:
                     return await op()
 
                 with patch.object(
-                    manager.error_handler, "handle_with_retry", side_effect=retry_side_effect
+                    manager.error_handler,
+                    "handle_with_retry",
+                    side_effect=retry_side_effect,
                 ):
                     desc, metadata = await manager.generate_description(sample_bookmark)
 
@@ -627,7 +650,9 @@ class TestAIManagerGenerateDescription:
         self, mock_config, sample_bookmark
     ):
         """Test that empty result from AI triggers fallback."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = AsyncMock()
             mock_client.generate_description = AsyncMock(
                 return_value=("", {"success": True})  # Empty description
@@ -643,13 +668,17 @@ class TestAIManagerGenerateDescription:
                     return result
 
                 with patch.object(
-                    manager.error_handler, "handle_with_retry", side_effect=retry_side_effect
+                    manager.error_handler,
+                    "handle_with_retry",
+                    side_effect=retry_side_effect,
                 ):
                     with patch.object(
                         manager.error_handler, "handle_bookmark_processing_error"
                     ) as mock_error:
                         mock_error.return_value = ("Fallback", {"fallback": True})
-                        desc, metadata = await manager.generate_description(sample_bookmark)
+                        desc, metadata = await manager.generate_description(
+                            sample_bookmark
+                        )
                         assert desc == "Fallback"
 
 
@@ -672,7 +701,9 @@ class TestAIManagerBatchProcessing:
     @pytest.mark.asyncio
     async def test_batch_processing_success(self, mock_config, sample_bookmarks):
         """Test successful batch processing."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = AsyncMock()
             mock_client.generate_description = AsyncMock(
                 return_value=("Description", {"success": True})
@@ -693,7 +724,9 @@ class TestAIManagerBatchProcessing:
     @pytest.mark.asyncio
     async def test_batch_processing_with_errors(self, mock_config, sample_bookmarks):
         """Test batch processing handles individual errors."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = MagicMock()
             mock_create.return_value = mock_client
 
@@ -721,7 +754,9 @@ class TestAIManagerBatchProcessing:
         """Test batch processing with existing content list."""
         existing_content = [f"Content {i}" for i in range(len(sample_bookmarks))]
 
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = MagicMock()
             mock_create.return_value = mock_client
 
@@ -734,7 +769,9 @@ class TestAIManagerBatchProcessing:
 
                 manager.generate_description = mock_generate
 
-                await manager.generate_descriptions_batch(sample_bookmarks, existing_content)
+                await manager.generate_descriptions_batch(
+                    sample_bookmarks, existing_content
+                )
 
                 # Verify content was passed correctly
                 for i, content in enumerate(received_content):
@@ -745,7 +782,9 @@ class TestAIManagerBatchProcessing:
         self, mock_config, sample_bookmarks
     ):
         """Test that batch processing uses concurrent execution."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = MagicMock()
             mock_create.return_value = mock_client
 
@@ -949,7 +988,9 @@ class TestAIManagerFallbackInitialization:
     @pytest.mark.asyncio
     async def test_same_primary_and_fallback_provider(self, mock_config):
         """Test that fallback client is not created when same as primary."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = MagicMock()
             mock_create.return_value = mock_client
 
@@ -961,7 +1002,9 @@ class TestAIManagerFallbackInitialization:
                 assert mock_create.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_fallback_initialization_failure_with_working_primary(self, mock_config):
+    async def test_fallback_initialization_failure_with_working_primary(
+        self, mock_config
+    ):
         """Test that primary works even if fallback initialization fails."""
         call_count = [0]
 
@@ -971,7 +1014,9 @@ class TestAIManagerFallbackInitialization:
                 raise Exception("OpenAI unavailable")
             return MagicMock()
 
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_create.side_effect = create_side_effect
 
             async with AIManager(
@@ -994,25 +1039,34 @@ class TestAIManagerErrorHandling:
         self, mock_config, sample_bookmark
     ):
         """Test that error handler fallback is used when provider fallback disabled."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = AsyncMock()
             mock_client.generate_description = AsyncMock(
                 side_effect=Exception("Processing failed")
             )
             mock_create.return_value = mock_client
 
-            async with AIManager("local", mock_config, enable_fallback=False) as manager:
+            async with AIManager(
+                "local", mock_config, enable_fallback=False
+            ) as manager:
+
                 async def mock_retry_raises(op, **kwargs):
                     raise Exception("Processing failed")
 
                 with patch.object(
-                    manager.error_handler, "handle_with_retry", side_effect=mock_retry_raises
+                    manager.error_handler,
+                    "handle_with_retry",
+                    side_effect=mock_retry_raises,
                 ):
                     with patch.object(
                         manager.error_handler, "handle_bookmark_processing_error"
                     ) as mock_error:
                         mock_error.return_value = ("Error fallback", {"error": True})
-                        desc, metadata = await manager.generate_description(sample_bookmark)
+                        desc, metadata = await manager.generate_description(
+                            sample_bookmark
+                        )
 
                         # Should still get a fallback response from error handler
                         assert desc == "Error fallback"
@@ -1022,7 +1076,9 @@ class TestAIManagerErrorHandling:
         self, mock_config, sample_bookmarks
     ):
         """Test batch processing handles exceptions in individual items."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = MagicMock()
             mock_create.return_value = mock_client
 
@@ -1062,9 +1118,7 @@ class TestAIFactoryIntegration:
         assert is_valid
 
         # Create client
-        with patch(
-            "bookmark_processor.core.ai_factory.AIProcessor"
-        ) as MockProcessor:
+        with patch("bookmark_processor.core.ai_factory.AIProcessor") as MockProcessor:
             mock_instance = MagicMock()
             mock_instance.is_available = True
             MockProcessor.return_value = mock_instance
@@ -1099,7 +1153,9 @@ class TestAIFactoryIntegration:
     @pytest.mark.asyncio
     async def test_manager_full_workflow(self, mock_config, sample_bookmarks):
         """Test complete AIManager workflow."""
-        with patch("bookmark_processor.core.ai_factory.AIFactory.create_client") as mock_create:
+        with patch(
+            "bookmark_processor.core.ai_factory.AIFactory.create_client"
+        ) as mock_create:
             mock_client = MagicMock()
             mock_create.return_value = mock_client
 

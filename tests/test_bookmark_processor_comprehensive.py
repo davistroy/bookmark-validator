@@ -22,7 +22,10 @@ import pandas as pd
 import pytest
 
 from bookmark_processor.config.configuration import Configuration
-from bookmark_processor.core.bookmark_processor import BookmarkProcessor, ProcessingResults
+from bookmark_processor.core.bookmark_processor import (
+    BookmarkProcessor,
+    ProcessingResults,
+)
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.pipeline import PipelineConfig, PipelineResults
 from tests.fixtures.mock_utilities import (
@@ -101,9 +104,16 @@ class TestProcessingResultsClass:
         assert results.tagged_bookmarks == 85
         assert results.unique_tags == 50
         assert results.processing_time == 120.5
-        assert results.stages_completed == ["validation", "content_extraction", "ai_processing"]
+        assert results.stages_completed == [
+            "validation",
+            "content_extraction",
+            "ai_processing",
+        ]
         assert results.error_summary == {"timeout": 3, "not_found": 2}
-        assert results.statistics == {"avg_time": 1.2, "folder_generation": {"total_folders": 10}}
+        assert results.statistics == {
+            "avg_time": 1.2,
+            "folder_generation": {"total_folders": 10},
+        }
         assert results.errors == []
 
     def test_init_without_pipeline_results(self):
@@ -190,7 +200,9 @@ class TestProcessBookmarksMethod:
         sample_df.to_csv(input_file, index=False)
 
         # Mock the pipeline execution
-        with patch("bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline") as mock_pipeline_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline"
+        ) as mock_pipeline_class:
             mock_pipeline = Mock()
             mock_pipeline.execute.return_value = PipelineResults(
                 total_bookmarks=5,
@@ -227,7 +239,9 @@ class TestProcessBookmarksMethod:
         output_file = temp_dir / "output.csv"
         sample_df.to_csv(input_file, index=False)
 
-        with patch("bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline") as mock_pipeline_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline"
+        ) as mock_pipeline_class:
             mock_pipeline = Mock()
             mock_pipeline.execute.return_value = PipelineResults(
                 total_bookmarks=5,
@@ -285,7 +299,9 @@ class TestProcessBookmarksMethod:
         # Create an empty file that will cause an error
         input_file.touch()
 
-        with patch("bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline") as mock_pipeline_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline"
+        ) as mock_pipeline_class:
             mock_pipeline_class.side_effect = ValueError("Test error")
 
             with pytest.raises(ValueError, match="Test error"):
@@ -302,11 +318,14 @@ class TestProcessBookmarksMethod:
         output_file = temp_dir / "output.csv"
         sample_df.to_csv(input_file, index=False)
 
-        with patch("bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline") as mock_pipeline_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline"
+        ) as mock_pipeline_class:
             mock_pipeline = Mock()
 
             # Capture the progress callback
             captured_callback = None
+
             def capture_execute(progress_callback=None):
                 nonlocal captured_callback
                 captured_callback = progress_callback
@@ -369,7 +388,9 @@ class TestRunAutoDetectionMode:
             # We need to test the actual implementation, so let's patch MultiFileProcessor
             pass
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.auto_detect_files.return_value = []
             mock_processor_class.return_value = mock_processor
@@ -380,7 +401,9 @@ class TestRunAutoDetectionMode:
             captured = capsys.readouterr()
             assert "No bookmark files found" in captured.out
 
-    def test_auto_detection_files_detected_but_no_bookmarks(self, processor, temp_dir, capsys):
+    def test_auto_detection_files_detected_but_no_bookmarks(
+        self, processor, temp_dir, capsys
+    ):
         """Test auto-detection when files are found but no valid bookmarks (lines 192-194)."""
         validated_args = {
             "input_path": None,
@@ -389,10 +412,17 @@ class TestRunAutoDetectionMode:
             "clear_checkpoints": False,
         }
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
-            mock_processor.auto_detect_files.return_value = [Path(temp_dir / "test.csv")]
-            mock_processor.process_multiple_files.return_value = ([], {"file_errors": {}})
+            mock_processor.auto_detect_files.return_value = [
+                Path(temp_dir / "test.csv")
+            ]
+            mock_processor.process_multiple_files.return_value = (
+                [],
+                {"file_errors": {}},
+            )
             mock_processor_class.return_value = mock_processor
 
             result = processor._run_auto_detection_mode(validated_args)
@@ -423,7 +453,9 @@ class TestRunAutoDetectionMode:
 
         sample_bookmarks = create_sample_bookmark_objects()
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.auto_detect_files.return_value = [
                 Path(temp_dir / "file1.csv"),
@@ -431,7 +463,7 @@ class TestRunAutoDetectionMode:
             ]
             mock_processor.process_multiple_files.return_value = (
                 sample_bookmarks,
-                {"file_errors": {}}
+                {"file_errors": {}},
             )
             mock_processor_class.return_value = mock_processor
 
@@ -448,7 +480,12 @@ class TestRunAutoDetectionMode:
                             processing_time=1.5,
                             stages_completed=["validation", "ai_processing"],
                             error_summary={},
-                            statistics={"folder_generation": {"total_folders": 5, "max_depth": 2}},
+                            statistics={
+                                "folder_generation": {
+                                    "total_folders": 5,
+                                    "max_depth": 2,
+                                }
+                            },
                         )
                     )
 
@@ -481,12 +518,16 @@ class TestRunAutoDetectionMode:
 
         sample_bookmarks = create_sample_bookmark_objects()
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
-            mock_processor.auto_detect_files.return_value = [Path(temp_dir / "file1.csv")]
+            mock_processor.auto_detect_files.return_value = [
+                Path(temp_dir / "file1.csv")
+            ]
             mock_processor.process_multiple_files.return_value = (
                 sample_bookmarks,
-                {"file_errors": {"file2.csv": "Invalid format"}}
+                {"file_errors": {"file2.csv": "Invalid format"}},
             )
             mock_processor_class.return_value = mock_processor
 
@@ -513,7 +554,9 @@ class TestRunAutoDetectionMode:
                     captured = capsys.readouterr()
                     assert "File processing errors" in captured.out
 
-    def test_auto_detection_without_folder_generation_stats(self, processor, temp_dir, capsys):
+    def test_auto_detection_without_folder_generation_stats(
+        self, processor, temp_dir, capsys
+    ):
         """Test auto-detection output when folder generation stats are missing (line 267)."""
         validated_args = {
             "input_path": None,
@@ -535,12 +578,16 @@ class TestRunAutoDetectionMode:
 
         sample_bookmarks = create_sample_bookmark_objects()
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
-            mock_processor.auto_detect_files.return_value = [Path(temp_dir / "file1.csv")]
+            mock_processor.auto_detect_files.return_value = [
+                Path(temp_dir / "file1.csv")
+            ]
             mock_processor.process_multiple_files.return_value = (
                 sample_bookmarks,
-                {"file_errors": {}}
+                {"file_errors": {}},
             )
             mock_processor_class.return_value = mock_processor
 
@@ -576,7 +623,9 @@ class TestRunAutoDetectionMode:
             "clear_checkpoints": False,
         }
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor_class.side_effect = Exception("Test exception")
 
             result = processor._run_auto_detection_mode(validated_args)
@@ -607,12 +656,16 @@ class TestRunAutoDetectionMode:
 
         sample_bookmarks = create_sample_bookmark_objects()
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
-            mock_processor.auto_detect_files.return_value = [Path(temp_dir / "file1.csv")]
+            mock_processor.auto_detect_files.return_value = [
+                Path(temp_dir / "file1.csv")
+            ]
             mock_processor.process_multiple_files.return_value = (
                 sample_bookmarks,
-                {"file_errors": {}}
+                {"file_errors": {}},
             )
             mock_processor_class.return_value = mock_processor
 
@@ -658,8 +711,17 @@ class TestSaveBookmarksAsExportCsv:
 
         # Verify 11 columns (raindrop.io export format)
         expected_columns = [
-            "id", "title", "note", "excerpt", "url", "folder",
-            "tags", "created", "cover", "highlights", "favorite"
+            "id",
+            "title",
+            "note",
+            "excerpt",
+            "url",
+            "folder",
+            "tags",
+            "created",
+            "cover",
+            "highlights",
+            "favorite",
         ]
         assert list(df.columns) == expected_columns
 
@@ -913,7 +975,9 @@ class TestEdgeCases:
         output_file = temp_dir / "output.csv"
         sample_df.to_csv(input_file, index=False)
 
-        with patch("bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline") as mock_pipeline_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline"
+        ) as mock_pipeline_class:
             mock_pipeline = Mock()
             mock_pipeline.execute.return_value = PipelineResults(
                 total_bookmarks=5,
@@ -938,7 +1002,9 @@ class TestEdgeCases:
 
             assert results.total_bookmarks == 5
 
-    def test_auto_detection_with_generate_folders_disabled(self, processor, temp_dir, capsys):
+    def test_auto_detection_with_generate_folders_disabled(
+        self, processor, temp_dir, capsys
+    ):
         """Test auto-detection output when generate_folders is disabled (line 258-268)."""
         validated_args = {
             "input_path": None,
@@ -960,12 +1026,16 @@ class TestEdgeCases:
 
         sample_bookmarks = create_sample_bookmark_objects()
 
-        with patch("bookmark_processor.core.bookmark_processor.MultiFileProcessor") as mock_processor_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.MultiFileProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
-            mock_processor.auto_detect_files.return_value = [Path(temp_dir / "file1.csv")]
+            mock_processor.auto_detect_files.return_value = [
+                Path(temp_dir / "file1.csv")
+            ]
             mock_processor.process_multiple_files.return_value = (
                 sample_bookmarks,
-                {"file_errors": {}}
+                {"file_errors": {}},
             )
             mock_processor_class.return_value = mock_processor
 
@@ -1000,7 +1070,9 @@ class TestEdgeCases:
         output_file = temp_dir / "output.csv"
         sample_df.to_csv(input_file, index=False)
 
-        with patch("bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline") as mock_pipeline_class:
+        with patch(
+            "bookmark_processor.core.bookmark_processor.BookmarkProcessingPipeline"
+        ) as mock_pipeline_class:
             mock_pipeline = Mock()
             mock_pipeline.execute.return_value = PipelineResults(
                 total_bookmarks=5,
@@ -1027,6 +1099,7 @@ class TestEdgeCases:
             call_args = mock_pipeline_class.call_args
             config_arg = call_args[0][0]
             from bookmark_processor.utils.progress_tracker import ProgressLevel
+
             assert config_arg.progress_level == ProgressLevel.DETAILED
 
 
@@ -1065,7 +1138,12 @@ class TestIntegrationScenarios:
                     tagged_bookmarks=4,
                     unique_tags=15,
                     processing_time=2.5,
-                    stages_completed=["validation", "content_extraction", "ai_processing", "tagging"],
+                    stages_completed=[
+                        "validation",
+                        "content_extraction",
+                        "ai_processing",
+                        "tagging",
+                    ],
                     error_summary={"timeout": 1},
                     statistics={},
                 )

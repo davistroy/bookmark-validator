@@ -15,6 +15,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 try:
     import aiohttp
     from aiohttp import ClientSession, ClientTimeout, TCPConnector
+
     HAS_AIOHTTP = True
 except ImportError:
     HAS_AIOHTTP = False
@@ -30,6 +31,7 @@ from .pipeline.config import PipelineConfig
 @dataclass
 class ValidationResult:
     """Result of URL validation."""
+
     url: str
     is_valid: bool
     status_code: Optional[int] = None
@@ -42,6 +44,7 @@ class ValidationResult:
 @dataclass
 class ContentData:
     """Content data from a URL."""
+
     url: str
     content: str = ""
     title: Optional[str] = None
@@ -54,6 +57,7 @@ class ContentData:
 @dataclass
 class AIProcessingResult:
     """Result of AI processing."""
+
     url: str
     enhanced_description: str = ""
     confidence: float = 0.0
@@ -65,6 +69,7 @@ class AIProcessingResult:
 @dataclass
 class AsyncPipelineStats:
     """Statistics for async pipeline execution."""
+
     total_urls: int = 0
     validation_success: int = 0
     validation_failed: int = 0
@@ -132,13 +137,13 @@ class AsyncPipelineExecutor:
 
     # Default rate limits per domain (requests per second)
     DEFAULT_DOMAIN_LIMITS = {
-        "github.com": 0.5,      # 1 request per 2 seconds
+        "github.com": 0.5,  # 1 request per 2 seconds
         "google.com": 0.5,
         "youtube.com": 0.5,
         "linkedin.com": 0.5,
         "twitter.com": 0.5,
         "x.com": 0.5,
-        "default": 2.0,        # 2 requests per second default
+        "default": 2.0,  # 2 requests per second default
     }
 
     def __init__(
@@ -146,7 +151,7 @@ class AsyncPipelineExecutor:
         config: PipelineConfig,
         max_concurrent: int = 20,
         timeout: float = 30.0,
-        domain_limits: Optional[Dict[str, float]] = None
+        domain_limits: Optional[Dict[str, float]] = None,
     ):
         """
         Initialize the async pipeline executor.
@@ -195,9 +200,7 @@ class AsyncPipelineExecutor:
         """Initialize the aiohttp session."""
         if self._session is None:
             connector = TCPConnector(
-                limit=self.max_concurrent,
-                limit_per_host=5,
-                ttl_dns_cache=300
+                limit=self.max_concurrent, limit_per_host=5, ttl_dns_cache=300
             )
             timeout_config = ClientTimeout(total=self.timeout)
             self._session = ClientSession(
@@ -205,8 +208,8 @@ class AsyncPipelineExecutor:
                 timeout=timeout_config,
                 headers={
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                  "AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
-                }
+                    "AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
+                },
             )
             self._semaphore = Semaphore(self.max_concurrent)
 
@@ -220,6 +223,7 @@ class AsyncPipelineExecutor:
         """Extract domain from URL."""
         try:
             from urllib.parse import urlparse
+
             parsed = urlparse(url)
             domain = parsed.netloc.lower()
             return domain if domain else "default"
@@ -239,8 +243,7 @@ class AsyncPipelineExecutor:
 
         async with self._domain_locks[domain]:
             rate_limit = self.domain_limits.get(
-                domain,
-                self.domain_limits.get("default", 2.0)
+                domain, self.domain_limits.get("default", 2.0)
             )
             min_interval = 1.0 / rate_limit
 
@@ -253,9 +256,7 @@ class AsyncPipelineExecutor:
             self._domain_last_request[domain] = datetime.now()
 
     async def _validate_single_url(
-        self,
-        url: str,
-        retry_count: int = 3
+        self, url: str, retry_count: int = 3
     ) -> ValidationResult:
         """
         Validate a single URL with retry logic.
@@ -276,9 +277,7 @@ class AsyncPipelineExecutor:
 
                 async with self._semaphore:
                     async with self._session.head(
-                        url,
-                        allow_redirects=True,
-                        ssl=self.config.verify_ssl
+                        url, allow_redirects=True, ssl=self.config.verify_ssl
                     ) as response:
                         response_time = (datetime.now() - start_time).total_seconds()
 
@@ -287,31 +286,31 @@ class AsyncPipelineExecutor:
                             is_valid=response.status < 400,
                             status_code=response.status,
                             final_url=str(response.url),
-                            response_time=response_time
+                            response_time=response_time,
                         )
 
             except asyncio.TimeoutError:
                 if attempt < retry_count - 1:
-                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    await asyncio.sleep(2**attempt)  # Exponential backoff
                     continue
                 return ValidationResult(
                     url=url,
                     is_valid=False,
                     error_message="Request timed out",
                     error_type="timeout",
-                    response_time=(datetime.now() - start_time).total_seconds()
+                    response_time=(datetime.now() - start_time).total_seconds(),
                 )
 
             except aiohttp.ClientError as e:
                 if attempt < retry_count - 1:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(2**attempt)
                     continue
                 return ValidationResult(
                     url=url,
                     is_valid=False,
                     error_message=str(e),
                     error_type="client_error",
-                    response_time=(datetime.now() - start_time).total_seconds()
+                    response_time=(datetime.now() - start_time).total_seconds(),
                 )
 
             except Exception as e:
@@ -320,20 +319,20 @@ class AsyncPipelineExecutor:
                     is_valid=False,
                     error_message=str(e),
                     error_type="unknown",
-                    response_time=(datetime.now() - start_time).total_seconds()
+                    response_time=(datetime.now() - start_time).total_seconds(),
                 )
 
         return ValidationResult(
             url=url,
             is_valid=False,
             error_message="All retries failed",
-            error_type="retry_exhausted"
+            error_type="retry_exhausted",
         )
 
     async def validate_urls_async(
         self,
         bookmarks: List[Bookmark],
-        progress_callback: Optional[Callable[[int, int], None]] = None
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, ValidationResult]:
         """
         Validate URLs concurrently.
@@ -355,10 +354,7 @@ class AsyncPipelineExecutor:
         urls = [b.url for b in bookmarks if b.url]
 
         # Create tasks for all URLs
-        tasks = [
-            self._validate_single_url(url)
-            for url in urls
-        ]
+        tasks = [self._validate_single_url(url) for url in urls]
 
         # Execute with progress tracking
         results: Dict[str, ValidationResult] = {}
@@ -391,9 +387,7 @@ class AsyncPipelineExecutor:
         return results
 
     async def _fetch_single_content(
-        self,
-        url: str,
-        max_length: int = 100000
+        self, url: str, max_length: int = 100000
     ) -> ContentData:
         """
         Fetch content from a single URL.
@@ -413,24 +407,17 @@ class AsyncPipelineExecutor:
 
             async with self._semaphore:
                 async with self._session.get(
-                    url,
-                    allow_redirects=True,
-                    ssl=self.config.verify_ssl
+                    url, allow_redirects=True, ssl=self.config.verify_ssl
                 ) as response:
                     if response.status >= 400:
-                        return ContentData(
-                            url=url,
-                            error=f"HTTP {response.status}"
-                        )
+                        return ContentData(url=url, error=f"HTTP {response.status}")
 
                     content_type = response.headers.get("Content-Type", "")
 
                     # Only fetch text content
                     if "text" not in content_type and "html" not in content_type:
                         return ContentData(
-                            url=url,
-                            content_type=content_type,
-                            error="Non-text content"
+                            url=url, content_type=content_type, error="Non-text content"
                         )
 
                     # Read content with limit
@@ -450,7 +437,7 @@ class AsyncPipelineExecutor:
                         title=title,
                         description=description,
                         content_type=content_type,
-                        fetch_time=fetch_time
+                        fetch_time=fetch_time,
                     )
 
         except asyncio.TimeoutError:
@@ -462,6 +449,7 @@ class AsyncPipelineExecutor:
         """Extract title from HTML content."""
         try:
             import re
+
             match = re.search(r"<title[^>]*>([^<]+)</title>", html, re.IGNORECASE)
             if match:
                 return match.group(1).strip()
@@ -473,11 +461,12 @@ class AsyncPipelineExecutor:
         """Extract meta description from HTML content."""
         try:
             import re
+
             # Try meta description
             match = re.search(
                 r'<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"\']+)["\']',
                 html,
-                re.IGNORECASE
+                re.IGNORECASE,
             )
             if match:
                 return match.group(1).strip()
@@ -486,7 +475,7 @@ class AsyncPipelineExecutor:
             match = re.search(
                 r'<meta[^>]*property=["\']og:description["\'][^>]*content=["\']([^"\']+)["\']',
                 html,
-                re.IGNORECASE
+                re.IGNORECASE,
             )
             if match:
                 return match.group(1).strip()
@@ -498,7 +487,7 @@ class AsyncPipelineExecutor:
     async def fetch_content_async(
         self,
         urls: List[str],
-        progress_callback: Optional[Callable[[int, int], None]] = None
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, ContentData]:
         """
         Fetch content from URLs concurrently.
@@ -548,10 +537,7 @@ class AsyncPipelineExecutor:
         return results
 
     async def _process_ai_single(
-        self,
-        bookmark: Bookmark,
-        content: Optional[ContentData],
-        api_client: Any
+        self, bookmark: Bookmark, content: Optional[ContentData], api_client: Any
     ) -> AIProcessingResult:
         """
         Process AI description for a single bookmark.
@@ -578,24 +564,21 @@ class AsyncPipelineExecutor:
 
             if not prompt_content:
                 return AIProcessingResult(
-                    url=bookmark.url,
-                    error="No content available for AI processing"
+                    url=bookmark.url, error="No content available for AI processing"
                 )
 
             # Call AI API (assuming api_client has async method)
             if hasattr(api_client, "generate_description_async"):
                 result = await api_client.generate_description_async(
-                    title=bookmark.title or "",
-                    content=prompt_content
+                    title=bookmark.title or "", content=prompt_content
                 )
             else:
                 # Fall back to sync if no async method
                 result = await asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda: api_client.generate_description(
-                        title=bookmark.title or "",
-                        content=prompt_content
-                    )
+                        title=bookmark.title or "", content=prompt_content
+                    ),
                 )
 
             processing_time = (datetime.now() - start_time).total_seconds()
@@ -605,14 +588,14 @@ class AsyncPipelineExecutor:
                 enhanced_description=result.get("description", ""),
                 confidence=result.get("confidence", 0.5),
                 processing_time=processing_time,
-                method="cloud"
+                method="cloud",
             )
 
         except Exception as e:
             return AIProcessingResult(
                 url=bookmark.url,
                 error=str(e),
-                processing_time=(datetime.now() - start_time).total_seconds()
+                processing_time=(datetime.now() - start_time).total_seconds(),
             )
 
     async def process_ai_async(
@@ -620,7 +603,7 @@ class AsyncPipelineExecutor:
         bookmarks: List[Bookmark],
         contents: Dict[str, ContentData],
         api_client: Optional[Any] = None,
-        progress_callback: Optional[Callable[[int, int], None]] = None
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, AIProcessingResult]:
         """
         Process AI descriptions concurrently (for cloud APIs).
@@ -650,11 +633,7 @@ class AsyncPipelineExecutor:
 
         # Create tasks for cloud API calls
         tasks = [
-            self._process_ai_single(
-                bookmark,
-                contents.get(bookmark.url),
-                api_client
-            )
+            self._process_ai_single(bookmark, contents.get(bookmark.url), api_client)
             for bookmark in bookmarks
         ]
 
@@ -699,7 +678,7 @@ class AsyncPipelineExecutor:
         self,
         bookmarks: List[Bookmark],
         contents: Dict[str, ContentData],
-        progress_callback: Optional[Callable[[int, int], None]] = None
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, AIProcessingResult]:
         """
         Process AI sequentially for local models.
@@ -731,28 +710,30 @@ class AsyncPipelineExecutor:
                     # Use sync processor in executor
                     result = await asyncio.get_event_loop().run_in_executor(
                         None,
-                        lambda b=bookmark, c=content_text: processor.process_single(b, content=c)
+                        lambda b=bookmark, c=content_text: processor.process_single(
+                            b, content=c
+                        ),
                     )
 
                     if result:
                         results[bookmark.url] = AIProcessingResult(
                             url=bookmark.url,
                             enhanced_description=result.enhanced_description,
-                            processing_time=(datetime.now() - start_time).total_seconds(),
-                            method="local"
+                            processing_time=(
+                                datetime.now() - start_time
+                            ).total_seconds(),
+                            method="local",
                         )
                         self.stats.ai_processed += 1
                     else:
                         results[bookmark.url] = AIProcessingResult(
-                            url=bookmark.url,
-                            error="Processing returned no result"
+                            url=bookmark.url, error="Processing returned no result"
                         )
                         self.stats.ai_failed += 1
 
                 except Exception as e:
                     results[bookmark.url] = AIProcessingResult(
-                        url=bookmark.url,
-                        error=str(e)
+                        url=bookmark.url, error=str(e)
                     )
                     self.stats.ai_failed += 1
 
@@ -767,8 +748,12 @@ class AsyncPipelineExecutor:
     async def execute_full_pipeline(
         self,
         bookmarks: List[Bookmark],
-        progress_callback: Optional[Callable[[str, int, int], None]] = None
-    ) -> Tuple[Dict[str, ValidationResult], Dict[str, ContentData], Dict[str, AIProcessingResult]]:
+        progress_callback: Optional[Callable[[str, int, int], None]] = None,
+    ) -> Tuple[
+        Dict[str, ValidationResult],
+        Dict[str, ContentData],
+        Dict[str, AIProcessingResult],
+    ]:
         """
         Execute full async pipeline: validation -> content -> AI.
 
@@ -790,14 +775,16 @@ class AsyncPipelineExecutor:
 
             validation_results = await self.validate_urls_async(
                 bookmarks,
-                progress_callback=lambda c, t: progress_callback("Validating URLs", c, t)
-                if progress_callback else None
+                progress_callback=lambda c, t: (
+                    progress_callback("Validating URLs", c, t)
+                    if progress_callback
+                    else None
+                ),
             )
 
             # Get valid URLs for content fetching
             valid_urls = [
-                url for url, result in validation_results.items()
-                if result.is_valid
+                url for url, result in validation_results.items() if result.is_valid
             ]
 
             # Stage 2: Fetch Content
@@ -806,15 +793,19 @@ class AsyncPipelineExecutor:
 
             content_data = await self.fetch_content_async(
                 valid_urls,
-                progress_callback=lambda c, t: progress_callback("Fetching Content", c, t)
-                if progress_callback else None
+                progress_callback=lambda c, t: (
+                    progress_callback("Fetching Content", c, t)
+                    if progress_callback
+                    else None
+                ),
             )
 
             # Stage 3: AI Processing (if enabled)
             ai_results: Dict[str, AIProcessingResult] = {}
             if self.config.ai_enabled:
                 valid_bookmarks = [
-                    b for b in bookmarks
+                    b
+                    for b in bookmarks
                     if b.url in validation_results
                     and validation_results[b.url].is_valid
                 ]
@@ -825,8 +816,11 @@ class AsyncPipelineExecutor:
                 ai_results = await self.process_ai_async(
                     valid_bookmarks,
                     content_data,
-                    progress_callback=lambda c, t: progress_callback("AI Processing", c, t)
-                    if progress_callback else None
+                    progress_callback=lambda c, t: (
+                        progress_callback("AI Processing", c, t)
+                        if progress_callback
+                        else None
+                    ),
                 )
 
             self.stats.end_time = datetime.now()
@@ -850,10 +844,10 @@ class AsyncPipelineExecutor:
 
 
 def run_async_pipeline(
-    bookmarks: List[Bookmark],
-    config: PipelineConfig,
-    max_concurrent: int = 20
-) -> Tuple[Dict[str, ValidationResult], Dict[str, ContentData], Dict[str, AIProcessingResult]]:
+    bookmarks: List[Bookmark], config: PipelineConfig, max_concurrent: int = 20
+) -> Tuple[
+    Dict[str, ValidationResult], Dict[str, ContentData], Dict[str, AIProcessingResult]
+]:
     """
     Convenience function to run async pipeline synchronously.
 

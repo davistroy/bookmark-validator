@@ -119,7 +119,9 @@ class BookmarkProcessingPipeline:
             self.ai_processor = ai_processor
         else:
             self.ai_processor = (
-                EnhancedAIProcessor(max_description_length=config.max_description_length)
+                EnhancedAIProcessor(
+                    max_description_length=config.max_description_length
+                )
                 if config.ai_enabled
                 else None
             )
@@ -753,7 +755,9 @@ class BookmarkProcessingPipeline:
             # Update tags
             tags = self.tag_assignments.get(bookmark.url, [])
             if tags:
-                enhanced_bookmark.optimized_tags = tags  # Store as list, not formatted string
+                enhanced_bookmark.optimized_tags = (
+                    tags  # Store as list, not formatted string
+                )
 
             # Update folder with AI-generated folder if available
             if self.folder_assignments:
@@ -1004,4 +1008,3 @@ from .pipeline.factory import PipelineFactory, create_pipeline
 
 # NOTE: PipelineFactory and create_pipeline are now imported from pipeline/factory.py
 # The old class and function definitions have been removed to avoid duplication
-

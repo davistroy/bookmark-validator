@@ -39,27 +39,39 @@ class TestFolderFilter:
         filter_obj = FolderFilter("Tech")
 
         assert filter_obj.matches(Bookmark(url="http://test.com", folder="Tech"))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", folder="Personal"))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", folder="Tech/Python"))
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", folder="Personal")
+        )
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python")
+        )
 
     def test_glob_pattern_star(self):
         """Test glob pattern with star wildcard."""
         filter_obj = FolderFilter("Tech/*")
 
         assert filter_obj.matches(Bookmark(url="http://test.com", folder="Tech/Python"))
-        assert filter_obj.matches(Bookmark(url="http://test.com", folder="Tech/JavaScript"))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", folder="Tech/JavaScript")
+        )
         assert not filter_obj.matches(Bookmark(url="http://test.com", folder="Tech"))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", folder="Personal/Finance"))
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", folder="Personal/Finance")
+        )
 
     def test_glob_pattern_double_star(self):
         """Test glob pattern with double star (any depth)."""
         filter_obj = FolderFilter("Tech/*")
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", folder="Tech/Python/Django"))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python/Django")
+        )
 
         # Also test with pattern at any depth
         filter_obj2 = FolderFilter("*/Python/*")
-        assert filter_obj2.matches(Bookmark(url="http://test.com", folder="Tech/Python/Django"))
+        assert filter_obj2.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python/Django")
+        )
 
     def test_case_insensitive_default(self):
         """Test that matching is case-insensitive by default."""
@@ -101,9 +113,13 @@ class TestTagFilter:
         """Test filtering by single tag in 'any' mode."""
         filter_obj = TagFilter("python")
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", tags=["python", "programming"]))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", tags=["python", "programming"])
+        )
         assert filter_obj.matches(Bookmark(url="http://test.com", tags=["python"]))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", tags=["javascript"]))
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", tags=["javascript"])
+        )
         assert not filter_obj.matches(Bookmark(url="http://test.com", tags=[]))
 
     def test_multiple_tags_any_mode(self):
@@ -112,15 +128,21 @@ class TestTagFilter:
 
         assert filter_obj.matches(Bookmark(url="http://test.com", tags=["python"]))
         assert filter_obj.matches(Bookmark(url="http://test.com", tags=["javascript"]))
-        assert filter_obj.matches(Bookmark(url="http://test.com", tags=["python", "javascript"]))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", tags=["python", "javascript"])
+        )
         assert not filter_obj.matches(Bookmark(url="http://test.com", tags=["rust"]))
 
     def test_multiple_tags_all_mode(self):
         """Test filtering by multiple tags in 'all' mode."""
         filter_obj = TagFilter(["python", "django"], mode="all")
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", tags=["python", "django"]))
-        assert filter_obj.matches(Bookmark(url="http://test.com", tags=["python", "django", "web"]))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", tags=["python", "django"])
+        )
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", tags=["python", "django", "web"])
+        )
         assert not filter_obj.matches(Bookmark(url="http://test.com", tags=["python"]))
         assert not filter_obj.matches(Bookmark(url="http://test.com", tags=["django"]))
 
@@ -144,7 +166,9 @@ class TestTagFilter:
         """Test that single string tag is handled correctly."""
         filter_obj = TagFilter("python")
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", tags=["python", "web"]))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", tags=["python", "web"])
+        )
 
     def test_invalid_mode_raises_error(self):
         """Test that invalid mode raises ValueError."""
@@ -160,18 +184,30 @@ class TestDateRangeFilter:
         start = datetime(2024, 1, 1)
         filter_obj = DateRangeFilter(start=start)
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2024, 6, 15)))
-        assert filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2024, 1, 1)))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2023, 12, 31)))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 6, 15))
+        )
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 1, 1))
+        )
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2023, 12, 31))
+        )
 
     def test_end_date_only(self):
         """Test filtering with only end date."""
         end = datetime(2024, 12, 31)
         filter_obj = DateRangeFilter(end=end)
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2024, 6, 15)))
-        assert filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2024, 12, 31)))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2025, 1, 1)))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 6, 15))
+        )
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 12, 31))
+        )
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2025, 1, 1))
+        )
 
     def test_date_range(self):
         """Test filtering with both start and end dates."""
@@ -179,11 +215,21 @@ class TestDateRangeFilter:
         end = datetime(2024, 12, 31)
         filter_obj = DateRangeFilter(start=start, end=end)
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2024, 6, 15)))
-        assert filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2024, 1, 1)))
-        assert filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2024, 12, 31)))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2023, 12, 31)))
-        assert not filter_obj.matches(Bookmark(url="http://test.com", created=datetime(2025, 1, 1)))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 6, 15))
+        )
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 1, 1))
+        )
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 12, 31))
+        )
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2023, 12, 31))
+        )
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", created=datetime(2025, 1, 1))
+        )
 
     def test_no_created_date(self):
         """Test that bookmarks without created date don't match."""
@@ -199,10 +245,7 @@ class TestDateRangeFilter:
     def test_invalid_range_raises_error(self):
         """Test that start > end raises error."""
         with pytest.raises(ValueError, match="Start date must be before"):
-            DateRangeFilter(
-                start=datetime(2024, 12, 31),
-                end=datetime(2024, 1, 1)
-            )
+            DateRangeFilter(start=datetime(2024, 12, 31), end=datetime(2024, 1, 1))
 
     def test_from_string_full_range(self):
         """Test creating filter from string with full range."""
@@ -404,7 +447,9 @@ class TestURLPatternFilter:
         filter_obj = URLPatternFilter(r"github\.com/[^/]+/[^/]+$")
 
         assert filter_obj.matches(Bookmark(url="https://github.com/user/repo"))
-        assert not filter_obj.matches(Bookmark(url="https://github.com/user/repo/issues"))
+        assert not filter_obj.matches(
+            Bookmark(url="https://github.com/user/repo/issues")
+        )
 
     def test_case_insensitive_default(self):
         """Test that pattern matching is case-insensitive by default."""
@@ -421,11 +466,12 @@ class TestCustomFilter:
         """Test custom filter with predicate function."""
         # Filter bookmarks with title longer than 10 characters
         filter_obj = CustomFilter(
-            predicate=lambda b: len(b.title) > 10,
-            name="long_title"
+            predicate=lambda b: len(b.title) > 10, name="long_title"
         )
 
-        assert filter_obj.matches(Bookmark(url="http://test.com", title="This is a long title"))
+        assert filter_obj.matches(
+            Bookmark(url="http://test.com", title="This is a long title")
+        )
         assert not filter_obj.matches(Bookmark(url="http://test.com", title="Short"))
 
     def test_custom_filter_complex_logic(self):
@@ -435,19 +481,17 @@ class TestCustomFilter:
             predicate=lambda b: (
                 b.folder.startswith("Tech") and "python" in [t.lower() for t in b.tags]
             ),
-            name="tech_python"
+            name="tech_python",
         )
 
-        assert filter_obj.matches(Bookmark(
-            url="http://test.com",
-            folder="Tech/Programming",
-            tags=["Python", "web"]
-        ))
-        assert not filter_obj.matches(Bookmark(
-            url="http://test.com",
-            folder="Personal",
-            tags=["Python"]
-        ))
+        assert filter_obj.matches(
+            Bookmark(
+                url="http://test.com", folder="Tech/Programming", tags=["Python", "web"]
+            )
+        )
+        assert not filter_obj.matches(
+            Bookmark(url="http://test.com", folder="Personal", tags=["Python"])
+        )
 
 
 class TestCompositeFilter:
@@ -461,25 +505,19 @@ class TestCompositeFilter:
         composite = CompositeFilter([folder_f, tag_f], operator="and")
 
         # Matches both
-        assert composite.matches(Bookmark(
-            url="http://test.com",
-            folder="Tech/Python",
-            tags=["python"]
-        ))
+        assert composite.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python", tags=["python"])
+        )
 
         # Matches folder only
-        assert not composite.matches(Bookmark(
-            url="http://test.com",
-            folder="Tech/Python",
-            tags=["javascript"]
-        ))
+        assert not composite.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python", tags=["javascript"])
+        )
 
         # Matches tag only
-        assert not composite.matches(Bookmark(
-            url="http://test.com",
-            folder="Personal",
-            tags=["python"]
-        ))
+        assert not composite.matches(
+            Bookmark(url="http://test.com", folder="Personal", tags=["python"])
+        )
 
     def test_or_operator(self):
         """Test OR combination of filters."""
@@ -489,32 +527,26 @@ class TestCompositeFilter:
         composite = CompositeFilter([folder_f, tag_f], operator="or")
 
         # Matches both
-        assert composite.matches(Bookmark(
-            url="http://test.com",
-            folder="Tech/Python",
-            tags=["python"]
-        ))
+        assert composite.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python", tags=["python"])
+        )
 
         # Matches folder only
-        assert composite.matches(Bookmark(
-            url="http://test.com",
-            folder="Tech/JavaScript",
-            tags=["javascript"]
-        ))
+        assert composite.matches(
+            Bookmark(
+                url="http://test.com", folder="Tech/JavaScript", tags=["javascript"]
+            )
+        )
 
         # Matches tag only
-        assert composite.matches(Bookmark(
-            url="http://test.com",
-            folder="Personal",
-            tags=["python"]
-        ))
+        assert composite.matches(
+            Bookmark(url="http://test.com", folder="Personal", tags=["python"])
+        )
 
         # Matches neither
-        assert not composite.matches(Bookmark(
-            url="http://test.com",
-            folder="Personal",
-            tags=["javascript"]
-        ))
+        assert not composite.matches(
+            Bookmark(url="http://test.com", folder="Personal", tags=["javascript"])
+        )
 
     def test_invalid_operator_raises_error(self):
         """Test that invalid operator raises error."""
@@ -562,16 +594,12 @@ class TestFilterOperators:
         assert combined.operator == "and"
 
         # Test functionality
-        assert combined.matches(Bookmark(
-            url="http://test.com",
-            folder="Tech/Python",
-            tags=["python"]
-        ))
-        assert not combined.matches(Bookmark(
-            url="http://test.com",
-            folder="Personal",
-            tags=["python"]
-        ))
+        assert combined.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python", tags=["python"])
+        )
+        assert not combined.matches(
+            Bookmark(url="http://test.com", folder="Personal", tags=["python"])
+        )
 
     def test_or_operator(self):
         """Test | operator creates OR composite."""
@@ -584,11 +612,9 @@ class TestFilterOperators:
         assert combined.operator == "or"
 
         # Test functionality
-        assert combined.matches(Bookmark(
-            url="http://test.com",
-            folder="Personal",
-            tags=["python"]
-        ))
+        assert combined.matches(
+            Bookmark(url="http://test.com", folder="Personal", tags=["python"])
+        )
 
     def test_chained_operators(self):
         """Test chaining multiple operators."""
@@ -599,16 +625,16 @@ class TestFilterOperators:
         # (folder AND tag) OR domain
         combined = (f1 & f2) | f3
 
-        assert combined.matches(Bookmark(
-            url="http://test.com",
-            folder="Tech/Python",
-            tags=["python"]
-        ))
-        assert combined.matches(Bookmark(
-            url="https://github.com/user/repo",
-            folder="Personal",
-            tags=["javascript"]
-        ))
+        assert combined.matches(
+            Bookmark(url="http://test.com", folder="Tech/Python", tags=["python"])
+        )
+        assert combined.matches(
+            Bookmark(
+                url="https://github.com/user/repo",
+                folder="Personal",
+                tags=["javascript"],
+            )
+        )
 
 
 class TestFilterChain:
@@ -619,7 +645,9 @@ class TestFilterChain:
         chain = FilterChain()
 
         assert chain.matches(Bookmark(url="http://test.com"))
-        assert chain.apply([Bookmark(url="http://test.com")]) == [Bookmark(url="http://test.com")]
+        assert chain.apply([Bookmark(url="http://test.com")]) == [
+            Bookmark(url="http://test.com")
+        ]
 
     def test_add_filters(self):
         """Test adding filters to chain."""
@@ -702,14 +730,12 @@ class TestFilterChain:
 
         assert len(chain) == 1
 
-        assert chain.matches(Bookmark(
-            url="http://test.com",
-            created=datetime(2024, 6, 15)
-        ))
-        assert not chain.matches(Bookmark(
-            url="http://test.com",
-            created=datetime(2023, 6, 15)
-        ))
+        assert chain.matches(
+            Bookmark(url="http://test.com", created=datetime(2024, 6, 15))
+        )
+        assert not chain.matches(
+            Bookmark(url="http://test.com", created=datetime(2023, 6, 15))
+        )
 
     def test_from_cli_args_retry_invalid(self):
         """Test retry_invalid shortcut."""
@@ -726,11 +752,7 @@ class TestFilterChain:
 
     def test_method_chaining(self):
         """Test fluent interface."""
-        chain = (
-            FilterChain()
-            .add(FolderFilter("Tech/*"))
-            .add(TagFilter("python"))
-        )
+        chain = FilterChain().add(FolderFilter("Tech/*")).add(TagFilter("python"))
 
         assert len(chain) == 2
 
@@ -796,7 +818,9 @@ class TestFilterIntegration:
             # Matches tech_python
             Bookmark(url="http://example.com", folder="Tech/Python", tags=["python"]),
             # Matches github_validated
-            Bookmark(url="https://github.com/user/repo", folder="Personal", tags=["git"]),
+            Bookmark(
+                url="https://github.com/user/repo", folder="Personal", tags=["git"]
+            ),
             # Matches neither
             Bookmark(url="http://example.com", folder="Personal", tags=["javascript"]),
         ]

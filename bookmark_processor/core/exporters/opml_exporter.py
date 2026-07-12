@@ -36,7 +36,7 @@ class OPMLExporter(BookmarkExporter):
         include_descriptions: bool = True,
         include_tags_as_category: bool = True,
         use_html_url: bool = True,
-        pretty_print: bool = True
+        pretty_print: bool = True,
     ):
         """
         Initialize the OPML exporter.
@@ -67,11 +67,7 @@ class OPMLExporter(BookmarkExporter):
     def file_extension(self) -> str:
         return "opml"
 
-    def export(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
-    ) -> ExportResult:
+    def export(self, bookmarks: List[Bookmark], output_path: Path) -> ExportResult:
         """
         Export bookmarks to an OPML file.
 
@@ -88,10 +84,7 @@ class OPMLExporter(BookmarkExporter):
         warnings = self.validate_bookmarks(bookmarks)
 
         if not bookmarks:
-            raise ExportError(
-                "No bookmarks to export",
-                format_name=self.format_name
-            )
+            raise ExportError("No bookmarks to export", format_name=self.format_name)
 
         # Prepare output path
         path = self.prepare_output_path(output_path)
@@ -121,9 +114,9 @@ class OPMLExporter(BookmarkExporter):
                 format_name=self.format_name,
                 additional_info={
                     "folders": len(by_folder),
-                    "file_size": path.stat().st_size
+                    "file_size": path.stat().st_size,
                 },
-                warnings=warnings
+                warnings=warnings,
             )
 
         except Exception as e:
@@ -131,7 +124,7 @@ class OPMLExporter(BookmarkExporter):
                 f"Failed to export OPML: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
 
     def _build_opml(self, bookmarks: List[Bookmark]) -> ET.Element:
@@ -181,10 +174,7 @@ class OPMLExporter(BookmarkExporter):
         return dict(sorted(by_folder.items()))
 
     def _add_folder_outline(
-        self,
-        parent: ET.Element,
-        folder_name: str,
-        bookmarks: List[Bookmark]
+        self, parent: ET.Element, folder_name: str, bookmarks: List[Bookmark]
     ) -> None:
         """Add a folder outline with its bookmarks."""
         # Handle nested folders
@@ -206,10 +196,7 @@ class OPMLExporter(BookmarkExporter):
             else:
                 # Create new folder outline
                 folder_outline = ET.SubElement(
-                    current_parent,
-                    "outline",
-                    text=part,
-                    type="folder"
+                    current_parent, "outline", text=part, type="folder"
                 )
                 current_parent = folder_outline
 
@@ -217,16 +204,9 @@ class OPMLExporter(BookmarkExporter):
         for bookmark in bookmarks:
             self._add_bookmark_outline(current_parent, bookmark)
 
-    def _add_bookmark_outline(
-        self,
-        parent: ET.Element,
-        bookmark: Bookmark
-    ) -> None:
+    def _add_bookmark_outline(self, parent: ET.Element, bookmark: Bookmark) -> None:
         """Add a bookmark as an outline element."""
-        attribs = {
-            "type": "link",
-            "text": bookmark.get_effective_title()
-        }
+        attribs = {"type": "link", "text": bookmark.get_effective_title()}
 
         # URL attribute
         if self.use_html_url:
@@ -261,7 +241,9 @@ class OPMLExporter(BookmarkExporter):
 
         if self.pretty_print:
             # Use minidom for pretty printing
-            dom = minidom.parseString(rough_string)  # nosec B318 - parsing self-generated XML
+            dom = minidom.parseString(
+                rough_string
+            )  # nosec B318 - parsing self-generated XML
             pretty_xml = dom.toprettyxml(indent="  ", encoding=None)
 
             # Remove extra blank lines and XML declaration
@@ -278,11 +260,7 @@ class OPMLExporter(BookmarkExporter):
 
         return xml_string
 
-    def export_flat(
-        self,
-        bookmarks: List[Bookmark],
-        output_path: Path
-    ) -> ExportResult:
+    def export_flat(self, bookmarks: List[Bookmark], output_path: Path) -> ExportResult:
         """
         Export bookmarks in a flat structure (no folder hierarchy).
 
@@ -323,7 +301,7 @@ class OPMLExporter(BookmarkExporter):
                 path=path,
                 count=len(bookmarks),
                 format_name=f"{self.format_name} (flat)",
-                additional_info={"flat": True}
+                additional_info={"flat": True},
             )
 
         except Exception as e:
@@ -331,14 +309,14 @@ class OPMLExporter(BookmarkExporter):
                 f"Failed to export flat OPML: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )
 
     def export_for_rss_reader(
         self,
         bookmarks: List[Bookmark],
         output_path: Path,
-        feed_urls: Optional[Dict[str, str]] = None
+        feed_urls: Optional[Dict[str, str]] = None,
     ) -> ExportResult:
         """
         Export bookmarks optimized for RSS reader import.
@@ -411,8 +389,8 @@ class OPMLExporter(BookmarkExporter):
                 format_name=f"{self.format_name} (RSS)",
                 additional_info={
                     "feeds_count": feeds_count,
-                    "links_count": len(bookmarks) - feeds_count
-                }
+                    "links_count": len(bookmarks) - feeds_count,
+                },
             )
 
         except Exception as e:
@@ -420,5 +398,5 @@ class OPMLExporter(BookmarkExporter):
                 f"Failed to export RSS OPML: {e}",
                 format_name=self.format_name,
                 path=path,
-                original_error=e
+                original_error=e,
             )

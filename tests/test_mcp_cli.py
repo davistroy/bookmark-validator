@@ -18,9 +18,11 @@ from bookmark_processor.core.data_models import Bookmark
 # Conditionally import CLI functions - may fail on Windows due to 'resource' module
 try:
     from bookmark_processor.cli import _parse_since, _display_bookmark_preview
+
     CLI_AVAILABLE = True
 except (ImportError, ModuleNotFoundError):
     CLI_AVAILABLE = False
+
     # Define stub functions for testing
     def _parse_since(since_str: str):
         """Parse a 'since' duration string into a datetime or timedelta."""
@@ -154,11 +156,7 @@ class TestEnhanceCommand:
     @pytest.fixture
     def temp_config_file(self):
         """Create a temporary config file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            suffix=".toml",
-            delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
             f.write("[raindrop]\n")
             f.write('mcp_server = "http://localhost:3000"\n')
             f.write('token = "test-token"\n')
@@ -204,13 +202,8 @@ class TestConfigCommand:
     def test_config_nested_key_navigation(self):
         """Test navigating nested configuration keys."""
         config_data = {
-            "raindrop": {
-                "mcp_server": "http://localhost:3000",
-                "token": "test-token"
-            },
-            "ai": {
-                "engine": "local"
-            }
+            "raindrop": {"mcp_server": "http://localhost:3000", "token": "test-token"},
+            "ai": {"engine": "local"},
         }
 
         # Navigate to raindrop.token
@@ -239,7 +232,7 @@ class TestRollbackCommand:
                     "title": "Original Title 1",
                     "note": "Original note",
                     "tags": ["tag1"],
-                    "folder": "Tech"
+                    "folder": "Tech",
                 },
                 {
                     "id": "2",
@@ -247,9 +240,9 @@ class TestRollbackCommand:
                     "title": "Original Title 2",
                     "note": "",
                     "tags": ["tag2"],
-                    "folder": "Research"
-                }
-            ]
+                    "folder": "Research",
+                },
+            ],
         }
 
         backup_file = tmp_path / "backup.json"
@@ -289,6 +282,7 @@ class TestDataSourceEnum:
         # Import inside test to ensure CLI module loads properly
         try:
             from bookmark_processor.cli import RICH_AVAILABLE
+
             if RICH_AVAILABLE:
                 # Only available when Typer/Rich is available
                 pass
@@ -310,9 +304,18 @@ class TestMCPIntegrationWithCLI:
         params = list(sig.parameters.keys())
 
         expected_params = [
-            "server_url", "token", "collection", "since_last_run",
-            "since", "dry_run", "preview_count", "verbose",
-            "ai_engine", "config", "console", "output_file"
+            "server_url",
+            "token",
+            "collection",
+            "since_last_run",
+            "since",
+            "dry_run",
+            "preview_count",
+            "verbose",
+            "ai_engine",
+            "config",
+            "console",
+            "output_file",
         ]
 
         for param in expected_params:

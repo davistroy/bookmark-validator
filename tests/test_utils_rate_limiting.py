@@ -30,7 +30,9 @@ class TestRateLimiter:
 
     def test_init_custom(self):
         """Test RateLimiter initialization with custom values."""
-        limiter = RateLimiter(requests_per_minute=120, burst_size=20, name="TestLimiter")
+        limiter = RateLimiter(
+            requests_per_minute=120, burst_size=20, name="TestLimiter"
+        )
 
         assert limiter.requests_per_minute == 120
         assert limiter.burst_size == 20

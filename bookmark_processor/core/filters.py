@@ -408,8 +408,14 @@ class StatusFilter(BookmarkFilter):
 
         # Validate status values
         valid_statuses = {
-            "validated", "invalid", "processed", "unprocessed",
-            "tags_optimized", "error", "content_extracted", "pending"
+            "validated",
+            "invalid",
+            "processed",
+            "unprocessed",
+            "tags_optimized",
+            "error",
+            "content_extracted",
+            "pending",
         }
         for status in self.statuses:
             if status not in valid_statuses:
@@ -634,6 +640,7 @@ class FilterChain:
 
 
 # Convenience factory functions
+
 
 def folder_filter(pattern: str) -> FolderFilter:
     """Create a folder filter with the given pattern."""

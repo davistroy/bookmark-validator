@@ -33,7 +33,6 @@ from bookmark_processor.config.pydantic_config import (
     format_config_error,
 )
 
-
 # ============================================================================
 # NetworkConfig Tests
 # ============================================================================
@@ -273,7 +272,9 @@ class TestAIConfig:
         assert config.claude_api_key is not None
         assert config.openai_api_key is not None
         assert config.claude_api_key.get_secret_value() == "sk-ant-api03-valid-key-here"
-        assert config.openai_api_key.get_secret_value() == "sk-proj-valid-openai-key-here"
+        assert (
+            config.openai_api_key.get_secret_value() == "sk-proj-valid-openai-key-here"
+        )
 
     def test_empty_api_key_becomes_none(self):
         """Test empty API key is converted to None."""
@@ -638,14 +639,15 @@ class TestConfigurationManager:
         # Create minimal config file
         config_file = tmp_path / "config.toml"
         with open(config_file, "w") as f:
-            toml.dump({
-                "processing": {"ai_engine": "local"}
-            }, f)
+            toml.dump({"processing": {"ai_engine": "local"}}, f)
 
-        with patch.dict(os.environ, {
-            "CLAUDE_API_KEY": "sk-ant-env-key",
-            "OPENAI_API_KEY": "sk-proj-env-key",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "CLAUDE_API_KEY": "sk-ant-env-key",
+                "OPENAI_API_KEY": "sk-proj-env-key",
+            },
+        ):
             manager = ConfigurationManager(config_path=config_file)
 
             assert manager.get_api_key("claude") == "sk-ant-env-key"
@@ -655,10 +657,13 @@ class TestConfigurationManager:
         """Test config file API key takes precedence over environment."""
         config_file = tmp_path / "config.toml"
         with open(config_file, "w") as f:
-            toml.dump({
-                "processing": {"ai_engine": "local"},
-                "ai": {"claude_api_key": "sk-ant-config-key"},
-            }, f)
+            toml.dump(
+                {
+                    "processing": {"ai_engine": "local"},
+                    "ai": {"claude_api_key": "sk-ant-config-key"},
+                },
+                f,
+            )
 
         with patch.dict(os.environ, {"CLAUDE_API_KEY": "sk-ant-env-key"}):
             manager = ConfigurationManager(config_path=config_file)
@@ -677,10 +682,13 @@ class TestConfigurationManager:
         """Test has_api_key method."""
         config_file = tmp_path / "config.toml"
         with open(config_file, "w") as f:
-            toml.dump({
-                "processing": {"ai_engine": "local"},
-                "ai": {"claude_api_key": "sk-ant-test-key"},
-            }, f)
+            toml.dump(
+                {
+                    "processing": {"ai_engine": "local"},
+                    "ai": {"claude_api_key": "sk-ant-test-key"},
+                },
+                f,
+            )
 
         manager = ConfigurationManager(config_path=config_file)
 
@@ -732,17 +740,22 @@ class TestConfigurationManager:
         """Test updating configuration from CLI arguments."""
         config_file = tmp_path / "config.toml"
         with open(config_file, "w") as f:
-            toml.dump({
-                "processing": {"batch_size": 100, "ai_engine": "local"},
-            }, f)
+            toml.dump(
+                {
+                    "processing": {"batch_size": 100, "ai_engine": "local"},
+                },
+                f,
+            )
 
         manager = ConfigurationManager(config_path=config_file)
 
-        manager.update_from_cli_args({
-            "batch_size": 200,
-            "max_retries": 5,
-            "ai_engine": "local",
-        })
+        manager.update_from_cli_args(
+            {
+                "batch_size": 200,
+                "max_retries": 5,
+                "ai_engine": "local",
+            }
+        )
 
         assert manager.config.processing.batch_size == 200
         assert manager.config.network.max_retries == 5
@@ -889,10 +902,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_missing(self):
         """Test formatting missing field error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "network.timeout",
-            "missing",
-            {"msg": "Field required"},
-            None
+            "network.timeout", "missing", {"msg": "Field required"}, None
         )
 
         assert "Required field is missing" in formatted
@@ -900,10 +910,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_value_error(self):
         """Test formatting value error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "ai.api_key",
-            "value_error",
-            {"msg": "Invalid value provided"},
-            "bad_value"
+            "ai.api_key", "value_error", {"msg": "Invalid value provided"}, "bad_value"
         )
 
         assert "Invalid value provided" in formatted
@@ -912,10 +919,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_type_error(self):
         """Test formatting type error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "network.timeout",
-            "type_error",
-            {"msg": "integer"},
-            "not_int"
+            "network.timeout", "type_error", {"msg": "integer"}, "not_int"
         )
 
         assert "integer" in formatted
@@ -924,10 +928,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_greater_than_equal(self):
         """Test formatting greater_than_equal error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "network.timeout",
-            "greater_than_equal",
-            {"ctx": {"limit_value": 5}},
-            3
+            "network.timeout", "greater_than_equal", {"ctx": {"limit_value": 5}}, 3
         )
 
         assert ">=" in formatted or "≥" in formatted
@@ -937,10 +938,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_less_than_equal(self):
         """Test formatting less_than_equal error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "network.timeout",
-            "less_than_equal",
-            {"ctx": {"limit_value": 300}},
-            500
+            "network.timeout", "less_than_equal", {"ctx": {"limit_value": 300}}, 500
         )
 
         assert "<=" in formatted or "≤" in formatted
@@ -953,7 +951,7 @@ class TestConfigurationErrorFormatter:
             "processing.ai_engine",
             "literal_error",
             {"ctx": {"expected": "'local', 'claude', or 'openai'"}},
-            "invalid"
+            "invalid",
         )
 
         assert "invalid" in formatted
@@ -962,10 +960,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_string_too_short(self):
         """Test formatting string_too_short error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "ai.api_key",
-            "string_too_short",
-            {"ctx": {"min_length": 10}},
-            "short"
+            "ai.api_key", "string_too_short", {"ctx": {"min_length": 10}}, "short"
         )
 
         assert "too short" in formatted.lower()
@@ -974,10 +969,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_string_too_long(self):
         """Test formatting string_too_long error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "field",
-            "string_too_long",
-            {"ctx": {"max_length": 100}},
-            "x" * 150
+            "field", "string_too_long", {"ctx": {"max_length": 100}}, "x" * 150
         )
 
         assert "too long" in formatted.lower()
@@ -986,10 +978,7 @@ class TestConfigurationErrorFormatter:
     def test_format_by_error_type_api_key_placeholder(self):
         """Test formatting API key placeholder error."""
         formatted = ConfigurationErrorFormatter._format_by_error_type(
-            "claude_api_key",
-            "value_error",
-            {"msg": "Invalid"},
-            "placeholder"
+            "claude_api_key", "value_error", {"msg": "Invalid"}, "placeholder"
         )
 
         assert "claude" in formatted.lower()
@@ -1001,7 +990,7 @@ class TestConfigurationErrorFormatter:
             "unknown_field",
             "unknown_error_type",
             {"msg": "Some error message"},
-            "value"
+            "value",
         )
 
         assert "Some error message" in formatted
@@ -1090,10 +1079,12 @@ class TestConfigurationIntegration:
         assert manager.config.checkpoint_interval == 75
 
         # Update from CLI args
-        manager.update_from_cli_args({
-            "batch_size": 200,
-            "ai_engine": "local",
-        })
+        manager.update_from_cli_args(
+            {
+                "batch_size": 200,
+                "ai_engine": "local",
+            }
+        )
 
         # Verify updates
         assert manager.config.processing.batch_size == 200
@@ -1107,14 +1098,20 @@ class TestConfigurationIntegration:
         """Test environment variable fallback for API keys."""
         config_file = tmp_path / "minimal.toml"
         with open(config_file, "w") as f:
-            toml.dump({
-                "processing": {"ai_engine": "local"},
-            }, f)
+            toml.dump(
+                {
+                    "processing": {"ai_engine": "local"},
+                },
+                f,
+            )
 
-        with patch.dict(os.environ, {
-            "CLAUDE_API_KEY": "sk-ant-from-env",
-            "OPENAI_API_KEY": "sk-from-env-openai",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "CLAUDE_API_KEY": "sk-ant-from-env",
+                "OPENAI_API_KEY": "sk-from-env-openai",
+            },
+        ):
             manager = ConfigurationManager(config_path=config_file)
 
             assert manager.has_api_key("claude")

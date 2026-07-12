@@ -36,7 +36,6 @@ from tests.fixtures.test_data import (
     create_sample_bookmark_objects,
 )
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -90,7 +89,9 @@ def temp_html_file():
     </DL><p>
 </DL><p>
 """
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", delete=False, encoding="utf-8"
+    ) as f:
         f.write(chrome_html_content)
         temp_path = f.name
 
@@ -172,8 +173,10 @@ class TestMultiFormatImporter:
     def test_detect_format_by_content_csv(self, multi_format_importer):
         """Test content-based format detection for CSV with raindrop header."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".dat", delete=False) as f:
-            f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
-            f.write('1,Test,,,https://example.com,,,,,,\n')
+            f.write(
+                "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+            )
+            f.write("1,Test,,,https://example.com,,,,,,\n")
             temp_path = f.name
 
         try:
@@ -228,7 +231,9 @@ class TestMultiFormatImporter:
             multi_format_importer.import_bookmarks("/nonexistent/file.csv")
         assert "File not found" in str(exc_info.value)
 
-    def test_import_bookmarks_unsupported_format(self, multi_format_importer, temp_unknown_file):
+    def test_import_bookmarks_unsupported_format(
+        self, multi_format_importer, temp_unknown_file
+    ):
         """Test import_bookmarks raises error for unsupported format."""
         with pytest.raises(BookmarkImportError) as exc_info:
             multi_format_importer.import_bookmarks(temp_unknown_file)
@@ -286,7 +291,9 @@ class TestMultiFormatImporter:
         assert info["is_supported"] is False
         assert info["estimated_bookmarks"] == 0
 
-    def test_get_file_info_unknown_format(self, multi_format_importer, temp_unknown_file):
+    def test_get_file_info_unknown_format(
+        self, multi_format_importer, temp_unknown_file
+    ):
         """Test get_file_info for unknown formats."""
         info = multi_format_importer.get_file_info(temp_unknown_file)
         assert info["exists"] is True
@@ -297,11 +304,15 @@ class TestMultiFormatImporter:
         """Test CSV import rejects files with invalid rows (empty URLs)."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             # Valid header
-            f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
+            f.write(
+                "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+            )
             # Valid row
-            f.write('1,Test,note,excerpt,https://example.com,folder,tag,2024-01-01T00:00:00Z,,,false\n')
+            f.write(
+                "1,Test,note,excerpt,https://example.com,folder,tag,2024-01-01T00:00:00Z,,,false\n"
+            )
             # Row with empty URL (invalid)
-            f.write('2,Invalid,,,,,,,,,\n')
+            f.write("2,Invalid,,,,,,,,,\n")
             temp_path = f.name
 
         try:
@@ -447,7 +458,9 @@ class TestBookmarkImporter:
     def test_import_csv_override_options(self, bookmark_importer, temp_csv_file):
         """Test import_csv with options override."""
         override_options = ImportOptions(validation_mode=ValidationMode.STRICT)
-        bookmarks = bookmark_importer.import_csv(temp_csv_file, options=override_options)
+        bookmarks = bookmark_importer.import_csv(
+            temp_csv_file, options=override_options
+        )
         assert len(bookmarks) > 0
 
     def test_get_import_statistics(self, bookmark_importer, temp_csv_file):
@@ -567,8 +580,12 @@ class TestBookmarkImporter:
         """Test _load_and_transform raises on error in strict mode."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             # Valid header but malformed data
-            f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
-            f.write('1,Test,note,excerpt,https://example.com,folder,tag,2024-01-01T00:00:00Z,,,false\n')
+            f.write(
+                "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+            )
+            f.write(
+                "1,Test,note,excerpt,https://example.com,folder,tag,2024-01-01T00:00:00Z,,,false\n"
+            )
             temp_path = f.name
 
         try:
@@ -581,7 +598,9 @@ class TestBookmarkImporter:
 
     def test_load_and_transform_with_encoding(self, bookmark_importer):
         """Test _load_and_transform with forced encoding."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=False, encoding="utf-8"
+        ) as f:
             df = create_sample_export_dataframe()
             df.to_csv(f, index=False)
             temp_path = f.name
@@ -696,7 +715,9 @@ class TestEdgeCases:
             "validate_file",
             side_effect=Exception("Test error"),
         ):
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".html", delete=False
+            ) as f:
                 f.write("test content")
                 temp_path = f.name
 
@@ -723,8 +744,12 @@ class TestEdgeCases:
     def test_import_csv_with_row_errors(self, multi_format_importer):
         """Test CSV import logs warnings for problematic rows."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
-            f.write("id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n")
-            f.write('1,Valid,note,excerpt,https://example.com,folder,tag,2024-01-01T00:00:00Z,,,false\n')
+            f.write(
+                "id,title,note,excerpt,url,folder,tags,created,cover,highlights,favorite\n"
+            )
+            f.write(
+                "1,Valid,note,excerpt,https://example.com,folder,tag,2024-01-01T00:00:00Z,,,false\n"
+            )
             temp_path = f.name
 
         try:

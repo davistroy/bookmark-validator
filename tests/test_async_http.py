@@ -88,9 +88,7 @@ class TestAsyncRateLimiter:
 
     def test_domain_limit_lookup(self):
         """Test domain-specific limit lookup."""
-        config = RateLimitConfig(
-            domain_limits={"github.com": 1.5, "google.com": 2.0}
-        )
+        config = RateLimitConfig(domain_limits={"github.com": 1.5, "google.com": 2.0})
         limiter = AsyncRateLimiter(config)
         assert limiter._get_domain_limit("github.com") == 1.5
         assert limiter._get_domain_limit("api.github.com") == 1.5
@@ -182,14 +180,16 @@ class TestValidateUrlsBatch:
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
-            mock_client.validate_urls = AsyncMock(return_value=[
-                HTTPResponse(
-                    url="https://example.com",
-                    status_code=200,
-                    headers={},
-                    is_success=True,
-                )
-            ])
+            mock_client.validate_urls = AsyncMock(
+                return_value=[
+                    HTTPResponse(
+                        url="https://example.com",
+                        status_code=200,
+                        headers={},
+                        is_success=True,
+                    )
+                ]
+            )
             mock_class.return_value = mock_client
 
             results = await validate_urls_batch(["https://example.com"])

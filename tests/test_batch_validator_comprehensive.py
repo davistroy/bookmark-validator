@@ -37,7 +37,6 @@ from bookmark_processor.core.batch_types import (
 from bookmark_processor.core.batch_validator import EnhancedBatchProcessor
 from bookmark_processor.core.batch_validator.cost_tracking import CostTrackingMixin
 
-
 # =============================================================================
 # Test Fixtures and Mock Classes
 # =============================================================================
@@ -290,7 +289,9 @@ class TestCostTrackingMixinBudgetChecking:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_check_budget_and_confirm_exceeds_budget_with_tracker_user_confirms(self):
+    async def test_check_budget_and_confirm_exceeds_budget_with_tracker_user_confirms(
+        self,
+    ):
         """Test budget check with tracker when user confirms."""
         config = BatchConfig(
             enable_cost_tracking=True,
@@ -308,7 +309,9 @@ class TestCostTrackingMixinBudgetChecking:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_check_budget_and_confirm_exceeds_budget_with_tracker_user_declines(self):
+    async def test_check_budget_and_confirm_exceeds_budget_with_tracker_user_declines(
+        self,
+    ):
         """Test budget check with tracker when user declines."""
         config = BatchConfig(
             enable_cost_tracking=True,
@@ -363,7 +366,9 @@ class TestCostTrackingMixinBudgetChecking:
         # Session cost should be back to 0 after removing temp record
 
     @pytest.mark.asyncio
-    async def test_check_budget_and_confirm_threshold_without_tracker_user_confirms(self):
+    async def test_check_budget_and_confirm_threshold_without_tracker_user_confirms(
+        self,
+    ):
         """Test confirmation threshold without tracker when user confirms."""
         config = BatchConfig(
             enable_cost_tracking=True,
@@ -775,7 +780,9 @@ class TestEnhancedBatchProcessorCostIntegration:
         # Should use fallback calculation
         assert result.actual_cost is not None
         expected_cost = 10 * 0.001  # items * cost_per_url
-        assert result.actual_cost == pytest.approx(expected_cost * (0.5 + 0.5 * 1.0), rel=0.1)
+        assert result.actual_cost == pytest.approx(
+            expected_cost * (0.5 + 0.5 * 1.0), rel=0.1
+        )
 
     def test_process_single_batch_error_partial_cost(self):
         """Test partial cost is recorded for failed batches."""
@@ -873,8 +880,9 @@ class TestEnhancedBatchProcessorAsyncProcessing:
 
         # Mock async processing to fail
         with patch.object(
-            batch_processor, "_async_process_batches",
-            side_effect=Exception("Async failed")
+            batch_processor,
+            "_async_process_batches",
+            side_effect=Exception("Async failed"),
         ):
             results = batch_processor._process_all_async()
 
@@ -1017,7 +1025,9 @@ class TestEnhancedBatchProcessorRetryLogic:
 
         assert len(results) > 0
         # Should have emitted progress updates for retry
-        retry_updates = [u for u in progress_updates if "retry" in u.current_stage.lower()]
+        retry_updates = [
+            u for u in progress_updates if "retry" in u.current_stage.lower()
+        ]
         assert len(retry_updates) > 0
 
     def test_retry_failed_batches_handles_retry_failure(self):
@@ -1075,8 +1085,7 @@ class TestEnhancedBatchProcessorRetryLogic:
         )
 
         with patch.object(
-            batch_processor, "_async_process_single_batch",
-            side_effect=sometimes_fail
+            batch_processor, "_async_process_single_batch", side_effect=sometimes_fail
         ):
             results = await batch_processor._async_retry_failed_batches()
 

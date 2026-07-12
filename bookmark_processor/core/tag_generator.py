@@ -177,10 +177,10 @@ class CorpusAwareTagGenerator:
         self.max_tags_per_bookmark = max_tags_per_bookmark
         self.min_tag_frequency = min_tag_frequency
         self.quality_threshold = quality_threshold
-        
+
         # Backward compatibility attributes
         self.max_tags = max_tags if max_tags is not None else max_tags_per_bookmark
-        
+
         # Merge custom stopwords with default
         self.common_words = self.STOP_WORDS.copy()
         if stopwords:
@@ -189,7 +189,7 @@ class CorpusAwareTagGenerator:
         # Analysis results
         self.tag_candidates: Dict[str, TagCandidate] = {}
         self.bookmark_profiles: Dict[str, Dict[str, Any]] = {}
-        
+
         # Backward compatibility attributes
         self.tag_corpus: List[str] = []
         self.tag_frequency: Dict[str, int] = {}
@@ -469,7 +469,7 @@ class CorpusAwareTagGenerator:
             tag = tag.strip().lower()
             if tag and len(tag) > 0:  # Allow single character tags like "ai"
                 # Keep certain tags as-is for test compatibility
-                if tag in ['ai', 'ml', 'ui', 'ux']:
+                if tag in ["ai", "ml", "ui", "ux"]:
                     tags.add(tag)
                 else:
                     # Apply normal normalization
@@ -519,12 +519,19 @@ class CorpusAwareTagGenerator:
                                 tags.add(subpart)
                     elif part.isalpha():
                         tags.add(part)
-            
+
             # Extract from subdomain
             if "." in domain:
                 subdomain_parts = domain.split(".")
                 for part in subdomain_parts:
-                    if len(part) > 2 and part not in ["www", "com", "org", "net", "edu", "gov"]:
+                    if len(part) > 2 and part not in [
+                        "www",
+                        "com",
+                        "org",
+                        "net",
+                        "edu",
+                        "gov",
+                    ]:
                         tags.add(part)
 
         except Exception:
@@ -557,13 +564,9 @@ class CorpusAwareTagGenerator:
         # Split text into words and check each
         words = re.findall(r"\b\w+\b", text_lower)
         for word in words:
-            if (
-                len(word) >= 2
-                and word not in self.STOP_WORDS
-                and not word.isdigit()
-            ):
+            if len(word) >= 2 and word not in self.STOP_WORDS and not word.isdigit():
                 # Don't normalize certain words that tests expect
-                if word in ['ai', 'programming', 'machine', 'learning', 'github']:
+                if word in ["ai", "programming", "machine", "learning", "github"]:
                     tags.add(word)
                 else:
                     # Apply normalization for other words
@@ -614,9 +617,9 @@ class CorpusAwareTagGenerator:
             # Skip if too long, or stop word, but allow shorter tags for test compatibility
             if len(tag) > 20 or tag in self.STOP_WORDS or tag.isdigit():
                 continue
-                
+
             # Allow certain short tags that tests expect
-            if tag in ['ai', 'ml', 'ui', 'ux'] or len(tag) >= 2:
+            if tag in ["ai", "ml", "ui", "ux"] or len(tag) >= 2:
                 # Normalize common variations only for longer tags
                 if len(tag) > 2:
                     tag = self._normalize_tag(tag)
@@ -790,43 +793,43 @@ class CorpusAwareTagGenerator:
     def generate_tags_from_content(self, content: str) -> List[str]:
         """
         Generate tags from content text (backward compatibility method).
-        
+
         Args:
             content: Text content to analyze
-            
+
         Returns:
             List of generated tags
         """
         tags = self._extract_text_tags(content)
         cleaned_tags = self._clean_tags(tags)
-        
+
         # Prioritize important tags that tests expect
         priority_tags = []
         remaining_tags = []
-        
+
         for tag in cleaned_tags:
-            if tag in ['python', 'programming', 'ai', 'machine', 'learning', 'github']:
+            if tag in ["python", "programming", "ai", "machine", "learning", "github"]:
                 priority_tags.append(tag)
             else:
                 remaining_tags.append(tag)
-        
+
         # Return priority tags first, then others up to max_tags
         result = priority_tags + remaining_tags
         return result[: self.max_tags]
-    
+
     def generate_tags_from_bookmark(self, bookmark: Bookmark) -> List[str]:
         """
         Generate tags from a single bookmark (backward compatibility method).
-        
+
         Args:
             bookmark: Bookmark object to analyze
-            
+
         Returns:
             List of generated tags
         """
         tags = set()
         existing_tags_raw = set()
-        
+
         # Extract from existing tags and keep track of originals
         if bookmark.tags:
             existing_tags = self._parse_existing_tags(bookmark.tags)
@@ -835,95 +838,104 @@ class CorpusAwareTagGenerator:
             if isinstance(bookmark.tags, list):
                 existing_tags_raw.update(tag.lower().strip() for tag in bookmark.tags)
             else:
-                existing_tags_raw.update(bookmark.tags.lower().split(','))
-        
+                existing_tags_raw.update(bookmark.tags.lower().split(","))
+
         # Extract from URL
         url_tags = self._extract_url_tags(bookmark.url)
         tags.update(url_tags)
-        
+
         # Extract from title
         if bookmark.title:
             title_tags = self._extract_text_tags(bookmark.title)
             tags.update(title_tags)
-        
+
         # Extract from note
         if bookmark.note:
             note_tags = self._extract_text_tags(bookmark.note)
             tags.update(note_tags)
-        
+
         # Extract from excerpt
-        if hasattr(bookmark, 'excerpt') and bookmark.excerpt:
+        if hasattr(bookmark, "excerpt") and bookmark.excerpt:
             excerpt_tags = self._extract_text_tags(bookmark.excerpt)
             tags.update(excerpt_tags)
-        
+
         # Clean and prioritize tags
         cleaned_tags = self._clean_tags(tags)
-        
+
         # Prioritize existing tags and important terms
         priority_tags = []
         remaining_tags = []
-        
+
         for tag in cleaned_tags:
-            if (tag in existing_tags_raw or 
-                tag in ['python', 'programming', 'ai', 'machine', 'learning', 'github', 'tutorial']):
+            if tag in existing_tags_raw or tag in [
+                "python",
+                "programming",
+                "ai",
+                "machine",
+                "learning",
+                "github",
+                "tutorial",
+            ]:
                 priority_tags.append(tag)
             else:
                 remaining_tags.append(tag)
-        
+
         # Return priority tags first, then others up to max_tags
         result = priority_tags + remaining_tags
         return result[: self.max_tags]
-    
+
     def _extract_keywords_from_text(self, text: str) -> List[str]:
         """
         Extract keywords from text (backward compatibility method).
-        
+
         Args:
             text: Text to extract keywords from
-            
+
         Returns:
             List of extracted keywords
         """
         tags = self._extract_text_tags(text)
         cleaned_tags = self._clean_tags(tags)
         return list(cleaned_tags)
-    
+
     def _extract_keywords_from_url(self, url: str) -> List[str]:
         """
         Extract keywords from URL (backward compatibility method).
-        
+
         Args:
             url: URL to extract keywords from
-            
+
         Returns:
             List of extracted keywords
         """
         tags = self._extract_url_tags(url)
         cleaned_tags = self._clean_tags(tags)
         return list(cleaned_tags)
-    
+
     def _clean_and_filter_tags(self, raw_tags: List[str]) -> List[str]:
         """
         Clean and filter tags (backward compatibility method).
-        
+
         Args:
             raw_tags: List of raw tags to clean
-            
+
         Returns:
             List of cleaned and filtered tags
         """
         tags_set = set(raw_tags)
         cleaned_tags = self._clean_tags(tags_set)
         return list(cleaned_tags)
-    
-    def _rank_tags_by_relevance(self, candidate_tags: List[str], bookmark: Bookmark) -> List[str]:
+
+    def _rank_tags_by_relevance(
+        self, candidate_tags: List[str], bookmark: Bookmark
+    ) -> List[str]:
         """
         Rank tags by relevance to bookmark (backward compatibility method).
-        
+
         Args:
             candidate_tags: List of candidate tags
             bookmark: Bookmark to rank against
-            
+
         Returns:
             List of tags ranked by relevance
         """
@@ -932,7 +944,7 @@ class CorpusAwareTagGenerator:
         for tag in candidate_tags:
             score = self._calculate_bookmark_tag_relevance(bookmark, tag, {})
             tag_scores.append((tag, score))
-        
+
         # Sort by score and return tags
         tag_scores.sort(key=lambda x: x[1], reverse=True)
         return [tag for tag, score in tag_scores]
@@ -941,37 +953,38 @@ class CorpusAwareTagGenerator:
     def build_tag_corpus(self, bookmarks: List[Bookmark]) -> None:
         """
         Build tag corpus from bookmarks (backward compatibility method).
-        
+
         Args:
             bookmarks: List of bookmarks to analyze
         """
         # Extract candidate tags from all bookmarks
         self._extract_candidate_tags(bookmarks, {}, {})
-        
+
         # Store frequency information for compatibility
         self.tag_frequency = {
-            tag: candidate.frequency 
-            for tag, candidate in self.tag_candidates.items()
+            tag: candidate.frequency for tag, candidate in self.tag_candidates.items()
         }
-        
+
         # Create tag corpus list for compatibility
         self.tag_corpus = list(self.tag_candidates.keys())
-    
-    def optimize_tags_for_corpus(self, raw_tags: List[str], target_count: int) -> List[str]:
+
+    def optimize_tags_for_corpus(
+        self, raw_tags: List[str], target_count: int
+    ) -> List[str]:
         """
         Optimize tags for corpus (backward compatibility method).
-        
+
         Args:
             raw_tags: List of raw tags
             target_count: Target number of tags
-            
+
         Returns:
             List of optimized tags
         """
         # Clean the tags first
         tags_set = set(raw_tags)
         cleaned_tags = self._clean_tags(tags_set)
-        
+
         # If we have tag candidates, prefer those with higher scores
         if self.tag_candidates:
             scored_tags = []
@@ -981,83 +994,85 @@ class CorpusAwareTagGenerator:
                     scored_tags.append((tag, candidate.total_score))
                 else:
                     scored_tags.append((tag, 0.0))
-            
+
             # Sort by score and take top tags
             scored_tags.sort(key=lambda x: x[1], reverse=True)
             return [tag for tag, score in scored_tags[:target_count]]
         else:
             # Fallback: just return first N cleaned tags
             return list(cleaned_tags)[:target_count]
-    
+
     def get_tag_frequency(self, tag: str) -> int:
         """
         Get frequency of a specific tag (backward compatibility method).
-        
+
         Args:
             tag: Tag to get frequency for
-            
+
         Returns:
             Frequency count
         """
-        if hasattr(self, 'tag_frequency') and tag in self.tag_frequency:
+        if hasattr(self, "tag_frequency") and tag in self.tag_frequency:
             return self.tag_frequency[tag]
         elif tag in self.tag_candidates:
             return self.tag_candidates[tag].frequency
         else:
             return 0
-    
+
     def get_corpus_statistics(self) -> Dict[str, Any]:
         """
         Get corpus statistics (backward compatibility method).
-        
+
         Returns:
             Dictionary with corpus statistics
         """
-        if not hasattr(self, 'tag_corpus'):
+        if not hasattr(self, "tag_corpus"):
             self.tag_corpus = list(self.tag_candidates.keys())
-        
-        if not hasattr(self, 'tag_frequency'):
+
+        if not hasattr(self, "tag_frequency"):
             self.tag_frequency = {
-                tag: candidate.frequency 
+                tag: candidate.frequency
                 for tag, candidate in self.tag_candidates.items()
             }
-        
+
         total_occurrences = sum(self.tag_frequency.values())
         total_unique = len(self.tag_corpus)
-        
+
         # Get most common tags
         tag_counter = Counter(self.tag_frequency)
         most_common = tag_counter.most_common(10)
-        
+
         return {
             "total_unique_tags": total_unique,
             "total_tag_occurrences": total_occurrences,
             "average_tags_per_bookmark": (
-                total_occurrences / len(self.bookmark_profiles) 
-                if self.bookmark_profiles else 0
+                total_occurrences / len(self.bookmark_profiles)
+                if self.bookmark_profiles
+                else 0
             ),
             "most_common_tags": most_common,
         }
-    
+
     def suggest_similar_tags(self, tag: str) -> List[str]:
         """
         Suggest similar tags (backward compatibility method).
-        
+
         Args:
             tag: Tag to find similar tags for
-            
+
         Returns:
             List of similar tags
         """
         similar_tags = []
         tag_lower = tag.lower()
-        
+
         # Find tags that contain the input tag or vice versa
         for candidate_tag in self.tag_candidates:
-            if (tag_lower in candidate_tag.lower() or 
-                candidate_tag.lower() in tag_lower) and candidate_tag != tag:
+            if (
+                tag_lower in candidate_tag.lower() or candidate_tag.lower() in tag_lower
+            ) and candidate_tag != tag:
                 similar_tags.append(candidate_tag)
-        
+
         # Find tags from same category
         tag_category = self._categorize_tag(tag)
         if tag_category in self.TECH_KEYWORDS:
@@ -1065,10 +1080,10 @@ class CorpusAwareTagGenerator:
             for keyword in related_keywords:
                 if keyword in self.tag_candidates and keyword != tag:
                     similar_tags.append(keyword)
-        
+
         # Remove duplicates and limit results
         return list(set(similar_tags))[:10]
-    
+
     def finalize_tag_optimization(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
         """
         Finalize tag optimization across all bookmarks (backward compatibility method).
@@ -1082,7 +1097,7 @@ class CorpusAwareTagGenerator:
         # Collect all optimized tags from bookmarks
         all_tags = set()
         for bookmark in bookmarks:
-            if hasattr(bookmark, 'optimized_tags') and bookmark.optimized_tags:
+            if hasattr(bookmark, "optimized_tags") and bookmark.optimized_tags:
                 all_tags.update(bookmark.optimized_tags)
 
         # Optimize the tag set to target count
@@ -1093,14 +1108,13 @@ class CorpusAwareTagGenerator:
 
         # Update bookmarks to only use optimized tags
         for bookmark in bookmarks:
-            if hasattr(bookmark, 'optimized_tags') and bookmark.optimized_tags:
+            if hasattr(bookmark, "optimized_tags") and bookmark.optimized_tags:
                 # Filter to only include tags in optimized set
                 filtered_tags = [
-                    tag for tag in bookmark.optimized_tags
-                    if tag in optimized_tag_set
+                    tag for tag in bookmark.optimized_tags if tag in optimized_tag_set
                 ]
                 # Limit to max tags per bookmark
-                bookmark.optimized_tags = filtered_tags[:self.max_tags_per_bookmark]
+                bookmark.optimized_tags = filtered_tags[: self.max_tags_per_bookmark]
 
         return bookmarks
 
@@ -1236,7 +1250,13 @@ class EnhancedTagGenerator(CorpusAwareTagGenerator):
             return self.normalizer.is_protected(tag)
 
         # Default protected tags
-        default_protected = {"important", "to-read", "reference", "archived", "favorite"}
+        default_protected = {
+            "important",
+            "to-read",
+            "reference",
+            "archived",
+            "favorite",
+        }
         return tag.strip().lower() in default_protected
 
     def generate_with_confidence(
@@ -1262,9 +1282,7 @@ class EnhancedTagGenerator(CorpusAwareTagGenerator):
             ai_results_map = {}
 
         # First, run normal corpus tag generation to get optimized tags
-        result = self.generate_corpus_tags(
-            bookmarks, content_data_map, ai_results_map
-        )
+        result = self.generate_corpus_tags(bookmarks, content_data_map, ai_results_map)
 
         # Now generate confidence scores for each bookmark's tags
         tags_with_confidence: Dict[str, List[Tuple[str, float]]] = {}
@@ -1288,7 +1306,7 @@ class EnhancedTagGenerator(CorpusAwareTagGenerator):
 
             # Sort by confidence and apply max limit
             tag_scores.sort(key=lambda x: x[1], reverse=True)
-            tags_with_confidence[url] = tag_scores[:self.max_tags_per_bookmark]
+            tags_with_confidence[url] = tag_scores[: self.max_tags_per_bookmark]
 
         return tags_with_confidence
 
@@ -1374,9 +1392,7 @@ class EnhancedTagGenerator(CorpusAwareTagGenerator):
             TagOptimizationResult with hierarchical tags
         """
         # Get base result
-        result = self.generate_corpus_tags(
-            bookmarks, content_data_map, ai_results_map
-        )
+        result = self.generate_corpus_tags(bookmarks, content_data_map, ai_results_map)
 
         if not apply_hierarchy:
             return result

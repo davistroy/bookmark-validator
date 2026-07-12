@@ -58,7 +58,6 @@ from .mcp_client import (
 
 from .raindrop_mcp import RaindropMCPDataSource
 
-
 __all__ = [
     # Protocol and base classes
     "BookmarkDataSource",

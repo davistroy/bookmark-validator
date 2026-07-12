@@ -17,7 +17,6 @@ from bookmark_processor.core.claude_api_client import ClaudeAPIClient
 from bookmark_processor.core.data_models import Bookmark
 from bookmark_processor.core.structured_output import BookmarkEnhancement
 
-
 # ============================================================================
 # Test Fixtures
 # ============================================================================
@@ -144,7 +143,9 @@ class TestPromptCreation:
         assert "Existing content here" in prompt
         assert "Requirements:" in prompt
 
-    def test_create_bookmark_prompt_minimal(self, claude_client, sample_bookmark_minimal):
+    def test_create_bookmark_prompt_minimal(
+        self, claude_client, sample_bookmark_minimal
+    ):
         """Test prompt creation with minimal bookmark data."""
         prompt = claude_client._create_bookmark_prompt(sample_bookmark_minimal)
 
@@ -197,7 +198,9 @@ class TestPromptCreation:
         # Content should be truncated with ellipsis
         assert "..." in prompt
 
-    def test_create_batch_prompt_with_existing_content(self, claude_client, sample_bookmark):
+    def test_create_batch_prompt_with_existing_content(
+        self, claude_client, sample_bookmark
+    ):
         """Test batch prompt with existing content provided."""
         bookmarks = [sample_bookmark]
         existing_content = ["Custom existing content"]
@@ -289,7 +292,10 @@ class TestGenerateDescription:
         """Test handling of empty response."""
         claude_client.rate_limiter = mock_rate_limiter
 
-        mock_response = {"content": [], "usage": {"input_tokens": 100, "output_tokens": 0}}
+        mock_response = {
+            "content": [],
+            "usage": {"input_tokens": 100, "output_tokens": 0},
+        }
 
         with patch.object(
             claude_client, "_make_request", new_callable=AsyncMock
@@ -781,7 +787,9 @@ class TestIntegration:
     """Integration-like tests for ClaudeAPIClient."""
 
     @pytest.mark.asyncio
-    async def test_full_flow_with_context_manager(self, sample_bookmark, mock_rate_limiter):
+    async def test_full_flow_with_context_manager(
+        self, sample_bookmark, mock_rate_limiter
+    ):
         """Test full flow using async context manager."""
         client = ClaudeAPIClient(api_key="test-key")
         client.rate_limiter = mock_rate_limiter
@@ -807,7 +815,9 @@ class TestIntegration:
             ) as mock_request:
                 mock_request.return_value = mock_response
 
-                description, metadata = await client.generate_description(sample_bookmark)
+                description, metadata = await client.generate_description(
+                    sample_bookmark
+                )
 
         assert description == "Test description"
         assert metadata["provider"] == "claude"

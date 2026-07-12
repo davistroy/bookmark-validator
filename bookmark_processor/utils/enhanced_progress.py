@@ -220,28 +220,32 @@ class EnhancedProgressTracker:
     """
 
     # Default stage weights (should sum to 1.0)
-    STAGE_WEIGHTS: Dict[str, float] = field(default_factory=lambda: {
-        ProcessingStage.INITIALIZATION.value: 0.02,
-        ProcessingStage.LOADING.value: 0.03,
-        ProcessingStage.DEDUPLICATION.value: 0.02,
-        ProcessingStage.URL_VALIDATION.value: 0.15,
-        ProcessingStage.CONTENT_ANALYSIS.value: 0.25,
-        ProcessingStage.AI_PROCESSING.value: 0.38,
-        ProcessingStage.TAG_OPTIMIZATION.value: 0.10,
-        ProcessingStage.OUTPUT_GENERATION.value: 0.05,
-    })
+    STAGE_WEIGHTS: Dict[str, float] = field(
+        default_factory=lambda: {
+            ProcessingStage.INITIALIZATION.value: 0.02,
+            ProcessingStage.LOADING.value: 0.03,
+            ProcessingStage.DEDUPLICATION.value: 0.02,
+            ProcessingStage.URL_VALIDATION.value: 0.15,
+            ProcessingStage.CONTENT_ANALYSIS.value: 0.25,
+            ProcessingStage.AI_PROCESSING.value: 0.38,
+            ProcessingStage.TAG_OPTIMIZATION.value: 0.10,
+            ProcessingStage.OUTPUT_GENERATION.value: 0.05,
+        }
+    )
 
     # Stage display names
-    STAGE_NAMES: Dict[str, str] = field(default_factory=lambda: {
-        ProcessingStage.INITIALIZATION.value: "Initialization",
-        ProcessingStage.LOADING.value: "Loading Data",
-        ProcessingStage.DEDUPLICATION.value: "Deduplication",
-        ProcessingStage.URL_VALIDATION.value: "URL Validation",
-        ProcessingStage.CONTENT_ANALYSIS.value: "Content Analysis",
-        ProcessingStage.AI_PROCESSING.value: "AI Processing",
-        ProcessingStage.TAG_OPTIMIZATION.value: "Tag Optimization",
-        ProcessingStage.OUTPUT_GENERATION.value: "Output Generation",
-    })
+    STAGE_NAMES: Dict[str, str] = field(
+        default_factory=lambda: {
+            ProcessingStage.INITIALIZATION.value: "Initialization",
+            ProcessingStage.LOADING.value: "Loading Data",
+            ProcessingStage.DEDUPLICATION.value: "Deduplication",
+            ProcessingStage.URL_VALIDATION.value: "URL Validation",
+            ProcessingStage.CONTENT_ANALYSIS.value: "Content Analysis",
+            ProcessingStage.AI_PROCESSING.value: "AI Processing",
+            ProcessingStage.TAG_OPTIMIZATION.value: "Tag Optimization",
+            ProcessingStage.OUTPUT_GENERATION.value: "Output Generation",
+        }
+    )
 
     total_bookmarks: int = 0
     start_time: Optional[datetime] = None
@@ -341,7 +345,8 @@ class EnhancedProgressTracker:
     def _estimate_stage_duration(self, stage: StageProgress) -> timedelta:
         """Estimate duration for a pending stage based on completed stages."""
         completed_stages = [
-            s for s in self.stages.values()
+            s
+            for s in self.stages.values()
             if s.status == StageStatus.COMPLETED and s.elapsed_time.total_seconds() > 0
         ]
 
@@ -365,6 +370,7 @@ class EnhancedProgressTracker:
         """Get current memory usage in MB."""
         try:
             import psutil
+
             process = psutil.Process()
             return process.memory_info().rss / 1024 / 1024
         except ImportError:
@@ -549,9 +555,7 @@ class EnhancedProgressTracker:
         if stage.status == StageStatus.COMPLETED:
             elapsed = stage.format_duration(stage.elapsed_time)
             bar = self._create_progress_bar(100)
-            console.print(
-                f"Stage: {name:20} {bar} 100% [green]{icon}[/] ({elapsed})"
-            )
+            console.print(f"Stage: {name:20} {bar} 100% [green]{icon}[/] ({elapsed})")
         elif stage.status == StageStatus.IN_PROGRESS:
             pct = stage.progress_percentage
             eta = stage.format_duration(stage.eta)
@@ -562,11 +566,11 @@ class EnhancedProgressTracker:
                 f"({elapsed} / ~{eta} left)"
             )
         else:  # PENDING
-            eta = stage.format_duration(stage.estimated_duration or self._estimate_stage_duration(stage))
-            bar = self._create_progress_bar(0)
-            console.print(
-                f"Stage: {name:20} {bar}   0% [dim]{icon}[/] (~{eta})"
+            eta = stage.format_duration(
+                stage.estimated_duration or self._estimate_stage_duration(stage)
             )
+            bar = self._create_progress_bar(0)
+            console.print(f"Stage: {name:20} {bar}   0% [dim]{icon}[/] (~{eta})")
 
     def _create_progress_bar(self, percentage: float, width: int = 20) -> str:
         """Create a text-based progress bar."""
@@ -634,7 +638,9 @@ class EnhancedProgressTracker:
         memory = self.memory_usage_mb
         filled = int(20 * overall_pct / 100)
         bar = "#" * filled + "." * (20 - filled)
-        lines.append(f"Overall: [{bar}] {overall_pct:5.1f}% | ETA: {eta} | Memory: {memory:.1f}MB")
+        lines.append(
+            f"Overall: [{bar}] {overall_pct:5.1f}% | ETA: {eta} | Memory: {memory:.1f}MB"
+        )
 
         lines.append("-" * 60)
 
@@ -647,7 +653,9 @@ class EnhancedProgressTracker:
         # Speed and errors
         speed = self.overall_speed
         error_rate = self.overall_error_rate
-        lines.append(f"Speed: {speed:.1f} URLs/min | Errors: {self.total_errors:,} ({error_rate:.1f}%)")
+        lines.append(
+            f"Speed: {speed:.1f} URLs/min | Errors: {self.total_errors:,} ({error_rate:.1f}%)"
+        )
 
         return "\n".join(lines)
 
@@ -711,7 +719,9 @@ class EnhancedProgressTracker:
         overall_text = Text()
         overall_text.append("Overall: ")
         overall_text.append(self._create_progress_bar(overall_pct))
-        overall_text.append(f" {overall_pct:5.1f}% | ETA: {eta} | Memory: {memory:.1f}MB")
+        overall_text.append(
+            f" {overall_pct:5.1f}% | ETA: {eta} | Memory: {memory:.1f}MB"
+        )
         table.add_row(overall_text)
 
         table.add_row(Text("\u2500" * 60, style="dim"))
@@ -721,13 +731,17 @@ class EnhancedProgressTracker:
             current_text = Text()
             current_text.append("Current: ")
             current_text.append(self.current_item, style="cyan")
-            current_text.append(f" ({self.current_item_index:,}/{self.total_bookmarks:,})")
+            current_text.append(
+                f" ({self.current_item_index:,}/{self.total_bookmarks:,})"
+            )
             table.add_row(current_text)
 
         # Speed and errors row
         speed = self.overall_speed
         error_rate = self.overall_error_rate
-        error_style = "red" if error_rate > 5 else "yellow" if error_rate > 1 else "green"
+        error_style = (
+            "red" if error_rate > 5 else "yellow" if error_rate > 1 else "green"
+        )
 
         stats_text = Text()
         stats_text.append(f"Speed: ")
